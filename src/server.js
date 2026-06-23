@@ -258,18 +258,10 @@ initialize().then(() => {
   const consoleURL = getConsoleUrl()
   const consolePath = resolveConsolePath()
 
-  // File-based TLS configuration
-  const tlsKey = process.env.TLS_PATH_KEY || config.get('server.tls.path.key')
-  const tlsCert = process.env.TLS_PATH_CERT || config.get('server.tls.path.cert')
-  const intermedKey = process.env.TLS_PATH_INTERMEDIATE_CERT || config.get('server.tls.path.intermediateCert')
-
-  // Base64 TLS configuration
-  const tlsKeyBase64 = process.env.TLS_BASE64_KEY || config.get('server.tls.base64.key')
-  const tlsCertBase64 = process.env.TLS_BASE64_CERT || config.get('server.tls.base64.cert')
-  const intermedKeyBase64 = process.env.TLS_BASE64_INTERMEDIATE_CERT || config.get('server.tls.base64.intermediateCert')
-
-  const hasFileBasedTLS = !devMode && tlsKey && tlsCert
-  const hasBase64TLS = !devMode && tlsKeyBase64 && tlsCertBase64
+  const { getListenerTlsMaterial } = require('./utils/tls-config')
+  const tlsMaterial = getListenerTlsMaterial()
+  const hasFileBasedTLS = tlsMaterial.enabled && !tlsMaterial.isBase64
+  const hasBase64TLS = tlsMaterial.enabled && tlsMaterial.isBase64
 
   consoleApp.use(express.static(consolePath, { index: 'index.html' }))
   consoleApp.get('*', (req, res, next) => {
@@ -375,9 +367,9 @@ initialize().then(() => {
         startHttpsServer(
           { api: app, console: consoleApp },
           { api: apiPort, console: consolePort },
-          tlsKey,
-          tlsCert,
-          intermedKey,
+          tlsMaterial.key,
+          tlsMaterial.cert,
+          tlsMaterial.intermediateCert,
           jobs,
           false
         )
@@ -385,9 +377,9 @@ initialize().then(() => {
         startHttpsServer(
           { api: app, console: consoleApp },
           { api: apiPort, console: consolePort },
-          tlsKeyBase64,
-          tlsCertBase64,
-          intermedKeyBase64,
+          tlsMaterial.key,
+          tlsMaterial.cert,
+          tlsMaterial.intermediateCert,
           jobs,
           true
         )

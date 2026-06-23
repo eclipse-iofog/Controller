@@ -25,6 +25,8 @@ const path = require('path')
 const { microserviceState } = require('../../../src/enums/microservice-state')
 const FogStates = require('../../../src/enums/fog-state')
 const constants = require('../../../src/helpers/constants')
+const config = require('../../../src/config')
+const Errors = require('../../../src/helpers/errors')
 
 global.appRoot = path.resolve(__dirname)
 
@@ -1682,6 +1684,58 @@ describe('Agent Service', () => {
     context('when ioFogManager#delete() succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
+      })
+    })
+  })
+
+  describe('.getControllerCA()', () => {
+    const fs = require('fs')
+    const transaction = {}
+    const fog = { uuid: 'test-fog-uuid' }
+
+    def('subject', () => $subject.getControllerCA(fog, transaction))
+
+    context('when listener TLS intermediate cert is configured via TLS_PATH_*', () => {
+      const certDir = path.join(__dirname, '../../tls-cert')
+
+      beforeEach(() => {
+        const originalGetBoolean = config.getBoolean.bind(config)
+        $sandbox.stub(config, 'getBoolean').callsFake((key, defaultValue = false) => {
+          if (key === 'server.devMode') {
+            return false
+          }
+          return originalGetBoolean(key, defaultValue)
+        })
+
+        process.env.TLS_PATH_KEY = path.join(certDir, 'tls.key')
+        process.env.TLS_PATH_CERT = path.join(certDir, 'tls.crt')
+        process.env.TLS_PATH_INTERMEDIATE_CERT = path.join(certDir, 'ca.crt')
+      })
+
+      afterEach(() => {
+        delete process.env.TLS_PATH_KEY
+        delete process.env.TLS_PATH_CERT
+        delete process.env.TLS_PATH_INTERMEDIATE_CERT
+      })
+
+      it('returns base64-encoded controller CA', async () => {
+        const expectedCaCert = fs.readFileSync(path.join(certDir, 'ca.crt')).toString('base64')
+        await expect($subject).to.eventually.equal(expectedCaCert)
+      })
+    })
+
+    context('when controller is in dev mode', () => {
+      beforeEach(() => {
+        $sandbox.stub(config, 'getBoolean').callsFake((key, defaultValue = false) => {
+          if (key === 'server.devMode') {
+            return true
+          }
+          return defaultValue
+        })
+      })
+
+      it('rejects with ValidationError', () => {
+        return expect($subject).to.be.rejectedWith(Errors.ValidationError)
       })
     })
   })

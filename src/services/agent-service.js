@@ -1,9 +1,8 @@
 const config = require('../config')
-const fs = require('fs')
 // const Sequelize = require('sequelize')
 const moment = require('moment')
 // const Op = Sequelize.Op
-const logger = require('../logger')
+// const logger = require('../logger')
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const FogProvisionKeyManager = require('../data/managers/iofog-provision-key-manager')
@@ -611,51 +610,17 @@ async function _checkMicroservicesFogType (fog, archId, transaction) {
 
 const getControllerCA = async function (fog, transaction) {
   const devMode = config.getBoolean('server.devMode', false)
-  const sslCert = process.env.SSL_CERT || config.get('server.ssl.path.cert')
-  const intermedKey = process.env.INTERMEDIATE_CERT || config.get('server.ssl.path.intermediateCert')
-  const sslCertBase64 = config.get('server.ssl.base64.cert')
-  const intermedKeyBase64 = config.get('server.ssl.base64.intermediateCert')
-  const hasFileBasedSSL = !devMode && sslCert
-  const hasBase64SSL = !devMode && sslCertBase64
-
   if (devMode) {
     throw new Errors.ValidationError('Controller is in development mode')
   }
 
-  if (hasFileBasedSSL) {
-    try {
-      if (intermedKey) {
-        // Check if intermediate certificate file exists before trying to read it
-        if (fs.existsSync(intermedKey)) {
-          const certData = fs.readFileSync(intermedKey, 'utf8')
-          return Buffer.from(certData).toString('base64')
-        } else {
-          // Intermediate certificate file doesn't exist, don't provide any CA cert
-          // Let the system's default trust store handle validation
-          logger.info(`Intermediate certificate file not found at path: ${intermedKey}, not providing CA certificate`)
-          return ''
-        }
-      } else {
-        // No intermediate certificate path provided, don't provide any CA cert
-        // Let the system's default trust store handle validation
-        return ''
-      }
-    } catch (error) {
-      throw new Errors.ValidationError('Failed to read SSL certificate file')
-    }
+  const { getListenerTlsMaterial, getListenerTrustCaBase64 } = require('../utils/tls-config')
+  const material = getListenerTlsMaterial()
+  if (!material.enabled) {
+    throw new Errors.ValidationError('No valid SSL certificate configuration found')
   }
 
-  if (hasBase64SSL) {
-    if (intermedKeyBase64) {
-      return intermedKeyBase64
-    } else {
-      // No intermediate certificate base64 provided, don't provide any CA cert
-      // Let the system's default trust store handle validation
-      return ''
-    }
-  }
-
-  throw new Errors.ValidationError('No valid SSL certificate configuration found')
+  return getListenerTrustCaBase64(material)
 }
 
 // New endpoint: Get active log sessions for agent

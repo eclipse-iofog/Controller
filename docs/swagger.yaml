@@ -7532,6 +7532,9 @@ components:
           type: string
         expirationTime:
           type: number
+        caCert:
+          type: string
+          description: Base64-encoded PEM of the controller CA for Edgelet trust store; empty when a public CA is used
     AgentProvisioningRequest:
       type: object
       required:

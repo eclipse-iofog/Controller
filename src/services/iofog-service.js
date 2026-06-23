@@ -1,5 +1,4 @@
 const config = require('../config')
-const fs = require('fs')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const AppHelper = require('../helpers/app-helper')
 const FogManager = require('../data/managers/iofog-manager')
@@ -1094,49 +1093,9 @@ async function generateProvisioningKeyEndPoint (fogData, isCLI, transaction) {
   }
 
   const provisioningKeyData = await refreshProvisionKeyForFog(fogData.uuid, transaction)
+  const { getListenerTrustCaBase64 } = require('../utils/tls-config')
+  const caCert = getListenerTrustCaBase64()
 
-  const devMode = config.getBoolean('server.devMode', false)
-  const sslCert = process.env.SSL_CERT || config.get('server.ssl.path.cert')
-  const intermedKey = process.env.INTERMEDIATE_CERT || config.get('server.ssl.path.intermediateCert')
-  const sslCertBase64 = config.get('server.ssl.base64.cert')
-  const intermedKeyBase64 = config.get('server.ssl.base64.intermediateCert')
-  const hasFileBasedSSL = !devMode && sslCert
-  const hasBase64SSL = !devMode && sslCertBase64
-  let caCert = ''
-
-  if (!devMode) {
-    if (hasFileBasedSSL) {
-      try {
-        if (intermedKey) {
-          // Check if intermediate certificate file exists before trying to read it
-          if (fs.existsSync(intermedKey)) {
-            const certData = fs.readFileSync(intermedKey)
-            caCert = Buffer.from(certData).toString('base64')
-          } else {
-            // Intermediate certificate file doesn't exist, don't provide any CA cert
-            // Let the system's default trust store handle validation
-            logger.info(`Intermediate certificate file not found at path: ${intermedKey}, not providing CA certificate`)
-            caCert = ''
-          }
-        } else {
-          // No intermediate certificate path provided, don't provide any CA cert
-          // Let the system's default trust store handle validation
-          caCert = ''
-        }
-      } catch (error) {
-        throw new Errors.ValidationError('Failed to read SSL certificate file')
-      }
-    }
-    if (hasBase64SSL) {
-      if (intermedKeyBase64) {
-        caCert = intermedKeyBase64
-      } else {
-        // No intermediate certificate base64 provided, don't provide any CA cert
-        // Let the system's default trust store handle validation
-        caCert = ''
-      }
-    }
-  }
   return {
     key: provisioningKeyData.provisionKey,
     expirationTime: provisioningKeyData.expirationTime,
