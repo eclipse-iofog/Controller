@@ -87,5 +87,17 @@ describe('iofog greenfield PKI (central local CAs)', () => {
       ])
       expect(certNames).to.not.include(`router-local-ca-${fogData.name}`)
     })
+
+    it('does not recreate default-router-local-ca when operator imported it', async () => {
+      CertificateService.getCAEndpoint
+        .withArgs(Constants.DEFAULT_ROUTER_LOCAL_CA, $transaction)
+        .resolves({ name: Constants.DEFAULT_ROUTER_LOCAL_CA, isCA: true })
+
+      await $subject
+
+      const createCaCalls = CertificateService.createCAEndpoint.getCalls()
+      const caNames = createCaCalls.map((call) => call.args[0].name)
+      expect(caNames).to.not.include(Constants.DEFAULT_ROUTER_LOCAL_CA)
+    })
   })
 })

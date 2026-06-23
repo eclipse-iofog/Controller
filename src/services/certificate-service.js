@@ -154,23 +154,34 @@ async function createCAEndpoint (caData, transaction) {
   }
 }
 
-async function ensureCentralLocalCAs (transaction) {
-  for (const name of [Constants.DEFAULT_ROUTER_LOCAL_CA, Constants.DEFAULT_NATS_LOCAL_CA]) {
-    try {
-      await getCAEndpoint(name, transaction)
-    } catch (err) {
-      if (err.name === 'NotFoundError') {
-        await createCAEndpoint({
-          name,
-          subject: name,
-          expiration: 60,
-          type: 'self-signed'
-        }, transaction)
-      } else if (err.name !== 'ConflictError') {
-        throw err
-      }
+async function ensureLocalCA (name, transaction) {
+  try {
+    await getCAEndpoint(name, transaction)
+  } catch (err) {
+    if (err.name === 'NotFoundError') {
+      await createCAEndpoint({
+        name,
+        subject: name,
+        expiration: 60,
+        type: 'self-signed'
+      }, transaction)
+    } else if (err.name !== 'ConflictError') {
+      throw err
     }
   }
+}
+
+async function ensureRouterLocalCA (transaction) {
+  await ensureLocalCA(Constants.DEFAULT_ROUTER_LOCAL_CA, transaction)
+}
+
+async function ensureNatsLocalCA (transaction) {
+  await ensureLocalCA(Constants.DEFAULT_NATS_LOCAL_CA, transaction)
+}
+
+async function ensureCentralLocalCAs (transaction) {
+  await ensureRouterLocalCA(transaction)
+  await ensureNatsLocalCA(transaction)
 }
 
 async function getCAEndpoint (name, transaction) {
@@ -667,5 +678,7 @@ module.exports = {
   deleteCertificateEndpoint: TransactionDecorator.generateTransaction(deleteCertificateEndpoint),
   renewCertificateEndpoint: TransactionDecorator.generateTransaction(renewCertificateEndpoint),
   listExpiringCertificatesEndpoint: TransactionDecorator.generateTransaction(listExpiringCertificatesEndpoint),
-  ensureCentralLocalCAs: TransactionDecorator.generateTransaction(ensureCentralLocalCAs)
+  ensureCentralLocalCAs: TransactionDecorator.generateTransaction(ensureCentralLocalCAs),
+  ensureRouterLocalCA: TransactionDecorator.generateTransaction(ensureRouterLocalCA),
+  ensureNatsLocalCA: TransactionDecorator.generateTransaction(ensureNatsLocalCA)
 }
