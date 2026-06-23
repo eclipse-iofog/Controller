@@ -24,6 +24,7 @@ const ioFogVersionCommandManager = require('../../../src/data/managers/iofog-ver
 const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
 const USBInfoManager = require('../../../src/data/managers/usb-info-manager')
 const Errors = require('../../../src/helpers/errors')
+const config = require('../../../src/config')
 
 const isCLI = false
 const transaction = {}
@@ -423,6 +424,71 @@ describe('ioFog Service', () => {
       const result = await $subject
       expect(result).to.eql({ key: provisionKey, expirationTime, caCert: '' })
       expect(ioFogProvisionKeyManager.updateOrCreate).to.have.been.calledOnce
+    })
+
+    context('when listener TLS intermediate cert is configured via TLS_PATH_*', () => {
+      const fs = require('fs')
+      const path = require('path')
+      const certDir = path.join(__dirname, '../../tls-cert')
+
+      beforeEach(() => {
+        const originalGetBoolean = config.getBoolean.bind(config)
+        $sandbox.stub(config, 'getBoolean').callsFake((key, defaultValue = false) => {
+          if (key === 'server.devMode') {
+            return false
+          }
+          return originalGetBoolean(key, defaultValue)
+        })
+
+        process.env.TLS_PATH_KEY = path.join(certDir, 'tls.key')
+        process.env.TLS_PATH_CERT = path.join(certDir, 'tls.crt')
+        process.env.TLS_PATH_INTERMEDIATE_CERT = path.join(certDir, 'ca.crt')
+      })
+
+      afterEach(() => {
+        delete process.env.TLS_PATH_KEY
+        delete process.env.TLS_PATH_CERT
+        delete process.env.TLS_PATH_INTERMEDIATE_CERT
+      })
+
+      it('returns base64-encoded caCert for Edgelet trust store', async () => {
+        const expectedCaCert = fs.readFileSync(path.join(certDir, 'ca.crt')).toString('base64')
+        const result = await $subject
+        expect(result.caCert).to.equal(expectedCaCert)
+      })
+    })
+
+    context('when listener TLS intermediate cert is configured via TLS_BASE64_*', () => {
+      const fs = require('fs')
+      const path = require('path')
+      const certDir = path.join(__dirname, '../../tls-cert')
+
+      beforeEach(() => {
+        const originalGetBoolean = config.getBoolean.bind(config)
+        $sandbox.stub(config, 'getBoolean').callsFake((key, defaultValue = false) => {
+          if (key === 'server.devMode') {
+            return false
+          }
+          return originalGetBoolean(key, defaultValue)
+        })
+
+        const toBase64 = (fileName) => fs.readFileSync(path.join(certDir, fileName)).toString('base64')
+        process.env.TLS_BASE64_KEY = toBase64('tls.key')
+        process.env.TLS_BASE64_CERT = toBase64('tls.crt')
+        process.env.TLS_BASE64_INTERMEDIATE_CERT = toBase64('ca.crt')
+      })
+
+      afterEach(() => {
+        delete process.env.TLS_BASE64_KEY
+        delete process.env.TLS_BASE64_CERT
+        delete process.env.TLS_BASE64_INTERMEDIATE_CERT
+      })
+
+      it('returns base64-encoded caCert regardless of TLS config encoding', async () => {
+        const expectedCaCert = fs.readFileSync(path.join(certDir, 'ca.crt')).toString('base64')
+        const result = await $subject
+        expect(result.caCert).to.equal(expectedCaCert)
+      })
     })
 
     context('when fog is missing', () => {

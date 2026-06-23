@@ -257,7 +257,7 @@ describe('OIDC config', () => {
       await $harness
     })
 
-    it('discovers the embedded issuer over HTTP when auth.insecureAllowHttp is true', async () => {
+    it('builds embedded oauth client from local metadata without network discovery', async () => {
       await withEmbeddedIssuerServer(async (issuerBase) => {
         const originalGet = config.get.bind(config)
         $sandbox.stub(config, 'get').callsFake((key, defaultValue) => {
@@ -272,21 +272,88 @@ describe('OIDC config', () => {
 
         const clientConfig = await oidc.getOauthClientConfiguration()
         expect(clientConfig.serverMetadata().issuer).to.equal(`${issuerBase}/oidc`)
+        expect(clientConfig.serverMetadata().token_endpoint).to.equal(`${issuerBase}/oidc/token`)
       })
     })
 
-    it('rejects HTTP issuer discovery when auth.insecureAllowHttp is false', async () => {
+    it('builds embedded oauth client from local metadata when auth.insecureAllowHttp is false', async () => {
       await withEmbeddedIssuerServer(async (issuerBase) => {
         const oidc = reloadOidcModule()
         oidc.initOidc()
 
-        try {
-          await oidc.getOauthClientConfiguration()
-          expect.fail('expected HTTP discovery to be rejected')
-        } catch (error) {
-          expect(error.message).to.equal('only requests to HTTPS are allowed')
-        }
+        const clientConfig = await oidc.getOauthClientConfiguration()
+        expect(clientConfig.serverMetadata().issuer).to.equal(`${issuerBase}/oidc`)
       })
+    })
+
+    it('attaches listener TLS trust for embedded HTTPS without NODE_EXTRA_CA_CERTS', async () => {
+      const path = require('path')
+      const https = require('https')
+      const oidcClient = require('openid-client')
+      const { createSSLOptions } = require('../../../src/utils/ssl-utils')
+      const { resetEmbeddedOidcFetchForTests } = require('../../../src/config/oidc-fetch')
+
+      const certDir = path.join(__dirname, '../../tls-cert')
+      const sslOptions = createSSLOptions({
+        key: path.join(certDir, 'tls.key'),
+        cert: path.join(certDir, 'tls.crt'),
+        intermedKey: path.join(certDir, 'ca.crt'),
+        isBase64: false
+      })
+
+      applyEmbeddedEnv({
+        CONTROLLER_PUBLIC_URL: 'https://localhost:0',
+        OIDC_CLIENT_SECRET: 'embedded-oauth-test-secret'
+      })
+
+      const originalGetBoolean = config.getBoolean.bind(config)
+      $sandbox.stub(config, 'getBoolean').callsFake((key, defaultValue = false) => {
+        if (key === 'server.devMode') {
+          return false
+        }
+        return originalGetBoolean(key, defaultValue)
+      })
+
+      process.env.TLS_PATH_KEY = path.join(certDir, 'tls.key')
+      process.env.TLS_PATH_CERT = path.join(certDir, 'tls.crt')
+      process.env.TLS_PATH_INTERMEDIATE_CERT = path.join(certDir, 'ca.crt')
+
+      const server = await new Promise((resolve, reject) => {
+        const listener = https.createServer(sslOptions, (req, res) => {
+          res.writeHead(200, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ issuer: 'https://localhost:0/oidc' }))
+        })
+        listener.listen(0, 'localhost', () => resolve(listener))
+        listener.on('error', reject)
+      })
+
+      const { port } = server.address()
+      process.env.CONTROLLER_PUBLIC_URL = `https://localhost:${port}`
+
+      try {
+        resetEmbeddedOidcFetchForTests()
+        const oidc = reloadOidcModule()
+        oidc.initOidc()
+
+        const clientConfig = await oidc.getOauthClientConfiguration()
+        expect(clientConfig.serverMetadata().issuer).to.equal(`https://localhost:${port}/oidc`)
+
+        const customFetch = clientConfig[oidcClient.customFetch]
+        expect(customFetch).to.be.a('function')
+
+        const response = await customFetch(
+          `https://localhost:${port}/oidc/.well-known/openid-configuration`
+        )
+        expect(response.status).to.equal(200)
+      } finally {
+        await new Promise((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()))
+        })
+        delete process.env.TLS_PATH_KEY
+        delete process.env.TLS_PATH_CERT
+        delete process.env.TLS_PATH_INTERMEDIATE_CERT
+        resetEmbeddedOidcFetchForTests()
+      }
     })
   })
 })

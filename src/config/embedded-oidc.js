@@ -265,10 +265,38 @@ function resetEmbeddedIssuerForTests () {
   providerInstance = null
 }
 
+function getEmbeddedIssuerMetadata (issuerUrl) {
+  const base = issuerUrl.replace(/\/$/, '')
+  return {
+    issuer: base,
+    authorization_endpoint: `${base}/auth`,
+    token_endpoint: `${base}/token`,
+    jwks_uri: `${base}/jwks`,
+    userinfo_endpoint: `${base}/me`,
+    end_session_endpoint: `${base}/session/end`,
+    revocation_endpoint: `${base}/revoke`,
+    pushed_authorization_request_endpoint: `${base}/request`,
+    response_types_supported: ['code id_token', 'code', 'id_token', 'none'],
+    grant_types_supported: ['implicit', 'authorization_code'],
+    code_challenge_methods_supported: ['S256'],
+    token_endpoint_auth_methods_supported: [
+      'client_secret_basic',
+      'client_secret_jwt',
+      'client_secret_post',
+      'private_key_jwt',
+      'none'
+    ],
+    id_token_signing_alg_values_supported: ['RS256'],
+    subject_types_supported: ['public'],
+    scopes_supported: ['openid', 'profile', 'email', 'groups']
+  }
+}
+
 module.exports = {
   initEmbeddedIssuer,
   getEmbeddedProvider,
   resetEmbeddedIssuerForTests,
   getOauthInteractionPath,
-  buildInteractionRedirectUrl
+  buildInteractionRedirectUrl,
+  getEmbeddedIssuerMetadata
 }

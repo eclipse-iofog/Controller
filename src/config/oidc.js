@@ -282,15 +282,33 @@ async function ensureEmbeddedOauthClient () {
   const { issuerUrl } = getOidcSettings()
   const db = require('../data/models')
   const { resolveConfidentialClientSecret } = require('./embedded-oidc-client-secret')
+  const { getEmbeddedIssuerMetadata } = require('./embedded-oidc')
+  const { createEmbeddedOidcFetch } = require('./oidc-fetch')
   const { clientId, clientSecret } = await resolveConfidentialClientSecret(db)
 
-  embeddedOauthClientPromise = oidcClient.discovery(
-    new URL(issuerUrl),
-    clientId,
-    clientSecret,
-    undefined,
-    getDiscoveryOptions()
-  ).catch((error) => {
+  embeddedOauthClientPromise = (async () => {
+    const serverMetadata = getEmbeddedIssuerMetadata(issuerUrl)
+    const configuration = new oidcClient.Configuration(
+      serverMetadata,
+      clientId,
+      clientSecret,
+      undefined
+    )
+
+    const discoveryOptions = getDiscoveryOptions()
+    if (discoveryOptions?.execute) {
+      for (const extension of discoveryOptions.execute) {
+        extension(configuration)
+      }
+    }
+
+    const customFetch = createEmbeddedOidcFetch()
+    if (customFetch) {
+      configuration[oidcClient.customFetch] = customFetch
+    }
+
+    return configuration
+  })().catch((error) => {
     embeddedOauthClientPromise = null
     throw error
   })
@@ -313,6 +331,8 @@ function resetDiscoveryForTests () {
   issuerString = null
   configuredClientId = null
   oidcInstance = null
+  const { resetEmbeddedOidcFetchForTests } = require('./oidc-fetch')
+  resetEmbeddedOidcFetchForTests()
   const { resetAuthSessionStoreForTests } = require('./auth-session-store')
   resetAuthSessionStoreForTests()
 }
