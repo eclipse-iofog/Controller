@@ -4,6 +4,8 @@ const sinon = require('sinon')
 const Constants = require('../../../src/helpers/constants')
 const config = require('../../../src/config')
 const RouterManager = require('../../../src/data/managers/router-manager')
+const CertificateService = require('../../../src/services/certificate-service')
+const SecretService = require('../../../src/services/secret-service')
 const RouterConnectionService = require('../../../src/services/router-connection-service')
 
 describe('Router Connection Service', () => {
@@ -143,6 +145,41 @@ describe('Router Connection Service', () => {
       const result = await RouterConnectionService._resolveRouterEndpoint()
 
       expect(result.port).to.equal(5671)
+    })
+  })
+
+  describe('_createControllerCertificate()', () => {
+    const certSecret = {
+      data: {
+        'tls.crt': Buffer.from('cert-pem').toString('base64'),
+        'tls.key': Buffer.from('key-pem').toString('base64'),
+        'ca.crt': Buffer.from('ca-pem').toString('base64')
+      }
+    }
+    const caSecret = {
+      data: {
+        'tls.crt': Buffer.from('ca-pem').toString('base64')
+      }
+    }
+
+    beforeEach(() => {
+      $sandbox.stub(CertificateService, 'ensureRouterLocalCA').resolves()
+      $sandbox.stub(SecretService, 'getSecretEndpoint')
+        .onFirstCall().resolves(null)
+        .onSecondCall().resolves(certSecret)
+        .onThirdCall().resolves(caSecret)
+      $sandbox.stub(CertificateService, 'createCertificateEndpoint').resolves()
+    })
+
+    it('ensures default-router-local-ca before creating the exec client certificate', async () => {
+      await RouterConnectionService._createControllerCertificate()
+
+      expect(CertificateService.ensureRouterLocalCA).to.have.been.calledOnce
+      expect(CertificateService.createCertificateEndpoint).to.have.been.calledOnce
+      expect(CertificateService.createCertificateEndpoint.firstCall.args[0].ca).to.deep.equal({
+        type: 'direct',
+        secretName: Constants.DEFAULT_ROUTER_LOCAL_CA
+      })
     })
   })
 

@@ -287,6 +287,7 @@ class RouterConnectionService {
 
   async _createControllerCertificate () {
     logger.debug('[AMQP] Ensuring controller certificate secret exists', { name: CONTROLLER_CERT_NAME })
+    await CertificateService.ensureRouterLocalCA(this.fakeTransaction)
     const existingSecret = await this._safeGetSecret(CONTROLLER_CERT_NAME)
     const caName = Constants.DEFAULT_ROUTER_LOCAL_CA
     if (existingSecret) {

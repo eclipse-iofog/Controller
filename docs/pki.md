@@ -9,14 +9,14 @@ Controller issues and stores TLS material for router messaging, NATS MQTT, and i
 
 ## Central certificate authorities
 
-On startup, Controller ensures two fleet-wide local CAs (stored as TLS secrets):
+Fleet-wide local CAs (stored as TLS secrets):
 
 | Secret name | Signs |
 |-------------|--------|
 | `default-router-local-ca` | Router **messaging** certs (`router-local-server-*`, `router-local-agent-*`) |
 | `default-nats-local-ca` | NATS **MQTT local** certs (`nats-mqtt-*`) |
 
-Site CAs (unchanged from earlier releases):
+Site CAs:
 
 | Secret name | Purpose |
 |-------------|---------|
@@ -37,7 +37,7 @@ Plan 5 originally scoped a **one-time PKI rotation job** to re-sign certs from l
 
 | Scenario | Operator action |
 |----------|-----------------|
-| New v3.8 fleet | Install Controller v3.8; central CAs are created at boot; provision Edgelet agents normally |
+| New v3.8 fleet | Install Controller v3.8; provision Edgelet agents normally (CAs are ensured on first agent, or import custom CAs first — see below) |
 | Old v3.7 lab with per-agent CAs | **Wipe and reinstall** (new DB + new secrets) per greenfield policy — do not attempt in-place PKI migration |
 | Agent host / IP change | Controller recreates affected router/NATS certs and sets the **`volumeMounts`** change flag so Edgelet reloads mounted secrets (automatic) |
 
@@ -47,13 +47,22 @@ Plan 5 originally scoped a **one-time PKI rotation job** to re-sign certs from l
 
 ### Boot
 
-After database init, Controller calls `ensureCentralLocalCAs()` — creating `default-router-local-ca` and `default-nats-local-ca` if missing (60-month CA validity for central CAs).
+Controller does **not** create fleet CAs at boot.
+
+### Operator import (optional, before first agent)
+
+Import custom CAs using the canonical secret names:
+
+1. `POST /api/v3/secrets` — `type: "tls"`, data keys **`tls.crt`** and **`tls.key`** (base64-encoded PEM; optional **`ca.crt`** for CA secrets).
+2. `POST /api/v3/certificates/ca` — `type: "direct"`, `secretName` matching the secret.
+
+Supported names: `router-site-ca`, `nats-site-ca`, `default-router-local-ca`, `default-nats-local-ca`.
 
 ### Agent provision and host changes
 
 When an agent is provisioned or its **host** changes, Controller:
 
-1. Ensures the central local CA exists.
+1. Ensures missing fleet CAs (self-signed, 60-month validity) or uses operator-imported CAs when present.
 2. Creates or recreates router local-server / local-agent and NATS MQTT certs with current DNS SANs (including bridge SANs such as `router.default.svc.bridge.local`).
 3. Sets **`volumeMounts`** (and related) change tracking so Edgelet picks up new secret mounts.
 

@@ -93,6 +93,7 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - Controller register accepts optional **`schedule: 0`**; server always enforces schedule **0** on create, re-register, and **`PATCH /api/v3/microservices/system/:uuid`** for controller workloads.
 - Agent version command (**`GET /api/v3/agent/version`**) refreshes the provision key on each pull instead of returning a stale or deleted key.
 - Controller AMQP certificate provisioning uses shared **`default-router-local-ca`** instead of per-fog router local CA secret names.
+- Central local CAs (`default-router-local-ca`, `default-nats-local-ca`) are ensured on first agent provision (or via operator direct import before first agent), not at Controller boot — allows custom local CAs before agent deployment.
 - Fog teardown drops obsolete per-fog **`nats-local-ca-*`** and **`router-local-ca-*`** secret names from cleanup lists.
 - OIDC discovery with **`AUTH_INSECURE_ALLOW_HTTP`** uses the supported `openid-client` insecure-request hook for local **`http://`** issuers.
 - Config keys **`auth.bootstrap.adminUsername`** / **`adminPassword`** renamed to **`auth.bootstrap.username`** / **`password`** (**`OIDC_BOOTSTRAP_ADMIN_*`** env vars unchanged).
