@@ -18,9 +18,22 @@ class LogSessionManager {
     this.cleanupInterval = null
     this.startCleanupInterval()
     logger.info('LogSessionManager initialized with config:' + JSON.stringify({
-      sessionTimeout: config.session.timeout,
+      logPendingTimeoutMs: config.session.logPendingTimeoutMs,
+      logIdleTimeoutMs: config.session.logIdleTimeoutMs,
       cleanupInterval: config.session.cleanupInterval
     }))
+  }
+
+  countSessionsForResource (microserviceUuid, fogUuid) {
+    return this.getAllSessionsForLogSource(microserviceUuid, fogUuid).length
+  }
+
+  getActiveLogSessionCount () {
+    return this.logSessions.size
+  }
+
+  getAllLogSessionIds () {
+    return Array.from(this.logSessions.keys())
   }
 
   createLogSession (sessionId, microserviceUuid, fogUuid, agentWs, userWs, tailConfig, transaction) {
@@ -125,31 +138,48 @@ class LogSessionManager {
   // Cleanup expired sessions (timeout mechanism)
   async cleanupExpiredSessions (transaction) {
     const now = Date.now()
-    const timeout = this.config.session.timeout || 3600000 // Default 1 hour
+    const pendingTimeout = this.config.session.logPendingTimeoutMs || 120000
+    const idleTimeout = this.config.session.logIdleTimeoutMs || 7200000
     const expiredSessions = []
 
     for (const [sessionId, session] of this.logSessions) {
       const timeSinceLastActivity = now - session.lastActivity
       const timeSinceCreation = now - session.createdAt
 
-      // Session is expired if:
-      // 1. No activity for timeout period AND session is older than timeout
-      // 2. OR user disconnected but agent still connected (orphaned agent connection)
-      // 3. OR agent disconnected but user still connected (orphaned user connection)
-      const isExpired = (
-        (timeSinceLastActivity > timeout && timeSinceCreation > timeout) ||
-        (!session.user && session.agent) || // Orphaned agent
-        (!session.agent && session.user && timeSinceCreation > timeout) // Orphaned user (wait timeout before cleanup)
-      )
+      let isExpired = false
+
+      if (!session.agent && session.user) {
+        isExpired = timeSinceCreation > pendingTimeout
+      } else if (session.agent && !session.user) {
+        isExpired = timeSinceLastActivity > pendingTimeout
+      } else if (session.agent && session.user) {
+        isExpired = timeSinceLastActivity > idleTimeout
+      } else {
+        isExpired = timeSinceCreation > pendingTimeout
+      }
 
       if (isExpired) {
         expiredSessions.push(sessionId)
       }
     }
 
-    // Remove expired sessions
     for (const sessionId of expiredSessions) {
       logger.info('Cleaning up expired log session:' + JSON.stringify({ sessionId }))
+      const session = this.logSessions.get(sessionId)
+      if (session && session.user && session.user.readyState === WebSocket.OPEN) {
+        try {
+          session.user.close(1008, session.agent ? 'Log session idle timeout' : 'Timeout waiting for agent connection')
+        } catch (error) {
+          logger.warn('Failed to close expired log user connection:' + error.message)
+        }
+      }
+      if (session && session.agent && session.agent.readyState === WebSocket.OPEN) {
+        try {
+          session.agent.close(1000, 'Log session expired')
+        } catch (error) {
+          logger.warn('Failed to close expired log agent connection:' + error.message)
+        }
+      }
       await this.removeLogSession(sessionId, transaction)
     }
 

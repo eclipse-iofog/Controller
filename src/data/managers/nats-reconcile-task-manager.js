@@ -3,6 +3,7 @@ const models = require('../models')
 const config = require('../../config')
 const databaseProvider = require('../providers/database-factory')
 const { Op } = require('sequelize')
+const { withDbBusyRetry } = require('../../helpers/db-busy-retry')
 
 class NatsReconcileTaskManager extends BaseManager {
   getEntity () {
@@ -10,6 +11,10 @@ class NatsReconcileTaskManager extends BaseManager {
   }
 
   async claimNext (controllerUuid, stalenessSeconds) {
+    return withDbBusyRetry(() => this._claimNextInternal(controllerUuid, stalenessSeconds))
+  }
+
+  async _claimNextInternal (controllerUuid, stalenessSeconds) {
     const sequelize = databaseProvider.sequelize
     const T = stalenessSeconds != null ? stalenessSeconds : config.get('settings.natsReconcileTaskStalenessSeconds', 900)
     const staleThreshold = new Date(Date.now() - T * 1000)

@@ -126,6 +126,10 @@ resources:
         methods:
           GET: [get]
         resourceNameParam: uuid
+      - path: /api/v3/iofog/:uuid/reconcile
+        methods:
+          POST: [patch]
+        resourceNameParam: uuid
       - path: /api/v3/iofog/:uuid/version/:versionCommand
         methods:
           POST: [patch]
@@ -373,6 +377,10 @@ resources:
           GET: [get]
           PATCH: [patch]
           DELETE: [delete]
+        resourceNameParam: name
+      - path: /api/v3/services/:name/reconcile
+        methods:
+          POST: [patch]
         resourceNameParam: name
       - path: /api/v3/services/yaml
         methods:

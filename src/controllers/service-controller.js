@@ -42,10 +42,16 @@ const updateServiceYAMLEndpoint = async function (req) {
   return ServiceService.updateServiceEndpoint(serviceName, serviceData)
 }
 
+const reconcileServiceEndpoint = async function (req) {
+  const serviceName = req.params.name
+  return ServiceService.reconcileServiceEndpoint(serviceName)
+}
+
 module.exports = {
   createServiceEndpoint,
   updateServiceEndpoint,
   deleteServiceEndpoint,
+  reconcileServiceEndpoint,
   getServiceEndpoint,
   listServicesEndpoint,
   createServiceYAMLEndpoint,

@@ -2,7 +2,6 @@
 /*
  * Compare live Express routes (src/routes/**) to rbac-resources.yaml.
  * Exits non-zero on gaps (unmapped routes) or orphans (stale yaml entries).
- * Plan 9 phase 9-5 — optional CI drift check.
  */
 
 const fs = require('fs')

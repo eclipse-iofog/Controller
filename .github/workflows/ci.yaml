@@ -66,8 +66,7 @@ jobs:
           file: Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
           tags: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:ci
           build-args: |
             PKG_VERSION=${{ steps.version.outputs.pkg_version }}

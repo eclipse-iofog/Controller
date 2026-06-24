@@ -4,6 +4,7 @@ const Sequelize = require('sequelize')
 
 const config = require('../../config')
 const DatabaseProvider = require('./database-provider')
+const { registerSqlitePragmas, applySqlitePragmas } = require('../../helpers/sqlite-pragmas')
 
 class SqliteDatabaseProvider extends DatabaseProvider {
   constructor () {
@@ -26,9 +27,13 @@ class SqliteDatabaseProvider extends DatabaseProvider {
     } else {
       this.sequelize = new Sequelize(sqliteConfig)
     }
+
+    registerSqlitePragmas(this.sequelize, sqliteConfig.pragmas || {})
   }
 
   async initDB () {
+    const pragmaConfig = config.get('database.sqlite.pragmas', {})
+    await applySqlitePragmas(this.sequelize, pragmaConfig)
   }
 }
 

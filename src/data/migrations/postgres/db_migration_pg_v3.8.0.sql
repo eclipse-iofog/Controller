@@ -1131,3 +1131,71 @@ CREATE TABLE IF NOT EXISTS "AuthPolicy" (
     created_at TIMESTAMP(0),
     updated_at TIMESTAMP(0)
 );
+
+CREATE TABLE IF NOT EXISTS "FogPlatformSpecs" (
+    fog_uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    spec_json TEXT NOT NULL,
+    generation INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMP(0),
+    updated_at TIMESTAMP(0),
+    FOREIGN KEY (fog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "FogPlatformStatuses" (
+    fog_uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    observed_generation INT NOT NULL DEFAULT 0,
+    phase VARCHAR(32) NOT NULL DEFAULT 'Pending',
+    last_error TEXT,
+    last_transition_at TIMESTAMP(0),
+    conditions_json TEXT,
+    created_at TIMESTAMP(0),
+    updated_at TIMESTAMP(0),
+    FOREIGN KEY (fog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS "FogPlatformReconcileTasks" (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
+    fog_uuid VARCHAR(36) NOT NULL,
+    reason VARCHAR(64) NOT NULL,
+    spec_generation INT,
+    status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    leader_uuid VARCHAR(36),
+    claimed_at TIMESTAMP(0),
+    next_attempt_at TIMESTAMP(0),
+    attempts INT NOT NULL DEFAULT 0,
+    last_error TEXT,
+    created_at TIMESTAMP(0),
+    updated_at TIMESTAMP(0),
+    FOREIGN KEY (fog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX idx_fog_platform_reconcile_tasks_active_fog_uuid ON "FogPlatformReconcileTasks" (fog_uuid) WHERE status IN ('pending', 'in_progress');
+CREATE INDEX idx_fog_platform_reconcile_tasks_status_claimed ON "FogPlatformReconcileTasks" (status, claimed_at);
+CREATE INDEX idx_fog_platform_reconcile_tasks_next_attempt ON "FogPlatformReconcileTasks" (next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS "ServicePlatformReconcileTasks" (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
+    service_name TEXT NOT NULL,
+    reason VARCHAR(64) NOT NULL,
+    spec_snapshot TEXT,
+    status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    leader_uuid VARCHAR(36),
+    claimed_at TIMESTAMP(0),
+    next_attempt_at TIMESTAMP(0),
+    attempts INT NOT NULL DEFAULT 0,
+    last_error TEXT,
+    created_at TIMESTAMP(0),
+    updated_at TIMESTAMP(0)
+);
+
+CREATE UNIQUE INDEX idx_service_platform_reconcile_tasks_active_service_name ON "ServicePlatformReconcileTasks" (service_name) WHERE status IN ('pending', 'in_progress');
+CREATE INDEX idx_service_platform_reconcile_tasks_status_claimed ON "ServicePlatformReconcileTasks" (status, claimed_at);
+CREATE INDEX idx_service_platform_reconcile_tasks_next_attempt ON "ServicePlatformReconcileTasks" (next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS "HubRouterConfigLocks" (
+    id INT PRIMARY KEY NOT NULL CHECK (id = 1),
+    leader_uuid VARCHAR(36),
+    claimed_at TIMESTAMP(0),
+    created_at TIMESTAMP(0),
+    updated_at TIMESTAMP(0)
+);

@@ -2,6 +2,7 @@ const cq = require('concurrent-queue')
 const Transaction = require('sequelize/lib/transaction')
 
 const { isTest } = require('../helpers/app-helper')
+const { isSqliteBusyError } = require('../helpers/db-busy-retry')
 
 const transactionsQueue = cq()
   .limit({ concurrency: 1 })
@@ -42,7 +43,7 @@ function queueTransaction (resolve, reject, transaction, that, retries, ...args)
       return resolve(success)
     }
 
-    if (retries < 1 || (error.message || '').indexOf('SQLITE_BUSY') === -1) {
+    if (retries < 1 || !isSqliteBusyError(error)) {
       return reject(error)
     }
 
@@ -54,7 +55,7 @@ function applyTransaction (resolve, reject, transaction, that, ...args) {
   transaction.apply(that, args)
     .then(resolve)
     .catch((error) => {
-      if ((error.message || '').indexOf('SQLITE_BUSY') === -1) {
+      if (!isSqliteBusyError(error)) {
         return reject(error)
       }
 
