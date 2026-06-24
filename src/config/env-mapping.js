@@ -54,6 +54,15 @@ module.exports = {
   CONTROLLER_HEARTBEAT_INTERVAL: 'settings.controllerHeartbeatInterval',
   CONTROLLER_INACTIVE_THRESHOLD: 'settings.controllerInactiveThreshold',
   CONTROLLER_CLEANUP_INTERVAL: 'settings.controllerCleanupInterval',
+  FOG_PLATFORM_RECONCILE_WORKER_INTERVAL_SECONDS: 'settings.fogPlatformReconcileWorkerIntervalSeconds',
+  FOG_PLATFORM_RECONCILE_TASK_STALENESS_SECONDS: 'settings.fogPlatformReconcileTaskStalenessSeconds',
+  FOG_PLATFORM_RECONCILE_MAX_ATTEMPTS: 'settings.fogPlatformReconcileMaxAttempts',
+  FOG_PLATFORM_RECONCILE_BACKOFF_BASE_SECONDS: 'settings.fogPlatformReconcileBackoffBaseSeconds',
+  FOG_PLATFORM_SWEEP_INTERVAL_SECONDS: 'settings.fogPlatformSweepIntervalSeconds',
+  SERVICE_PLATFORM_RECONCILE_MAX_ATTEMPTS: 'settings.servicePlatformReconcileMaxAttempts',
+  HUB_ROUTER_CONFIG_LOCK_TIMEOUT_SECONDS: 'settings.hubRouterConfigLockTimeoutSeconds',
+  SERVICE_LOAD_BALANCER_WATCH_TIMEOUT_SECONDS: 'settings.serviceLoadBalancerWatchTimeoutSeconds',
+  JOB_STARTUP_DELAY_SECONDS: 'settings.jobStartupDelaySeconds',
 
   // Database Configuration
   DB_PROVIDER: 'database.provider',

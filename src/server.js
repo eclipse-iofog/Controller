@@ -175,7 +175,10 @@ initialize().then(() => {
   const jobs = []
 
   const setupJobs = function (file) {
-    jobs.push((require(path.join(__dirname, 'jobs', file)) || []))
+    jobs.push({
+      module: require(path.join(__dirname, 'jobs', file)) || {},
+      file
+    })
   }
 
   function registerServers (api, consoleServer) {
@@ -189,7 +192,9 @@ initialize().then(() => {
     })
   }
 
-  function startHttpServer (apps, ports, jobs) {
+  const { startBackgroundJobs } = require('./helpers/job-startup')
+
+  function startHttpServer (apps, ports, jobEntries) {
     logger.info('TLS not configured, starting HTTP server.')
 
     const consoleServer = apps.console.listen(ports.console, function onStart (err) {
@@ -203,7 +208,7 @@ initialize().then(() => {
         logger.error(err)
       }
       logger.info(`==> 🌎 API Listening on port ${ports.api}. Open up http://localhost:${ports.api}/ in your browser.`)
-      jobs.forEach((job) => job.run())
+      startBackgroundJobs(jobEntries)
     })
 
     // Initialize WebSocket server (use singleton to ensure routes are available)
@@ -215,7 +220,7 @@ initialize().then(() => {
 
   const { createSSLOptions } = require('./utils/ssl-utils')
 
-  function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobs, isBase64 = false) {
+  function startHttpsServer (apps, ports, sslKey, sslCert, intermedKey, jobEntries, isBase64 = false) {
     try {
       const sslOptions = createSSLOptions({
         key: sslKey,
@@ -229,7 +234,6 @@ initialize().then(() => {
           logger.error(err)
         }
         logger.info(`==> 🌎 HTTPS EdgeOps Console server listening on port ${ports.console}. Open up https://localhost:${ports.console}/ in your browser.`)
-        jobs.forEach((job) => job.run())
       })
 
       const apiServer = https.createServer(sslOptions, apps.api).listen(ports.api, function onStart (err) {
@@ -237,7 +241,7 @@ initialize().then(() => {
           logger.error(err)
         }
         logger.info(`==> 🌎 HTTPS API server listening on port ${ports.api}. Open up https://localhost:${ports.api}/ in your browser.`)
-        jobs.forEach((job) => job.run())
+        startBackgroundJobs(jobEntries)
       })
 
       // Initialize WebSocket server with SSL (use singleton to ensure routes are available)
@@ -289,11 +293,14 @@ initialize().then(() => {
 
       // Store PID to let deamon know we are running.
       jobs.push({
-        run: () => {
-          const pidFile = path.join((process.env.PID_BASE || __dirname), 'iofog-controller.pid')
-          logger.info(`==> PID file: ${pidFile}`)
-          fs.writeFileSync(pidFile, process.pid.toString())
-        }
+        module: {
+          run: () => {
+            const pidFile = path.join((process.env.PID_BASE || __dirname), 'iofog-controller.pid')
+            logger.info(`==> PID file: ${pidFile}`)
+            fs.writeFileSync(pidFile, process.pid.toString())
+          }
+        },
+        file: 'pid-file'
       })
     }
 

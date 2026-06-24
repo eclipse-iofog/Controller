@@ -11,7 +11,7 @@ async function run () {
   try {
     await processNextTask()
   } catch (error) {
-    logger.error('NATS reconcile worker error:', error)
+    logger.error({ err: error, msg: 'NATS reconcile worker error' })
   } finally {
     setTimeout(run, scheduleTime)
   }
@@ -22,10 +22,19 @@ async function processNextTask () {
   if (!uuid) {
     return
   }
-  const task = await NatsService.claimNextTask(uuid)
+
+  let task
+  try {
+    task = await NatsService.claimNextTask(uuid)
+  } catch (error) {
+    logger.error({ err: error, msg: 'NATS reconcile task claim failed' })
+    return
+  }
+
   if (!task) {
     return
   }
+
   const fogUuids = task.fogUuids
     ? task.fogUuids.split(',').map((s) => s.trim()).filter(Boolean)
     : undefined
@@ -36,6 +45,7 @@ async function processNextTask () {
     userRuleId: task.userRuleId,
     fogUuids: fogUuids && fogUuids.length > 0 ? fogUuids : undefined
   }
+
   try {
     logger.info(`NATS reconcile task ${task.id} started`)
     await NatsService.reconcileResolverArtifacts(options)
@@ -47,7 +57,12 @@ async function processNextTask () {
       })
     })
   } catch (error) {
-    logger.error(`NATS reconcile task ${task.id} failed: ${error.message}. Task will be reclaimed after staleness.`)
+    logger.error({
+      err: error,
+      msg: `NATS reconcile task ${task.id} failed; task will be reclaimed after staleness`,
+      taskId: task.id,
+      reason: task.reason
+    })
   }
 }
 
