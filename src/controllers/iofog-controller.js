@@ -19,6 +19,10 @@ async function deleteFogEndPoint (req) {
   return FogService.deleteFogEndPoint(deleteFog, false)
 }
 
+async function reconcileFogEndPoint (req) {
+  return FogService.reconcileFogEndpoint({ uuid: req.params.uuid })
+}
+
 async function getFogEndPoint (req) {
   const getFog = {
     uuid: req.params.uuid
@@ -106,6 +110,7 @@ module.exports = {
   createFogEndPoint,
   updateFogEndPoint,
   deleteFogEndPoint,
+  reconcileFogEndPoint,
   getFogEndPoint,
   getFogListEndPoint,
   generateProvisioningKeyEndPoint: (generateProvisionKeyEndPoint),

@@ -20,9 +20,20 @@ server:
     maxPayload: 1048576          # 1MB
     maxFrameSize: 65536          # 64KB
     session:
-      timeout: 3600000             # Session timeout in milliseconds (1 hour)
+      timeout: 3600000             # Legacy idle fallback (ms); exec uses execMaxDurationMs
       maxConnections: 100          # Maximum connections per session
       cleanupInterval: 30000       # Session cleanup interval (30 seconds)
+      execPendingTimeoutMs: 60000  # Exec: user wait for agent (R81)
+      execMaxDurationMs: 28800000  # Exec: max active session 8h (R81)
+      logPendingTimeoutMs: 120000  # Log: user wait for agent (R82)
+      logIdleTimeoutMs: 7200000    # Log: idle session 2h (R82)
+      logMaxConcurrentPerResource: 3  # Log: max user WS per MS or fog (R82)
+      logTailMaxLines: 5000        # Log: tail query param max (R82)
+      replicaMaxConcurrentWs: 500    # Scale SLO per replica (R88)
+      drainTimeoutMs: 30000        # Graceful drain on SIGTERM/preStop (R85)
+    ha:
+      crossReplicaRequiresAmqp: true   # Cross-replica exec/log relay requires AMQP router (R84)
+      failFastOnRouterUnavailable: true
     security:
       maxConnectionsPerIp: 10
       maxRequestsPerMinute: 60
@@ -65,6 +76,16 @@ settings:
   natsReconcileChunkSize: 1              # NATS reconcile task chunk size in fogs per task (default: 1)
   natsReconcileTaskStalenessSeconds: 900 # NATS reconcile task staleness for reclaim (default: 900 = 15 minutes)
   natsReconcileWorkerIntervalSeconds: 3 # NATS reconcile worker poll interval in seconds (default: 3)
+  fogPlatformReconcileWorkerIntervalSeconds: 3   # Platform reconcile worker poll interval in seconds (default: 3)
+  fogPlatformReconcileTaskStalenessSeconds: 300  # Stale fog platform task reclaim in seconds (default: 300 = 5 minutes)
+  fogPlatformReconcileMaxAttempts: 10            # Permanent fail threshold for fog platform tasks (default: 10)
+  fogPlatformReconcileBackoffBaseSeconds: 5      # Exponential backoff base for fog platform tasks (default: 5)
+  fogPlatformSweepIntervalSeconds: 900           # Platform drift sweep interval in seconds (default: 900 = 15 minutes)
+  servicePlatformReconcileMaxAttempts: 10        # Permanent fail threshold for service platform tasks (default: 10)
+  hubRouterConfigLockTimeoutSeconds: 120         # Hub router ConfigMap lock wait in seconds (default: 120)
+  serviceLoadBalancerWatchTimeoutSeconds: 300    # LoadBalancer IP watch timeout in service reconcile (default: 300)
+  jobStartupDelaySeconds: 3                      # Delay before reconcile-heavy background jobs start (default: 3)
+  wsSessionReconcileIntervalSeconds: 60          # WS exec/log stale DB row reconcile interval (R89)
 
 # Database Configuration
 database:
@@ -89,6 +110,10 @@ database:
     databaseName: controller_db.sqlite  # SQLite database file name
     logging: false     # Enable SQLite query logging
     transactionType: IMMEDIATE      # SQLite transaction type
+    pragmas:
+      journalMode: WAL              # WAL allows concurrent readers during writes (production single-node)
+      busyTimeoutMs: 10000          # Wait up to 10s for lock before SQLITE_BUSY
+      synchronous: NORMAL           # Safe with WAL; better write throughput than FULL
     pool:
       maxActive: 1     # Maximum active connections
       max: 1          # Maximum total connections
@@ -125,7 +150,7 @@ auth:
 #     sessionTtlSeconds:            # AUTH_OIDC_SESSION_TTL_SECONDS — defaults to AuthPolicy refresh_token_ttl_seconds
 #     idTokenTtlSeconds:            # AUTH_OIDC_ID_TOKEN_TTL_SECONDS — defaults to AuthPolicy access_token_ttl_seconds
 
-# Build flavor (Plan 12 — override via env or Docker build-arg)
+# Build flavor (override via env or Docker build-arg)
 flavor:
   distribution: datasance
   rbacApiVersion: datasance.com/v3

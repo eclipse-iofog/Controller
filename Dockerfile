@@ -1,4 +1,4 @@
-# Stage 1 — EdgeOps Console static SPA (Plan 11-1)
+# Stage 1 — EdgeOps Console static SPA 
 # ioFog overrides: EDGEOPS_CONSOLE_REPO=https://github.com/eclipse-iofog/edgeops-console
 #                   EDGEOPS_CONSOLE_FLAVOR=iofog
 # node:24-bookworm — pin manifest list digest for reproducible multi-arch builds

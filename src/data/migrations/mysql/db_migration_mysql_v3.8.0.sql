@@ -1140,4 +1140,72 @@ CREATE TABLE IF NOT EXISTS AuthPolicy (
     updated_at DATETIME
 );
 
+CREATE TABLE IF NOT EXISTS FogPlatformSpecs (
+    fog_uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    spec_json TEXT NOT NULL,
+    generation INT NOT NULL DEFAULT 1,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS FogPlatformStatuses (
+    fog_uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    observed_generation INT NOT NULL DEFAULT 0,
+    phase VARCHAR(32) NOT NULL DEFAULT 'Pending',
+    last_error TEXT,
+    last_transition_at DATETIME,
+    conditions_json TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS FogPlatformReconcileTasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fog_uuid VARCHAR(36) NOT NULL,
+    reason VARCHAR(64) NOT NULL,
+    spec_generation INT,
+    status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    leader_uuid VARCHAR(36),
+    claimed_at DATETIME,
+    next_attempt_at DATETIME,
+    attempts INT NOT NULL DEFAULT 0,
+    last_error TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_fog_platform_reconcile_tasks_fog_status ON FogPlatformReconcileTasks (fog_uuid, status);
+CREATE INDEX idx_fog_platform_reconcile_tasks_status_claimed ON FogPlatformReconcileTasks (status, claimed_at);
+CREATE INDEX idx_fog_platform_reconcile_tasks_next_attempt ON FogPlatformReconcileTasks (next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS ServicePlatformReconcileTasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    service_name TEXT NOT NULL,
+    reason VARCHAR(64) NOT NULL,
+    spec_snapshot TEXT,
+    status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    leader_uuid VARCHAR(36),
+    claimed_at DATETIME,
+    next_attempt_at DATETIME,
+    attempts INT NOT NULL DEFAULT 0,
+    last_error TEXT,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_service_platform_reconcile_tasks_name_status ON ServicePlatformReconcileTasks (service_name(255), status);
+CREATE INDEX idx_service_platform_reconcile_tasks_status_claimed ON ServicePlatformReconcileTasks (status, claimed_at);
+CREATE INDEX idx_service_platform_reconcile_tasks_next_attempt ON ServicePlatformReconcileTasks (next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS HubRouterConfigLocks (
+    id INT PRIMARY KEY,
+    leader_uuid VARCHAR(36),
+    claimed_at DATETIME,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
 COMMIT;

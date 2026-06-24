@@ -40,16 +40,21 @@ const {
   buildNatsMqttCertificateHostList
 } = require('../helpers/cert-dns-sans')
 const Op = require('sequelize').Op
-const lget = require('lodash/get')
 const CertificateService = require('./certificate-service')
 const logger = require('../logger')
 const ServiceManager = require('../data/managers/service-manager')
-const FogStates = require('../enums/fog-state')
 const SecretManager = require('../data/managers/secret-manager')
 const vaultManager = require('../vault/vault-manager')
 const SecretHelper = require('../helpers/secret-helper')
 const FogPublicKeyManager = require('../data/managers/iofog-public-key-manager')
 const { getServiceAnnotationTag } = require('../config/flavor')
+const FogPlatformSpecManager = require('../data/managers/fog-platform-spec-manager')
+const FogPlatformStatusManager = require('../data/managers/fog-platform-status-manager')
+const FogPlatformReconcileTaskManager = require('../data/managers/fog-platform-reconcile-task-manager')
+const {
+  buildPlatformSpecFromFogData,
+  mergePlatformSpecPatch
+} = require('../schemas/fog-platform-spec')
 
 const SITE_CA_CERT = Constants.ROUTER_SITE_CA
 const DEFAULT_ROUTER_LOCAL_CA = Constants.DEFAULT_ROUTER_LOCAL_CA
@@ -66,6 +71,23 @@ function _resolveArchId (fogData) {
 async function checkKubernetesEnvironment () {
   const controlPlane = process.env.CONTROL_PLANE || config.get('app.ControlPlane')
   return controlPlane && controlPlane.toLowerCase() === 'kubernetes'
+}
+
+async function _deriveRuntimePlatformModes (fog, transaction) {
+  const router = await fog.getRouter()
+  const nats = await fog.getNats()
+  return {
+    routerMode: router ? (router.isEdge ? 'edge' : 'interior') : undefined,
+    natsMode: nats ? (nats.isLeaf ? 'leaf' : 'server') : undefined
+  }
+}
+
+function _resolveEffectivePlatformModes (fogData, runtimeModes, parsedSpec) {
+  const spec = parsedSpec && parsedSpec.spec ? parsedSpec.spec : {}
+  return {
+    routerMode: fogData.routerMode ?? runtimeModes.routerMode ?? spec.routerMode ?? 'none',
+    natsMode: fogData.natsMode ?? runtimeModes.natsMode ?? spec.natsMode ?? 'none'
+  }
 }
 
 async function getLocalCertificateHosts (fogData, uuid, transaction) {
@@ -389,7 +411,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.DUPLICATE_NAME, createFogData.name))
   }
 
-  let defaultRouter, upstreamRouters
+  let defaultRouter
   if (fogData.routerMode === 'none') {
     const networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
     if (!networkRouter) {
@@ -398,7 +420,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     createFogData.routerId = networkRouter.id
   } else {
     defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-    upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(fogData.upstreamRouters, fogData.isSystem, defaultRouter)
+    await RouterService.validateAndReturnUpstreamRouters(fogData.upstreamRouters, fogData.isSystem, defaultRouter)
   }
 
   const fog = await FogManager.create(createFogData, transaction)
@@ -406,92 +428,16 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
   // Set tags (synchronously, as this is a simple DB op)
   await _setTags(fog, fogData.tags, transaction)
 
-  // Return fog UUID immediately
-  const res = { uuid: fog.uuid }
+  const platformSpec = buildPlatformSpecFromFogData(fogData, { applyCreateDefaults: true })
+  const { generation } = await FogPlatformSpecManager.upsertSpec(fog.uuid, platformSpec, transaction)
+  await FogPlatformStatusManager.ensurePending(fog.uuid, transaction)
+  await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
+    fogUuid: fog.uuid,
+    reason: 'spec-changed',
+    specGeneration: generation
+  }, transaction)
 
-  const natsConfig = {
-    mode: natsMode,
-    serverPort: fogData.natsServerPort,
-    leafPort: fogData.natsLeafPort,
-    clusterPort: fogData.natsClusterPort,
-    mqttPort: fogData.natsMqttPort,
-    httpPort: fogData.natsHttpPort,
-    jsStorageSize: fogData.jsStorageSize || NatsService.DEFAULT_JS_STORAGE_SIZE,
-    jsMemoryStoreSize: fogData.jsMemoryStoreSize || NatsService.DEFAULT_JS_MEMORY_STORE_SIZE
-  }
-
-  if (fogData.upstreamNatsServers) {
-    natsConfig.upstreamNatsServers = fogData.upstreamNatsServers
-  }
-
-  // Start background orchestration
-  setImmediate(() => {
-    (async () => {
-      const transaction = { fakeTransaction: true }
-      try {
-        // --- Begin orchestration logic (previously inside runWithRetries) ---
-        await _handleRouterCertificates({ ...fogData, name: fog.name }, fog.uuid, false, transaction)
-        await NatsService.ensureNatsForFog(fog, natsConfig, transaction)
-
-        if (fogData.routerMode !== 'none') {
-          await RouterService.createRouterForFog(fogData, fog.uuid, upstreamRouters)
-
-          // Service Distribution Logic
-          const serviceTags = await _extractServiceTags(fogData.tags)
-          if (serviceTags.length > 0) {
-            const services = await _findMatchingServices(serviceTags, transaction)
-            if (services.length > 0) {
-              const application = await ensureSystemApplication(fog, transaction)
-              const routerName = getSystemMicroserviceName('router')
-              const routerMicroservice = await MicroserviceManager.findOne({
-                name: routerName,
-                applicationId: application.id
-              }, transaction)
-              if (!routerMicroservice) {
-                throw new Errors.NotFoundError(`Router microservice not found: ${routerName}`)
-              }
-              let config = JSON.parse(routerMicroservice.config || '{}')
-              for (const service of services) {
-                const listenerConfig = _buildTcpListenerForFog(service)
-                config = _mergeTcpListener(config, listenerConfig)
-              }
-              await MicroserviceManager.update(
-                { uuid: routerMicroservice.uuid },
-                { config: JSON.stringify(config) },
-                transaction
-              )
-              await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.microserviceConfig, transaction)
-            }
-          }
-        }
-
-        await ChangeTrackingService.create(fog.uuid, transaction)
-        if (fogData.abstractedHardwareEnabled) {
-          await _createHalMicroserviceForFog(fog, null, transaction)
-        }
-        if (fogData.bluetoothEnabled) {
-          await _createBluetoothMicroserviceForFog(fog, null, transaction)
-        }
-        await ChangeTrackingService.update(createFogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
-        // --- End orchestration logic ---
-        // Set fog node as healthy
-        await FogManager.update({ uuid: fog.uuid }, { warningMessage: 'HEALTHY' }, transaction)
-      } catch (err) {
-        logger.error('Background orchestration failed in createFogEndPoint: ' + err.message)
-        // Set fog node as warning with error message
-        await FogManager.update(
-          { uuid: fog.uuid },
-          {
-            daemonStatus: FogStates.WARNING,
-            warningMessage: `Background orchestration error: ${err.message}`
-          },
-          transaction
-        )
-      }
-    })()
-  })
-
-  return res
+  return { uuid: fog.uuid }
 }
 
 async function _setTags (fogModel, tagsArray, transaction) {
@@ -569,12 +515,21 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     throw new Errors.ValidationError('Agent Resource Name is immutable')
   }
 
-  if (updateFogData.isSystem && updateFogData.natsMode !== 'server') {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_NATS_MODE, updateFogData.natsMode))
+  const parsedSpec = await FogPlatformSpecManager.getParsedSpec(fogData.uuid, transaction)
+  const runtimeModes = await _deriveRuntimePlatformModes(oldFog, transaction)
+  const { routerMode: effectiveRouterMode, natsMode: effectiveNatsMode } = _resolveEffectivePlatformModes(
+    fogData,
+    runtimeModes,
+    parsedSpec
+  )
+
+  const isSystem = updateFogData.isSystem === undefined ? oldFog.isSystem : updateFogData.isSystem
+  if (isSystem && effectiveNatsMode !== 'server') {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_NATS_MODE, effectiveNatsMode))
   }
 
-  if (updateFogData.isSystem && updateFogData.routerMode !== 'interior') {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_MODE, updateFogData.routerMode))
+  if (isSystem && effectiveRouterMode !== 'interior') {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_MODE, effectiveRouterMode))
   }
 
   if (updateFogData.isSystem !== undefined && updateFogData.isSystem !== oldFog.isSystem) {
@@ -604,206 +559,19 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     }
   }
 
-  // Get all router config informations
-  const router = await oldFog.getRouter()
-  const host = fogData.host || lget(router, 'host')
-  const upstreamRoutersConnections = router ? (await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction) || []) : []
-  const upstreamRoutersIofogUuid = fogData.upstreamRouters || await Promise.all(upstreamRoutersConnections.map(connection => connection.dest.iofogUuid))
-  const routerMode = fogData.routerMode || (router ? (router.isEdge ? 'edge' : 'interior') : 'none')
-  const messagingPort = fogData.messagingPort || (router ? router.messagingPort : null)
-  const interRouterPort = fogData.interRouterPort || (router ? router.interRouterPort : null)
-  const edgeRouterPort = fogData.edgeRouterPort || (router ? router.edgeRouterPort : null)
-  let networkRouter
-
-  const isSystem = updateFogData.isSystem === undefined ? oldFog.isSystem : updateFogData.isSystem
-  if (isSystem && routerMode !== 'interior') {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_MODE, fogData.routerMode))
-  }
-
-  let isRouterModeChanged = false
-  const oldRouterMode = (router ? (router.isEdge ? 'edge' : 'interior') : 'none')
-  if (fogData.routerMode && fogData.routerMode !== oldRouterMode) {
-    if (fogData.routerMode === 'none' || oldRouterMode === 'none') {
-      isRouterModeChanged = true
-    }
-  }
-  const isHostChanged = !!(updateFogData.host && updateFogData.host !== oldFog.host)
-  const shouldRecreateCerts = isRouterModeChanged || isHostChanged
-
   await FogManager.update(queryFogData, updateFogData, transaction)
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.config, transaction)
 
-  // Return immediately
-  const res = { uuid: fogData.uuid }
+  const mergedSpec = mergePlatformSpecPatch(parsedSpec ? parsedSpec.spec : {}, fogData)
+  const { generation } = await FogPlatformSpecManager.upsertSpec(fogData.uuid, mergedSpec, transaction)
+  await FogPlatformStatusManager.ensurePending(fogData.uuid, transaction)
+  await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
+    fogUuid: fogData.uuid,
+    reason: 'spec-changed',
+    specGeneration: generation
+  }, transaction)
 
-  const natsConfig = {
-    mode: fogData.natsMode,
-    serverPort: fogData.natsServerPort,
-    leafPort: fogData.natsLeafPort,
-    clusterPort: fogData.natsClusterPort,
-    mqttPort: fogData.natsMqttPort,
-    httpPort: fogData.natsHttpPort,
-    upstreamNatsServers: fogData.upstreamNatsServers,
-    jsStorageSize: fogData.jsStorageSize,
-    jsMemoryStoreSize: fogData.jsMemoryStoreSize
-  }
-
-  // Start background orchestration
-  setImmediate(() => {
-    (async () => {
-      const transaction = { fakeTransaction: true }
-      try {
-        // --- Begin orchestration logic ---
-        const fog = await FogManager.findOne({ uuid: fogData.uuid }, transaction)
-        await _handleRouterCertificates({ ...fogData, name: fog.name }, fog.uuid, shouldRecreateCerts, transaction)
-        if (shouldRecreateCerts) {
-          await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.volumeMounts, transaction)
-        }
-        if (natsConfig.mode === 'none') {
-          await NatsService.cleanupNatsForFog(fog, transaction)
-          await _deleteNatsMicroserviceByFog(fogData, transaction)
-          await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceList, transaction)
-        } else {
-          if (isHostChanged) {
-            await _reconcileNatsCertificatesOnHostChange(fog, transaction)
-          }
-          await NatsService.ensureNatsForFog(fog, natsConfig, transaction)
-        }
-
-        if (routerMode === 'none') {
-          networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
-          if (!networkRouter) {
-            throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, !fogData.networkRouter ? Constants.DEFAULT_ROUTER_NAME : fogData.networkRouter))
-          }
-          if (router) {
-            await _deleteFogRouter(fogData, transaction)
-          }
-        } else {
-          const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-          const upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(upstreamRoutersIofogUuid, oldFog.isSystem, defaultRouter)
-          if (!router) {
-            networkRouter = await RouterService.createRouterForFog(fogData, oldFog.uuid, upstreamRouters)
-            // --- Service Distribution Logic ---
-            const serviceTags = await _extractServiceTags(fogData.tags)
-            if (serviceTags.length > 0) {
-              const services = await _findMatchingServices(serviceTags, transaction)
-              if (services.length > 0) {
-                const application = await ensureSystemApplication(oldFog, transaction)
-                const routerName = getSystemMicroserviceName('router')
-                const routerMicroservice = await MicroserviceManager.findOne({
-                  name: routerName,
-                  applicationId: application.id
-                }, transaction)
-                if (!routerMicroservice) {
-                  throw new Errors.NotFoundError(`Router microservice not found: ${routerName}`)
-                }
-                let config = JSON.parse(routerMicroservice.config || '{}')
-                for (const service of services) {
-                  const listenerConfig = _buildTcpListenerForFog(service)
-                  config = _mergeTcpListener(config, listenerConfig)
-                }
-                await MicroserviceManager.update(
-                  { uuid: routerMicroservice.uuid },
-                  { config: JSON.stringify(config) },
-                  transaction
-                )
-                await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceConfig, transaction)
-              }
-            }
-          } else {
-            const existingConnectors = await _extractExistingTcpConnectors(fogData.uuid, transaction)
-            networkRouter = await RouterService.updateRouter(router, {
-              messagingPort, interRouterPort, edgeRouterPort, isEdge: routerMode === 'edge', host
-            }, upstreamRouters, fogData.containerEngine)
-            // --- Service Distribution Logic ---
-            const serviceTags = await _extractServiceTags(fogData.tags)
-            const application = await ensureSystemApplication(oldFog, transaction)
-            const routerName = getSystemMicroserviceName('router')
-            const routerMicroservice = await MicroserviceManager.findOne({
-              name: routerName,
-              applicationId: application.id
-            }, transaction)
-            if (!routerMicroservice) {
-              throw new Errors.NotFoundError(`Router microservice not found: ${routerName}`)
-            }
-            let config = JSON.parse(routerMicroservice.config || '{}')
-            if (serviceTags.length > 0) {
-              const services = await _findMatchingServices(serviceTags, transaction)
-              if (services.length > 0) {
-                for (const service of services) {
-                  const listenerConfig = _buildTcpListenerForFog(service)
-                  config = _mergeTcpListener(config, listenerConfig)
-                }
-              }
-            }
-            // Merge back existing connectors if any
-            if (existingConnectors && Object.keys(existingConnectors).length > 0) {
-              for (const connectorName in existingConnectors) {
-                const connectorObj = existingConnectors[connectorName]
-                config = _mergeTcpConnector(config, connectorObj)
-              }
-            }
-            await MicroserviceManager.update(
-              { uuid: routerMicroservice.uuid },
-              { config: JSON.stringify(config) },
-              transaction
-            )
-            await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceConfig, transaction)
-            await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.routerChanged, transaction)
-          }
-        }
-        updateFogData.routerId = networkRouter.id
-
-        // If router changed, set routerChanged flag
-        if (updateFogData.routerId !== oldFog.routerId || updateFogData.routerMode !== oldFog.routerMode) {
-          await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.routerChanged, transaction)
-          await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceList, transaction)
-        }
-
-        let msChanged = false
-        if (updateFogData.host && updateFogData.host !== oldFog.host) {
-          await _updateMicroserviceExtraHosts(fogData.uuid, updateFogData.host, transaction)
-        }
-        if (oldFog.abstractedHardwareEnabled === true && fogData.abstractedHardwareEnabled === false) {
-          await _deleteHalMicroserviceByFog(fogData, transaction)
-          msChanged = true
-        }
-        if (oldFog.abstractedHardwareEnabled === false && fogData.abstractedHardwareEnabled === true) {
-          await _createHalMicroserviceForFog(fogData, oldFog, transaction)
-          msChanged = true
-        }
-        if (oldFog.bluetoothEnabled === true && fogData.bluetoothEnabled === false) {
-          await _deleteBluetoothMicroserviceByFog(fogData, transaction)
-          msChanged = true
-        }
-        if (oldFog.bluetoothEnabled === false && fogData.bluetoothEnabled === true) {
-          await _createBluetoothMicroserviceForFog(fogData, oldFog, transaction)
-          msChanged = true
-        }
-        if (msChanged) {
-          await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.microserviceCommon, transaction)
-        }
-        // --- End orchestration logic ---
-        // Set fog node as healthy
-        await FogManager.update({ uuid: fogData.uuid }, { warningMessage: 'HEALTHY' }, transaction)
-      } catch (err) {
-        logger.error('Background orchestration failed in updateFogEndPoint: ' + err.message, {
-          stack: err.stack
-        })
-        await FogManager.update(
-          { uuid: fogData.uuid },
-          {
-            daemonStatus: FogStates.WARNING,
-            warningMessage: `Background orchestration error: ${err.message}`
-          },
-          transaction
-        )
-      }
-    })()
-  })
-
-  // Return immediately
-  return res
+  return { uuid: fogData.uuid }
 }
 
 async function _updateMicroserviceExtraHosts (fogUuid, host, transaction) {
@@ -890,9 +658,34 @@ async function deleteFogEndPoint (fogData, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  await _deleteFogRouter(fogData, transaction)
+  await FogPlatformStatusManager.setPhase(fogData.uuid, 'Deleting', {}, transaction)
+  await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
+    fogUuid: fogData.uuid,
+    reason: 'delete'
+  }, transaction)
 
-  await _processDeleteCommand(fog, transaction)
+  return { uuid: fogData.uuid }
+}
+
+async function reconcileFogEndpoint (fogData, transaction) {
+  const fog = await FogManager.findOne({ uuid: fogData.uuid }, transaction)
+  if (!fog) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
+  }
+
+  const status = await FogPlatformStatusManager.getParsedStatus(fogData.uuid, transaction)
+  if (status && status.phase === 'Failed') {
+    await FogPlatformStatusManager.setPhase(fogData.uuid, 'Pending', { lastError: null }, transaction)
+  }
+
+  const parsedSpec = await FogPlatformSpecManager.getParsedSpec(fogData.uuid, transaction)
+  await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
+    fogUuid: fogData.uuid,
+    reason: 'manual-retry',
+    specGeneration: parsedSpec ? parsedSpec.generation : null
+  }, transaction)
+
+  return { uuid: fogData.uuid }
 }
 
 function _getRouterUuid (router, defaultRouter) {
@@ -903,60 +696,116 @@ function _getNatsUuid (nats, defaultHub) {
   return (defaultHub && (nats.id === defaultHub.id)) ? Constants.DEFAULT_NATS_HUB_NAME : nats.iofogUuid
 }
 
-async function _getFogRouterConfig (fog, transaction) {
-  // Get fog router config
+function _getSpecObject (parsedSpec) {
+  return parsedSpec && parsedSpec.spec ? parsedSpec.spec : {}
+}
+
+function _formatPlatformStatus (status, generation) {
+  if (!status) {
+    return null
+  }
+  const formatted = {
+    observedGeneration: status.observedGeneration,
+    phase: status.phase,
+    lastError: status.lastError,
+    lastTransitionAt: status.lastTransitionAt,
+    conditions: status.conditions
+  }
+  if (generation != null) {
+    formatted.generation = generation
+  }
+  return formatted
+}
+
+async function _getFogRouterConfig (fog, parsedSpec, transaction) {
   const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
   const router = await fog.getRouter()
-  const routerConfig = {
 
-  }
-  // Router mode is either interior or edge
   if (router) {
-    routerConfig.routerMode = router.isEdge ? 'edge' : 'interior'
-    routerConfig.messagingPort = router.messagingPort
+    const routerConfig = {
+      routerMode: router.isEdge ? 'edge' : 'interior',
+      messagingPort: router.messagingPort
+    }
     if (routerConfig.routerMode === 'interior') {
       routerConfig.interRouterPort = router.interRouterPort
       routerConfig.edgeRouterPort = router.edgeRouterPort
     }
-    // Get upstream routers
     const upstreamRoutersConnections = await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
-    routerConfig.upstreamRouters = upstreamRoutersConnections ? upstreamRoutersConnections.map(r => _getRouterUuid(r.dest, defaultRouter)) : []
-  } else {
-    routerConfig.routerMode = 'none'
-    const networkRouter = await RouterManager.findOne({ id: fog.routerId }, transaction)
-    if (networkRouter) {
-      routerConfig.networkRouter = _getRouterUuid(networkRouter, defaultRouter)
-    }
+    routerConfig.upstreamRouters = upstreamRoutersConnections
+      ? upstreamRoutersConnections.map(r => _getRouterUuid(r.dest, defaultRouter))
+      : []
+    return routerConfig
   }
 
+  const spec = _getSpecObject(parsedSpec)
+  const routerMode = spec.routerMode ?? 'none'
+  if (routerMode === 'none') {
+    const routerConfig = { routerMode: 'none' }
+    if (spec.networkRouter) {
+      routerConfig.networkRouter = spec.networkRouter
+    } else if (fog.routerId) {
+      const networkRouter = await RouterManager.findOne({ id: fog.routerId }, transaction)
+      if (networkRouter) {
+        routerConfig.networkRouter = _getRouterUuid(networkRouter, defaultRouter)
+      }
+    }
+    return routerConfig
+  }
+
+  const routerConfig = {
+    routerMode,
+    messagingPort: spec.messagingPort,
+    upstreamRouters: spec.upstreamRouters || []
+  }
+  if (routerMode === 'interior') {
+    routerConfig.interRouterPort = spec.interRouterPort
+    routerConfig.edgeRouterPort = spec.edgeRouterPort
+  }
   return routerConfig
 }
 
-async function _getFogNatsConfig (fog, transaction) {
+async function _getFogNatsConfig (fog, parsedSpec, transaction) {
   const defaultHub = await NatsInstanceManager.findOne({ isHub: true }, transaction)
   const nats = await fog.getNats()
-  const natsConfig = {}
 
   if (nats) {
-    natsConfig.natsMode = nats.isLeaf ? 'leaf' : 'server'
-    natsConfig.natsServerPort = nats.serverPort
-    natsConfig.natsLeafPort = nats.leafPort
-    natsConfig.natsClusterPort = nats.clusterPort
-    natsConfig.natsMqttPort = nats.mqttPort
-    natsConfig.natsHttpPort = nats.httpPort
-    natsConfig.jsStorageSize = nats.jsStorageSize
-    natsConfig.jsMemoryStoreSize = nats.jsMemoryStoreSize
-
+    const natsConfig = {
+      natsMode: nats.isLeaf ? 'leaf' : 'server',
+      natsServerPort: nats.serverPort,
+      natsLeafPort: nats.leafPort,
+      natsClusterPort: nats.clusterPort,
+      natsMqttPort: nats.mqttPort,
+      natsHttpPort: nats.httpPort,
+      jsStorageSize: nats.jsStorageSize,
+      jsMemoryStoreSize: nats.jsMemoryStoreSize
+    }
     const upstreamNatsConnections = await NatsConnectionManager.findAllWithNats({ sourceNats: nats.id }, transaction)
     natsConfig.upstreamNatsServers = upstreamNatsConnections
       ? upstreamNatsConnections.map((connection) => _getNatsUuid(connection.dest, defaultHub))
       : []
-  } else {
-    natsConfig.natsMode = 'none'
-    natsConfig.upstreamNatsServers = []
+    return natsConfig
   }
 
-  return natsConfig
+  const spec = _getSpecObject(parsedSpec)
+  const natsMode = spec.natsMode ?? 'none'
+  if (natsMode === 'none') {
+    return {
+      natsMode: 'none',
+      upstreamNatsServers: []
+    }
+  }
+
+  return {
+    natsMode,
+    natsServerPort: spec.natsServerPort,
+    natsLeafPort: spec.natsLeafPort,
+    natsClusterPort: spec.natsClusterPort,
+    natsMqttPort: spec.natsMqttPort,
+    natsHttpPort: spec.natsHttpPort,
+    jsStorageSize: spec.jsStorageSize,
+    jsMemoryStoreSize: spec.jsMemoryStoreSize,
+    upstreamNatsServers: spec.upstreamNatsServers || []
+  }
 }
 
 async function _getFogVolumeMounts (fog, transaction) {
@@ -977,9 +826,11 @@ async function _getFogVolumeMounts (fog, transaction) {
   })
 }
 
-async function _getFogExtraInformation (fog, transaction) {
-  const routerConfig = await _getFogRouterConfig(fog, transaction)
-  const natsConfig = await _getFogNatsConfig(fog, transaction)
+async function _getFogExtraInformation (fog, transaction, options = {}) {
+  const fogUuid = fog.uuid
+  const parsedSpec = await FogPlatformSpecManager.getParsedSpec(fogUuid, transaction)
+  const routerConfig = await _getFogRouterConfig(fog, parsedSpec, transaction)
+  const natsConfig = await _getFogNatsConfig(fog, parsedSpec, transaction)
   const volumeMounts = await _getFogVolumeMounts(fog, transaction)
   // Transform to plain JS object
   if (fog.toJSON && typeof fog.toJSON === 'function') {
@@ -995,7 +846,12 @@ async function _getFogExtraInformation (fog, transaction) {
         description: architecture.description
       }
     : undefined
-  return { ...fogFields, archId, arch, tags: _mapTags(fog), ...routerConfig, ...natsConfig, volumeMounts }
+  const result = { ...fogFields, archId, arch, tags: _mapTags(fog), ...routerConfig, ...natsConfig, volumeMounts }
+  if (options.includePlatformStatus) {
+    const status = await FogPlatformStatusManager.getParsedStatus(fogUuid, transaction)
+    result.platformStatus = _formatPlatformStatus(status, parsedSpec ? parsedSpec.generation : null)
+  }
+  return result
 }
 
 // Map tags to string array
@@ -1043,7 +899,7 @@ async function getFog (fogData, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
   }
 
-  return _getFogExtraInformation(fog, transaction)
+  return _getFogExtraInformation(fog, transaction, { includePlatformStatus: true })
 }
 
 async function getFogEndPoint (fogData, isCLI, transaction) {
@@ -1679,6 +1535,7 @@ module.exports = {
   createFogEndPoint: TransactionDecorator.generateTransaction(createFogEndPoint, bypassOptions),
   updateFogEndPoint: TransactionDecorator.generateTransaction(updateFogEndPoint, bypassOptions),
   deleteFogEndPoint: TransactionDecorator.generateTransaction(deleteFogEndPoint, bypassOptions),
+  reconcileFogEndpoint: TransactionDecorator.generateTransaction(reconcileFogEndpoint, bypassOptions),
   getFogEndPoint: TransactionDecorator.generateTransaction(getFogEndPoint),
   getFogListEndPoint: TransactionDecorator.generateTransaction(getFogListEndPoint),
   generateProvisioningKeyEndPoint: TransactionDecorator.generateTransaction(generateProvisioningKeyEndPoint),
@@ -1699,5 +1556,14 @@ module.exports = {
   _mergeTcpConnector,
   _mergeTcpListener,
   checkKubernetesEnvironment,
-  _handleRouterCertificates: TransactionDecorator.generateTransaction(_handleRouterCertificates)
+  _handleRouterCertificates: TransactionDecorator.generateTransaction(_handleRouterCertificates),
+  _deleteFogRouter: TransactionDecorator.generateTransaction(_deleteFogRouter),
+  _processDeleteCommand: TransactionDecorator.generateTransaction(_processDeleteCommand),
+  _reconcileNatsCertificatesOnHostChange: TransactionDecorator.generateTransaction(_reconcileNatsCertificatesOnHostChange),
+  _deleteNatsMicroserviceByFog: TransactionDecorator.generateTransaction(_deleteNatsMicroserviceByFog),
+  _createHalMicroserviceForFog: TransactionDecorator.generateTransaction(_createHalMicroserviceForFog),
+  _deleteHalMicroserviceByFog: TransactionDecorator.generateTransaction(_deleteHalMicroserviceByFog),
+  _createBluetoothMicroserviceForFog: TransactionDecorator.generateTransaction(_createBluetoothMicroserviceForFog),
+  _deleteBluetoothMicroserviceByFog: TransactionDecorator.generateTransaction(_deleteBluetoothMicroserviceByFog),
+  _updateMicroserviceExtraHosts: TransactionDecorator.generateTransaction(_updateMicroserviceExtraHosts)
 }

@@ -3,6 +3,24 @@ const fs = require('fs')
 const sqlite3 = require('sqlite3').verbose()
 const logger = require('../../logger')
 
+function sqliteRun (db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, (err) => {
+      if (err) reject(err)
+      else resolve()
+    })
+  })
+}
+
+function sqliteClose (db) {
+  return new Promise((resolve, reject) => {
+    db.close((err) => {
+      if (err) reject(err)
+      else resolve()
+    })
+  })
+}
+
 class DatabaseProvider {
   constructor () {
     this.basename = path.basename(__filename)
@@ -283,46 +301,42 @@ class DatabaseProvider {
         return
       }
 
-      db.serialize(() => {
-        db.run('PRAGMA foreign_keys=OFF;')
-        db.run('BEGIN TRANSACTION;')
-      })
+      await sqliteRun(db, 'PRAGMA foreign_keys=OFF')
+      await sqliteRun(db, 'BEGIN TRANSACTION')
 
       for (let query of dataArr) {
         if (query.trim()) {
           query = query.trim() + ';'
-          await new Promise((resolve, reject) => {
-            db.run(query, (err) => {
-              if (err) {
-                if (err.message.includes('already exists') || err.message.includes('duplicate')) {
-                  logger.warn(`Ignored error: ${err.message}`)
-                  resolve()
-                } else {
-                  db.run('ROLLBACK;')
-                  reject(err)
-                }
-              } else {
-                resolve()
-              }
-            })
-          })
+          try {
+            await sqliteRun(db, query)
+          } catch (err) {
+            if (err.message.includes('already exists') || err.message.includes('duplicate')) {
+              logger.warn(`Ignored error: ${err.message}`)
+            } else {
+              throw err
+            }
+          }
         }
       }
 
       await this.updateMigrationVersion(db, migrationVersion, 'sqlite')
-      db.run('COMMIT;')
+      await sqliteRun(db, 'COMMIT')
       logger.info('Migration completed successfully.')
     } catch (err) {
+      try {
+        await sqliteRun(db, 'ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
       logger.error('Migration failed:', err)
       throw err
     } finally {
-      db.close((err) => {
-        if (err) {
-          logger.error('Error closing database connection:', err.message)
-        } else {
-          logger.info('Database connection closed after migration.')
-        }
-      })
+      try {
+        await sqliteClose(db)
+        logger.info('Database connection closed after migration.')
+      } catch (closeErr) {
+        logger.error('Error closing database connection:', closeErr.message)
+      }
     }
   }
 
@@ -488,46 +502,42 @@ class DatabaseProvider {
         return
       }
 
-      db.serialize(() => {
-        db.run('PRAGMA foreign_keys=OFF;')
-        db.run('BEGIN TRANSACTION;')
-      })
+      await sqliteRun(db, 'PRAGMA foreign_keys=OFF')
+      await sqliteRun(db, 'BEGIN TRANSACTION')
 
       for (let query of dataArr) {
         if (query.trim()) {
           query = query.trim() + ';'
-          await new Promise((resolve, reject) => {
-            db.run(query, (err) => {
-              if (err) {
-                if (err.message.includes('already exists') || err.message.includes('duplicate')) {
-                  logger.warn(`Ignored error: ${err.message}`)
-                  resolve()
-                } else {
-                  db.run('ROLLBACK;')
-                  reject(err)
-                }
-              } else {
-                resolve()
-              }
-            })
-          })
+          try {
+            await sqliteRun(db, query)
+          } catch (err) {
+            if (err.message.includes('already exists') || err.message.includes('duplicate')) {
+              logger.warn(`Ignored error: ${err.message}`)
+            } else {
+              throw err
+            }
+          }
         }
       }
 
       await this.updateSeederVersion(db, seederVersion, 'sqlite')
-      db.run('COMMIT;')
+      await sqliteRun(db, 'COMMIT')
       logger.info('Seeding completed successfully.')
     } catch (err) {
+      try {
+        await sqliteRun(db, 'ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
       logger.error('Seeding failed:', err)
       throw err
     } finally {
-      db.close((err) => {
-        if (err) {
-          logger.error('Error closing database connection:', err.message)
-        } else {
-          logger.info('Database connection closed after seeding.')
-        }
-      })
+      try {
+        await sqliteClose(db)
+        logger.info('Database connection closed after seeding.')
+      } catch (closeErr) {
+        logger.error('Error closing database connection:', closeErr.message)
+      }
     }
   }
 

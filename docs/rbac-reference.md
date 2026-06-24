@@ -157,10 +157,10 @@ Keep `rbac-resources.yaml`, live routes, and system roles aligned when adding or
 ```bash
 nvm use 24
 
-# Compare Express routes to rbac-resources.yaml (243 routes as of Plan 9)
+# Compare Express routes to rbac-resources.yaml (243 routes as)
 npm run rbac-audit
 
-# Plan 9 grep gates — banned legacy terms must be absent;
+# grep gates — banned legacy terms must be absent;
 # v3.8 terms must be present
 rg 'edgeResources|diagnostics' src/config/rbac-resources.yaml && exit 1 || true
 rg 'fog-types' src/config/rbac-resources.yaml && exit 1 || true
@@ -174,7 +174,7 @@ rg 'architectures|controller/register' src/config/rbac-resources.yaml
 - Banned legacy terms (`edgeResources`, `diagnostics`, `fog-types`)
 - Missing required v3.8 terms (`architectures`, `controller/register`)
 
-Optional CI wiring is planned for Plan 11.
+Optional CI wiring is planned.
 
 ## Reference files
 

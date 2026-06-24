@@ -1,4 +1,4 @@
-# Embedded auth dev smoke (Plan 8.1)
+# Embedded auth dev smoke
 
 Local smoke path for embedded identity: Controller issues tokens from the in-process `/oidc`
 issuer and validates Bearer JWTs via local JWKS. No mock OIDC provider.
@@ -90,7 +90,7 @@ Point env at any OIDC issuer:
 - `CONTROLLER_PUBLIC_URL` — canonical external URL (issuer host + OAuth callback base)
 - `CONSOLE_URL` — SPA base; BFF redirects tokens to `{consoleUrl}/login#accessToken=...`
 
-Optional auth rate limits (Plan 8.2-4): `AUTH_RATE_LIMIT_ENABLED` (default `true`),
+Optional auth rate limits: `AUTH_RATE_LIMIT_ENABLED` (default `true`),
 `AUTH_RATE_LIMIT_MAX_REQUESTS` (default `60`), `AUTH_RATE_LIMIT_WINDOW_MS` (default `60000`).
 
 Register at the IdP: redirect URI `{CONTROLLER_PUBLIC_URL}/api/v3/user/oauth/callback`.
@@ -130,7 +130,7 @@ middleware (default).
 **Viewer integration:** Sign in button → full-page `GET {apiBase}/user/oauth/authorize`; `/login`
 parses hash tokens. See `.cursor/controllerv3.8/docs/08-2-viewer-handoff.md` § External mode.
 
-## HA BFF sessions (Plan 8.2-5)
+## HA BFF sessions
 
 Multi-replica Controller requires a **shared** OAuth BFF session store. Set:
 

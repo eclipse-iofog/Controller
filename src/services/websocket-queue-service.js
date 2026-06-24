@@ -1,6 +1,12 @@
 const WebSocket = require('ws')
 const logger = require('../logger')
 const RouterConnectionService = require('./router-connection-service')
+const { recordAmqpPublishError } = require('../websocket/ws-metrics')
+const msgpack = require('@msgpack/msgpack')
+
+// Plan 16-C: drop LOG_LINE when user WS buffer exceeds threshold (see forwardLogToUser).
+const LOG_BACKPRESSURE_BUFFER_BYTES = 256 * 1024
+const LOG_MESSAGE_TYPES = { LOG_ERROR: 9 }
 
 const MESSAGE_TYPES = {
   STDIN: 0,
@@ -83,24 +89,77 @@ class WebSocketQueueService {
     const bridge = this.execBridges.get(execId)
     if (!bridge) return
 
-    const closeLink = (link) => {
-      if (!link) return
+    this._closeBridgeLinks(bridge, execId)
+    this.execBridges.delete(execId)
+  }
+
+  _closeBridgeLinks (bridge, sessionKey) {
+    const closeLink = (linkWrapper) => {
+      if (!linkWrapper) return
       try {
-        if (link.receiver) {
-          link.receiver.close()
-        } else if (link.sender) {
-          link.sender.close()
+        if (linkWrapper.receiver) {
+          linkWrapper.receiver.removeAllListeners()
+          linkWrapper.receiver.close()
+        } else if (linkWrapper.sender) {
+          linkWrapper.sender.removeAllListeners()
+          linkWrapper.sender.close()
         }
       } catch (error) {
-        logger.debug('[AMQP][QUEUE] Failed to close link during cleanup', { execId, error: error.message })
+        logger.debug('[AMQP][QUEUE] Failed to close link during cleanup', {
+          sessionKey,
+          error: error.message
+        })
       }
     }
 
-    closeLink(bridge.receivers.agent)
-    closeLink(bridge.receivers.user)
-    closeLink(bridge.senders.agent)
-    closeLink(bridge.senders.user)
-    this.execBridges.delete(execId)
+    closeLink(bridge.receivers?.agent)
+    closeLink(bridge.receivers?.user)
+    closeLink(bridge.senders?.agent)
+    closeLink(bridge.senders?.user)
+  }
+
+  _invalidateExecSender (bridge, side) {
+    if (bridge.senders[side]) {
+      bridge.senders[side] = null
+    }
+  }
+
+  _invalidateExecReceiver (bridge, side) {
+    if (bridge.receivers[side]) {
+      bridge.receivers[side] = null
+    }
+  }
+
+  _attachSenderLifecycle (bridge, side, sender, execId) {
+    sender.on('sender_close', () => {
+      logger.warn('[AMQP][QUEUE] Exec sender closed', { execId, side })
+      this._invalidateExecSender(bridge, side)
+    })
+    sender.on('error', (context) => {
+      logger.error('[AMQP][QUEUE] Exec sender error', {
+        execId,
+        side,
+        error: context.error ? context.error.message : 'unknown'
+      })
+      recordAmqpPublishError({ sessionType: 'exec', side })
+      this._invalidateExecSender(bridge, side)
+    })
+  }
+
+  _attachReceiverLifecycle (bridge, side, receiver, execId) {
+    receiver.on('receiver_close', () => {
+      logger.info('[AMQP][QUEUE] Receiver closed', { execId, side })
+      this._invalidateExecReceiver(bridge, side)
+    })
+    receiver.on('error', (context) => {
+      logger.error('[AMQP][QUEUE] Exec receiver error', {
+        execId,
+        side,
+        error: context.error ? context.error.message : 'unknown'
+      })
+      recordAmqpPublishError({ sessionType: 'exec', side })
+      this._invalidateExecReceiver(bridge, side)
+    })
   }
 
   detachSocket (execId, side) {
@@ -138,7 +197,12 @@ class WebSocketQueueService {
         messageType: messageType !== null ? messageType : 'normal'
       })
     } catch (error) {
+      recordAmqpPublishError({ sessionType: 'exec', side })
       logger.error('[AMQP][QUEUE] Failed to publish message', { execId, side, error: error.message })
+      const execBridge = this.execBridges.get(execId)
+      if (execBridge) {
+        this._invalidateExecSender(execBridge, side)
+      }
       throw error
     }
   }
@@ -146,9 +210,10 @@ class WebSocketQueueService {
   async _ensureSender (execId, side) {
     const bridge = this.execBridges.get(execId)
     if (!bridge) return null
-    if (bridge.senders[side]) {
+    if (bridge.senders[side] && bridge.senders[side].sender) {
       return bridge.senders[side]
     }
+    bridge.senders[side] = null
 
     const queueName = buildQueueName(
       side === 'agent' ? MESSAGE_QUEUE_PREFIX.agent : MESSAGE_QUEUE_PREFIX.user,
@@ -170,9 +235,7 @@ class WebSocketQueueService {
       link.once('error', reject)
     })
 
-    sender.on('sender_close', () => {
-      bridge.senders[side] = null
-    })
+    this._attachSenderLifecycle(bridge, side, sender, execId)
 
     bridge.senders[side] = { sender }
     return bridge.senders[side]
@@ -222,6 +285,8 @@ class WebSocketQueueService {
       link.once('receiver_close', (context) => reject(context.error || new Error('Receiver closed before open')))
       link.once('error', reject)
     })
+
+    this._attachReceiverLifecycle(bridge, side, receiver, session.execId)
 
     receiver.on('message', async (context) => {
       try {
@@ -295,14 +360,6 @@ class WebSocketQueueService {
           })
         }
       }
-    })
-
-    receiver.on('receiver_close', () => {
-      logger.info('[AMQP][QUEUE] Receiver closed', {
-        execId: session.execId,
-        side
-      })
-      bridge.receivers[side] = null
     })
 
     bridge.receivers[side] = { receiver, socket }
@@ -476,10 +533,12 @@ class WebSocketQueueService {
         messageSize: buffer.length
       })
     } catch (error) {
+      recordAmqpPublishError({ sessionType: 'log', side: 'user' })
       logger.error('[AMQP][QUEUE] Failed to publish log message to user queue', {
         sessionId,
         error: error.message
       })
+      bridge.userSender = null
       throw error
     }
   }
@@ -588,9 +647,28 @@ class WebSocketQueueService {
       const ws = currentBridge && currentBridge.userReceiver ? currentBridge.userReceiver.socket : null
       const body = getBufferFromBody(context.message.body)
 
-      // Body is MessagePack encoded (from agent via controller)
-      // Forward directly to user WebSocket (binary)
       if (ws && ws.readyState === WebSocket.OPEN) {
+        if (ws.bufferedAmount > LOG_BACKPRESSURE_BUFFER_BYTES) {
+          if (!currentBridge.backpressureNotified) {
+            currentBridge.backpressureNotified = true
+            try {
+              const errorBody = msgpack.encode({
+                type: LOG_MESSAGE_TYPES.LOG_ERROR,
+                data: Buffer.from('Log stream backpressure: dropping lines until client catches up\n'),
+                sessionId: session.sessionId,
+                timestamp: Date.now()
+              })
+              ws.send(errorBody, { binary: true })
+            } catch (error) {
+              logger.debug('[AMQP][QUEUE] Failed to notify user of log backpressure', {
+                sessionId: session.sessionId,
+                error: error.message
+              })
+            }
+          }
+          context.delivery.release()
+          return
+        }
         ws.send(body, { binary: true })
         context.delivery.accept()
       } else {
@@ -606,13 +684,15 @@ class WebSocketQueueService {
     const bridge = this.logBridges.get(sessionId)
     if (!bridge) return
 
-    const closeLink = (link) => {
-      if (!link) return
+    const closeLink = (linkWrapper) => {
+      if (!linkWrapper) return
       try {
-        if (link.receiver) {
-          link.receiver.close()
-        } else if (link.sender) {
-          link.sender.close()
+        if (linkWrapper.receiver) {
+          linkWrapper.receiver.removeAllListeners()
+          linkWrapper.receiver.close()
+        } else if (linkWrapper.sender) {
+          linkWrapper.sender.removeAllListeners()
+          linkWrapper.sender.close()
         }
       } catch (error) {
         logger.debug('[AMQP][QUEUE] Failed to close log link during cleanup', { sessionId, error: error.message })
@@ -623,6 +703,10 @@ class WebSocketQueueService {
     closeLink(bridge.agentSender)
     closeLink(bridge.userReceiver)
     closeLink(bridge.userSender)
+
+    if (bridge.cleanupCallback) {
+      bridge.cleanupCallback = null
+    }
 
     this.logBridges.delete(sessionId)
   }

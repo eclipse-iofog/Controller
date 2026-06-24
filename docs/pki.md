@@ -33,7 +33,7 @@ Per-agent local CA names may still appear in **delete cleanup** for orphaned leg
 
 v3.8 is a **new install only** release (no v3.7 → v3.8 database migrator).
 
-Plan 5 originally scoped a **one-time PKI rotation job** to re-sign certs from legacy per-agent CAs under the central CAs. That job was **not implemented** — greenfield policy means labs and production deploy fresh Controller + Edgelet fleets without carrying forward v3.7 secrets.
+ A **one-time PKI rotation job** to re-sign certs from legacy per-agent CAs under the central CAs. That job was **not implemented** — greenfield policy means labs and production deploy fresh Controller + Edgelet fleets without carrying forward v3.7 secrets.
 
 | Scenario | Operator action |
 |----------|-----------------|
@@ -105,7 +105,7 @@ Authorization: Bearer <admin-token>
 
 Controller accepts the request, rotates operator material, re-signs accounts, and schedules resolver reconciliation in the background. Plan maintenance when NATS leaf nodes may reload operator trust.
 
-This is **NATS credential rotation**, not the skipped Plan 5 per-agent CA migration.
+This is **NATS credential rotation**, not the skipped per-agent CA migration.
 
 ---
 

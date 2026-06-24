@@ -137,7 +137,127 @@ Full request/response shapes: **`docs/swagger.yaml`** (agent paths).
 | Controller cleanup | `controller-cleanup-job.js` | Orphaned controller MS housekeeping |
 | Event cleanup | `event-cleanup-job.js` | Audit event retention |
 | NATS reconcile | `nats-reconcile-worker-job.js` | NATS operator sync |
+| Platform reconcile | `platform-reconcile-worker-job.js` | Fog + service platform claim/reconcile (one job, two queues) |
+| Fog platform sweep | `fog-platform-sweep-job.js` | Drift detection; re-enqueue stale fog/service tasks |
 | Stopped app status | `stopped-app-status-job.js` | Application state maintenance |
+
+### Platform reconcile (fog + service + resolver)
+
+Router/NATS **fog platform lifecycle**, **service endpoint provisioning**, and the existing **NATS resolver** layer are three separate reconcile queues — not fire-and-forget `setImmediate` blocks in `iofog-service.js` / `services-service.js`.
+
+```mermaid
+flowchart TB
+  subgraph api [Synchronous API]
+    FogAPI[POST/PATCH/DELETE /iofog]
+    SvcAPI[POST/PATCH/DELETE /services + yaml]
+    FogAPI --> FSpec[Upsert FogPlatformSpecs]
+    SvcAPI --> SDB[Write Services + tags]
+    FSpec --> FEnqueue[FogPlatformReconcileTasks]
+    SDB --> SEnqueue[ServicePlatformReconcileTasks]
+  end
+
+  subgraph worker [One job — any Controller replica]
+    ClaimF[claimNextFogTask]
+    ClaimS[claimNextServiceTask]
+    ReconcileF[FogPlatformService.reconcileFog]
+    ReconcileS[ServicePlatformService.reconcileService]
+    HubLock[Hub ConfigMap lock]
+    ClaimF --> ReconcileF
+    ClaimS --> HubLock
+    HubLock --> ReconcileS
+  end
+
+  subgraph runtime [Observed state]
+    Routers[(Routers)]
+    Nats[(NatsInstances)]
+    MS[System MS + secrets]
+    K8sSvc[K8s Service]
+    CM[ConfigMap iofog-router]
+  end
+
+  subgraph resolver [NATS resolver — unchanged]
+    NRT[NatsReconcileTasks]
+  end
+
+  FEnqueue --> ClaimF
+  SEnqueue --> ClaimS
+  ReconcileF --> Routers
+  ReconcileF --> Nats
+  ReconcileF --> MS
+  ReconcileS --> CM
+  ReconcileS --> K8sSvc
+  ReconcileS -->|fan-out service-changed| FEnqueue
+  ReconcileF -->|topology change| NRT
+```
+
+| Layer | Table | Worker | Purpose |
+|-------|-------|--------|---------|
+| **Fog platform** | `FogPlatformReconcileTasks` | Same job: `claimNextFogTask` | Router/NATS instances, PKI, system MS, **full recompute** of service-derived TCP bridges per fog |
+| **Service platform** | `ServicePlatformReconcileTasks` | Same job: `claimNextServiceTask` | Hub connector/listener, K8s Service, ConfigMap (DB lock), fan-out fog tasks on tag change |
+| **NATS resolver** | `NatsReconcileTasks` | `nats-reconcile-worker-job.js` | JWT bundles, account/user creds after app deploy |
+
+**Fog operator API:** `GET /iofog/{uuid}` includes optional **`platformStatus`** (`phase`, `generation`, `lastError`); list/get derive `routerMode`/`natsMode` from **`FogPlatformSpecs`** when runtime rows are pending. **`POST /iofog/{uuid}/reconcile`** for manual retry.
+
+**Service operator API:** JSON + YAML create/update/delete enqueue service reconcile; **`provisioningStatus=ready`** marks hub complete (K8s Service + hub ConfigMap); edge listeners converge via fog fan-out. **`POST /services/{name}/reconcile`** for manual retry.
+
+Full spec: [`.cursor/controllerv3.8/docs/15-fog-platform-reconcile.md`](../.cursor/controllerv3.8/docs/15-fog-platform-reconcile.md) · RFC R69–R79.
+
+---
+
+## WebSocket exec & log sessions
+
+Interactive **exec** and **log streaming** use paired WebSocket sessions between operators (Bearer JWT), Controller, and Edgelet agents (fog token). Plan 16 hardens lifecycle, quotas, multi-replica HA relay, and observability — **without changing the Edgelet wire protocol**.
+
+```mermaid
+sequenceDiagram
+  participant U as User WS
+  participant C as Controller replica
+  participant DB as Database
+  participant Q as AMQP Router
+  participant A as Agent WS
+
+  Note over U,A: Exec (R80–R81, R84)
+  U->>C: WS exec (RBAC)
+  A->>C: WS agent/exec + execId
+  C->>C: Pair SessionManager
+  C->>Q: Enable agent-{execId} user-{execId}
+  U->>C: STDIN
+  C->>Q->>A: or direct WS same replica
+  A->>C: STDOUT
+  C->>Q->>U: relay
+  U-->>C: close
+  C->>DB: execEnabled=false INACTIVE
+
+  Note over U,A: Logs (R82–R83, R84)
+  U->>C: WS logs + tail params
+  C->>DB: PENDING sessionId
+  A->>C: WS agent/logs/:sessionId
+  A->>C: LOG_LINE
+  C->>Q->>U: logs-user-{sessionId}
+```
+
+| Topic | Normative value (RFC R80–R91) |
+|-------|-------------------------------|
+| Exec lifecycle | **exec_b** — WS close sets `execEnabled=false`; **1** user exec WS per microservice |
+| Exec timeouts | **60s** pending for agent; **8h** max active session |
+| Log concurrency | **3** user log WS per microservice (or per fog for node logs) |
+| Log limits | Tail max **5,000** lines; **120s** pending; **2h** idle |
+| Log content | Live relay only — no log line persistence; audit connect/disconnect |
+| HA relay | Cross-replica sessions **require** AMQP (`WebSocketQueueService`); same-replica may use direct WS; **fail fast** when router down |
+| Graceful drain | **30s** on SIGTERM / k8s `preStop` — CLOSE frames, queue cleanup, DB status update |
+| Security | Agent handlers validate fog token **before** message processing; **50** upgrades/min/IP; **100** active WS/IP; JWT in `?token=` (ingress log redaction required) |
+| Scale SLO | **500** concurrent WS per replica; **p99 pairing < 5s** |
+| Observability | OpenTelemetry: active/pending sessions, pairing latency, AMQP failures, router connectivity |
+
+**OTEL metric names (R87):** `ws_exec_sessions_active`, `ws_log_sessions_active`, `ws_pending_pairings`, `ws_pairing_duration_ms` (histogram), `ws_amqp_publish_errors`, `ws_router_connected` (gauge). Emitted when `ENABLE_TELEMETRY=true`; see `src/websocket/ws-metrics.js`.
+
+**HA config (`server.webSocket.ha`):** `crossReplicaRequiresAmqp` (default `true`), `failFastOnRouterUnavailable` (default `true`). Env: `WS_HA_CROSS_REPLICA_REQUIRES_AMQP`, `WS_HA_FAIL_FAST_ON_ROUTER_UNAVAILABLE`. Graceful drain timeout: `server.webSocket.session.drainTimeoutMs` (default **30s**, env `WS_DRAIN_TIMEOUT_MS`).
+
+**Core modules:** `src/websocket/server.js`, `session-manager.js`, `log-session-manager.js`, `src/services/websocket-queue-service.js`, `src/services/router-connection-service.js`.
+
+**Operator guide:** [operations/ws-sessions.md](operations/ws-sessions.md) — ingress `?token=` log redaction, HTTPS/WSS, multi-replica AMQP requirement, k8s preStop drain, load SLO probe.
+
+Full spec: [`.cursor/controllerv3.8/docs/16-ws-exec-log-hardening.md`](../.cursor/controllerv3.8/docs/16-ws-exec-log-hardening.md) · RFC R80–R91 · Edgelet contract: [edgelet-invariants.md §10](../.cursor/controllerv3.8/docs/edgelet-invariants.md).
 
 ---
 
@@ -197,7 +317,21 @@ For the full bilateral contract (including ControlPlane env vars and verificatio
 
 | Topic | v3.8 behavior |
 |-------|---------------|
-| **Database** | Greenfield v3.8.0 schema — **new install only** (no v3.7 migrator). Supports sqlite (dev), mysql, postgres (production/HA). |
+| **Database** | Greenfield v3.8.0 schema — **new install only** (no v3.7 migrator). Supports **sqlite** (single-controller production), **mysql**, and **postgres** (multi-replica / HA). |
+
+### SQLite single-node production
+
+Small deployments with **one Controller process** may use SQLite as the production database (embedded OIDC requires a single replica in this profile).
+
+| Topic | Behavior |
+|-------|----------|
+| **When to use** | Single Controller, no DB HA requirement, edge/small-cluster PoT |
+| **Concurrency** | WAL journal mode + `busy_timeout` pragmas on connect; connection pool size 1 |
+| **Background jobs** | Reconcile-heavy jobs start after a configurable delay (`settings.jobStartupDelaySeconds`, default 3s) and stagger by 500ms to avoid restart lock bursts |
+| **Task claims** | Fog/service/NATS reconcile task claims retry on `SQLITE_BUSY` (same retry budget as `TransactionDecorator`) |
+| **Persistence** | Mount a persistent volume for `controller_db.sqlite` and WAL sidecar files (`-wal`, `-shm`) |
+| **Backup** | Use SQLite backup API or copy DB + WAL files during a quiet window |
+| **HA path** | mysql/postgres + multiple Controller replicas — see [oidc-configuration.md](oidc-configuration.md) |
 | **Applications** | Table `Applications` (was `Flows`); API identity by **name** string. |
 | **Architectures** | Table `Architectures` (was `FogTypes`); `archId` 0–4. |
 | **PKI** | Central **default-router-local-ca** and **default-nats-local-ca** for all new agents; no per-agent local CAs on provision (greenfield — no v3.7 PKI migration job). See [pki.md](pki.md). |

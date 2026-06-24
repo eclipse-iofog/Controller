@@ -40,6 +40,22 @@ class RouterConnectionService {
     return this.connectionPromise
   }
 
+  isConnected () {
+    return !!(this.connection && this.connection.is_open && this.connection.is_open())
+  }
+
+  async isRouterAvailable () {
+    if (this.isConnected()) {
+      return true
+    }
+    try {
+      await this.getConnection()
+      return this.isConnected()
+    } catch (error) {
+      return false
+    }
+  }
+
   async _createConnection () {
     try {
       logger.debug({ msg: '[AMQP] Preparing router connection options' })
