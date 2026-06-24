@@ -7,6 +7,7 @@ const moment = require('moment')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const FogProvisionKeyManager = require('../data/managers/iofog-provision-key-manager')
 const FogManager = require('../data/managers/iofog-manager')
+const FogPlatformStatusManager = require('../data/managers/fog-platform-status-manager')
 const FogKeyService = require('../services/iofog-key-service')
 const ChangeTrackingService = require('./change-tracking-service')
 const FogVersionCommandManager = require('../data/managers/iofog-version-command-manager')
@@ -274,10 +275,15 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     uuid: fog.uuid
   }, transaction)
 
-  if (!existingFog.warningMessage.includes('Background orchestration')) {
-    fogStatus.daemonStatus = agentStatus.daemonStatus
-  } else {
+  const platformStatus = await FogPlatformStatusManager.getParsedStatus(fog.uuid, transaction)
+  const platformGating = platformStatus && !['Ready', 'Deleting'].includes(platformStatus.phase)
+  const migrationGating = existingFog.warningMessage &&
+    existingFog.warningMessage.startsWith('Platform reconcile:')
+
+  if (platformGating || migrationGating) {
     fogStatus.daemonStatus = FogStates.WARNING
+  } else {
+    fogStatus.daemonStatus = agentStatus.daemonStatus
   }
 
   if (agentStatus.warningMessage.includes('HW signature changed') || agentStatus.warningMessage.includes('HW signature mismatch')) {

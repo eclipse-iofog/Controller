@@ -13,6 +13,7 @@ const logger = require('../logger')
 const FogManager = require('../data/managers/iofog-manager')
 const TagsManager = require('../data/managers/tags-manager')
 const ChangeTrackingService = require('./change-tracking-service')
+const ServicePlatformReconcileTaskManager = require('../data/managers/service-platform-reconcile-task-manager')
 const ApplicationManager = require('../data/managers/application-manager')
 const {
   ensureSystemApplication,
@@ -43,6 +44,51 @@ async function _setTags (serviceModel, tagsArray, transaction) {
     }
     await serviceModel.setTags(tags)
   }
+}
+
+function _normalizeSnapshotTags (tags) {
+  if (!tags || tags.length === 0) {
+    return []
+  }
+  return tags.map((tag) => (typeof tag === 'string' ? tag : tag.value))
+}
+
+function _buildServiceSpecSnapshot (fields) {
+  return {
+    name: fields.name,
+    type: fields.type,
+    resource: fields.resource,
+    defaultBridge: fields.defaultBridge,
+    bridgePort: fields.bridgePort,
+    targetPort: fields.targetPort,
+    servicePort: fields.servicePort,
+    k8sType: fields.k8sType,
+    serviceEndpoint: fields.serviceEndpoint,
+    tags: _normalizeSnapshotTags(fields.tags)
+  }
+}
+
+function _mergeServiceFieldsForSnapshot (base, patch, snapshotTags) {
+  return _buildServiceSpecSnapshot({
+    name: base.name,
+    type: base.type,
+    resource: patch.resource !== undefined ? patch.resource : base.resource,
+    defaultBridge: patch.defaultBridge !== undefined ? patch.defaultBridge : base.defaultBridge,
+    bridgePort: base.bridgePort,
+    targetPort: patch.targetPort !== undefined ? patch.targetPort : base.targetPort,
+    servicePort: patch.servicePort !== undefined ? patch.servicePort : base.servicePort,
+    k8sType: patch.k8sType !== undefined ? patch.k8sType : base.k8sType,
+    serviceEndpoint: patch.serviceEndpoint !== undefined ? patch.serviceEndpoint : base.serviceEndpoint,
+    tags: snapshotTags
+  })
+}
+
+async function _enqueueServiceReconcileTask (serviceName, reason, specSnapshot, transaction) {
+  await ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask({
+    serviceName,
+    reason,
+    specSnapshot
+  }, transaction)
 }
 
 async function handleServiceDistribution (serviceTags, transaction) {
@@ -1060,45 +1106,21 @@ async function createServiceEndpoint (serviceData, transaction) {
   logger.debug('Creating service in database')
   const service = await ServiceManager.create(serviceData, transaction)
 
-  // 8. Start background orchestration
-  setImmediate(async () => {
-    try {
-      // Set tags if provided
-      logger.debug('Setting tags (background)')
-      if (serviceData.tags && serviceData.tags.length > 0) {
-        await _setTags(service, serviceData.tags, transaction)
-      }
+  if (serviceData.tags && serviceData.tags.length > 0) {
+    await _setTags(service, serviceData.tags, transaction)
+  }
 
-      // Add TCP connector
-      logger.debug('Adding TCP connector (background)')
-      await _addTcpConnector(serviceData, transaction)
-
-      // Add TCP listener
-      logger.debug('Adding TCP listener (background)')
-      await _addTcpListener(serviceData, transaction)
-
-      // Create K8s service if needed
-      if ((serviceData.type === 'microservice' || serviceData.type === 'agent' || serviceData.type === 'external') && isK8s) {
-        logger.debug('Creating K8s service (background)')
-        await _createK8sService(serviceData, transaction)
-      }
-
-      // Update provisioning status to ready
-      await ServiceManager.update({ id: service.id }, { provisioningStatus: 'ready', provisioningError: null }, transaction)
-    } catch (err) {
-      logger.error({
-        err,
-        msg: 'Background provisioning failed',
-        serviceId: service.id,
-        serviceName: serviceData.name,
-        serviceType: serviceData.type
-      })
-      // Update provisioning status to failed and set error message
-      await ServiceManager.update({ id: service.id }, { provisioningStatus: 'failed', provisioningError: err.message }, transaction)
-    }
+  const specSnapshot = _buildServiceSpecSnapshot({
+    ...serviceData,
+    name: service.name,
+    bridgePort: service.bridgePort,
+    servicePort: service.servicePort,
+    serviceEndpoint: service.serviceEndpoint,
+    tags: serviceData.tags || []
   })
+  await _enqueueServiceReconcileTask(service.name, 'spec-changed', specSnapshot, transaction)
 
-  // 9. Return service immediately
+  // 8. Return service immediately
   return service
 }
 
@@ -1113,6 +1135,7 @@ async function updateServiceEndpoint (serviceName, serviceData, transaction) {
   if (!existingService) {
     throw new Errors.NotFoundError(`Service with name ${serviceName} not found`)
   }
+  const oldTags = _mapTags(existingService)
 
   // 3. Check if service type is being changed
   if (serviceData.type && serviceData.type !== existingService.type) {
@@ -1180,105 +1203,77 @@ async function updateServiceEndpoint (serviceName, serviceData, transaction) {
     transaction
   )
 
-  // 9. Start background orchestration
-  setImmediate(async () => {
-    try {
-      // Update tags if provided
-      if (serviceData.tags) {
-        await _setTags(existingService, serviceData.tags, transaction)
-      }
+  if (serviceData.tags) {
+    await _setTags(existingService, serviceData.tags, transaction)
+  }
 
-      // Handle resource changes
-      if (serviceData.resource &&
-          JSON.stringify(serviceData.resource) !== JSON.stringify(existingService.resource)) {
-        await _deleteTcpConnector(serviceName, transaction)
-        await _addTcpConnector(serviceData, transaction)
-      } else {
-        await _updateTcpConnector(serviceData, transaction)
-        // await _updateTcpListener(serviceData, transaction)
-      }
+  const snapshotTags = serviceData.tags !== undefined
+    ? [...new Set([...oldTags, ...serviceData.tags])]
+    : oldTags
+  const specSnapshot = _mergeServiceFieldsForSnapshot(existingService, serviceData, snapshotTags)
+  await _enqueueServiceReconcileTask(serviceName, 'spec-changed', specSnapshot, transaction)
 
-      // Update K8s service if needed
-      if ((existingService.type === 'microservice' || existingService.type === 'agent' || existingService.type === 'external') && isK8s) {
-        await _updateK8sService(serviceData, transaction)
-      }
-
-      // Update provisioning status to ready
-      await ServiceManager.update(
-        { name: serviceName },
-        { provisioningStatus: 'ready', provisioningError: null },
-        transaction
-      )
-    } catch (err) {
-      logger.error({
-        err,
-        msg: 'Background provisioning failed (update)',
-        serviceName
-      })
-      // Update provisioning status to failed and set error message
-      await ServiceManager.update(
-        { name: serviceName },
-        { provisioningStatus: 'failed', provisioningError: err.message },
-        transaction
-      )
-    }
-  })
-
-  // 10. Return updated service immediately
+  // 9. Return updated service immediately
   return updatedService
 }
 
 // Delete service endpoint
 async function deleteServiceEndpoint (serviceName, transaction) {
   logger.debug('deleteServiceEndpoint: start', { serviceName })
-  // Get existing service
-  const existingService = await ServiceManager.findOne({ name: serviceName }, transaction)
+  const existingService = await ServiceManager.findOneWithTags({ name: serviceName }, transaction)
   if (!existingService) {
     throw new Errors.NotFoundError(`Service with name ${serviceName} not found`)
   }
   logger.debug('deleteServiceEndpoint: existingService', { type: existingService.type, defaultBridge: existingService.defaultBridge })
 
-  const isK8s = await checkKubernetesEnvironment()
+  const specSnapshot = _buildServiceSpecSnapshot({
+    ...existingService,
+    tags: _mapTags(existingService)
+  })
+  await _enqueueServiceReconcileTask(serviceName, 'delete', specSnapshot, transaction)
 
-  try {
-    // Delete TCP connector
-    logger.debug('deleteServiceEndpoint: deleting TCP connector')
-    await _deleteTcpConnector(serviceName, transaction)
-    logger.debug('deleteServiceEndpoint: TCP connector deleted')
+  logger.debug('deleteServiceEndpoint: deleting service from DB')
+  await ServiceManager.delete({ name: serviceName }, transaction)
+  logger.debug('deleteServiceEndpoint: done')
 
-    // Delete TCP listener
-    logger.debug('deleteServiceEndpoint: deleting TCP listener')
-    await _deleteTcpListener(serviceName, transaction)
-    logger.debug('deleteServiceEndpoint: TCP listener deleted')
+  return { message: `Service ${serviceName} deleted successfully` }
+}
 
-    // Delete K8s service if needed
-    if (isK8s && existingService.type !== 'k8s') {
-      logger.debug('deleteServiceEndpoint: deleting K8s service')
-      await _deleteK8sService(serviceName)
-      logger.debug('deleteServiceEndpoint: K8s service deleted')
-    }
+async function reconcileServiceEndpoint (serviceName, transaction) {
+  const service = await ServiceManager.findOneWithTags({ name: serviceName }, transaction)
+  if (!service) {
+    throw new Errors.NotFoundError(`Service with name ${serviceName} not found`)
+  }
 
-    // Finally delete the service from database
-    logger.debug('deleteServiceEndpoint: deleting service from DB')
-    await ServiceManager.delete({ name: serviceName }, transaction)
-    logger.debug('deleteServiceEndpoint: done')
+  if (service.provisioningStatus === 'failed') {
+    await ServiceManager.update(
+      { name: serviceName },
+      { provisioningStatus: 'pending', provisioningError: null },
+      transaction
+    )
+    service.provisioningStatus = 'pending'
+    service.provisioningError = null
+  }
 
-    return { message: `Service ${serviceName} deleted successfully` }
-  } catch (error) {
-    logger.error({
-      err: error,
-      msg: 'deleteServiceEndpoint: error',
-      serviceName
-    })
+  const specSnapshot = _buildServiceSpecSnapshot({
+    ...service,
+    tags: _mapTags(service)
+  })
+  await _enqueueServiceReconcileTask(serviceName, 'manual-retry', specSnapshot, transaction)
 
-    // Wrap the error in a proper error type if it's not already
-    if (!(error instanceof Errors.ValidationError) &&
-        !(error instanceof Errors.NotFoundError) &&
-        !(error instanceof Errors.TransactionError) &&
-        !(error instanceof Errors.DuplicatePropertyError)) {
-      throw new Errors.ValidationError(`Failed to delete service: ${error.message}`)
-    }
-    throw error
+  return {
+    name: service.name,
+    type: service.type,
+    resource: service.resource,
+    defaultBridge: service.defaultBridge,
+    bridgePort: service.bridgePort,
+    targetPort: service.targetPort,
+    servicePort: service.servicePort,
+    k8sType: service.k8sType,
+    serviceEndpoint: service.serviceEndpoint,
+    tags: _mapTags(service),
+    provisioningStatus: service.provisioningStatus,
+    provisioningError: service.provisioningError
   }
 }
 
@@ -1375,6 +1370,7 @@ module.exports = {
   createServiceEndpoint: TransactionDecorator.generateTransaction(createServiceEndpoint),
   updateServiceEndpoint: TransactionDecorator.generateTransaction(updateServiceEndpoint),
   deleteServiceEndpoint: TransactionDecorator.generateTransaction(deleteServiceEndpoint),
+  reconcileServiceEndpoint: TransactionDecorator.generateTransaction(reconcileServiceEndpoint),
   getServicesListEndpoint: TransactionDecorator.generateTransaction(getServicesListEndpoint),
   getServiceEndpoint: TransactionDecorator.generateTransaction(getServiceEndpoint),
   moveMicroserviceTcpBridgeToNewFog: TransactionDecorator.generateTransaction(moveMicroserviceTcpBridgeToNewFog),
@@ -1383,5 +1379,9 @@ module.exports = {
   _buildTcpConnector,
   _buildTcpListener,
   _addTcpConnector,
+  _addTcpListener,
+  _updateTcpConnector,
+  _deleteTcpConnector,
+  _deleteTcpListener,
   _resolveFogRouterMode
 }

@@ -6,6 +6,7 @@ const Validator = require('../../../src/schemas')
 const FogProvisionKeyManager = require('../../../src/data/managers/iofog-provision-key-manager')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const ioFogManager = require('../../../src/data/managers/iofog-manager')
+const FogPlatformStatusManager = require('../../../src/data/managers/fog-platform-status-manager')
 const FogKeyService = require('../../../src/services/iofog-key-service')
 const AppHelper = require('../../../src/helpers/app-helper')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
@@ -678,10 +679,13 @@ describe('Agent Service', () => {
     def('deleteNotRunningResponse', () => Promise.resolve())
     def('findMicroservice', () => Promise.resolve($microserviceResponse))
 
+    def('platformStatusResponse', () => Promise.resolve(null))
+
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.spy(AppHelper, 'deleteUndefinedFields')
       $sandbox.stub(ioFogManager, 'findOne').returns($findOneResponse)
+      $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').returns($platformStatusResponse)
       $sandbox.stub(ioFogManager, 'update').returns($updateResponse)
       $sandbox.stub(JSON, 'parse').returns($jsonParseResponse)
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
@@ -938,10 +942,13 @@ describe('Agent Service', () => {
     def('updateMicroserviceStatusesResponse', () => Promise.resolve())
     def('deleteNotRunningResponse', () => Promise.resolve())
     def('findMicroservice', () => Promise.resolve($microserviceResponse))
+    def('platformStatusResponse', () => Promise.resolve(null))
+
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.spy(AppHelper, 'deleteUndefinedFields')
       $sandbox.stub(ioFogManager, 'findOne').returns($findOneResponse)
+      $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').returns($platformStatusResponse)
       $sandbox.stub(ioFogManager, 'update').returns($updateResponse)
       $sandbox.stub(JSON, 'parse').returns($jsonParseResponse)
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
@@ -1075,6 +1082,99 @@ describe('Agent Service', () => {
             })
           })
         })
+      })
+    })
+  })
+
+  describe('.updateAgentStatus() platform reconcile gating', () => {
+    const microservicesStatus = '[{"id": "testUuid", "containerId":"testContainerId", "status":"RUNNING"}]'
+    const transaction = {}
+
+    const baseAgentStatus = {
+      daemonStatus: 'RUNNING',
+      daemonOperatingDuration: 25,
+      warningMessage: '',
+      memoryUsage: 15,
+      diskUsage: 16,
+      cpuUsage: 17,
+      memoryViolation: false,
+      diskViolation: false,
+      cpuViolation: false,
+      systemAvailableDisk: 1,
+      systemAvailableMemory: 1,
+      systemTotalCpu: 1.1,
+      repositoryCount: 5,
+      repositoryStatus: '[]',
+      systemTime: 15325235253,
+      lastStatusTime: 15325235253,
+      ipAddress: 'testIpAddress',
+      ipAddressExternal: 'testIpAddressExternal',
+      microserviceStatus: microservicesStatus,
+    }
+
+    def('uuid', () => 'testUuid')
+    def('fog', () => ({ uuid: $uuid }))
+    def('platformPhase', () => 'Progressing')
+    def('existingWarningMessage', () => 'HEALTHY')
+    def('subject', () => AgentService.updateAgentStatus(baseAgentStatus, $fog, transaction))
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(ioFogManager, 'findOne').resolves({ warningMessage: $existingWarningMessage })
+      $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves(
+        $platformPhase ? { fogUuid: $uuid, phase: $platformPhase } : null
+      )
+      $sandbox.stub(ioFogManager, 'update').resolves()
+      $sandbox.stub(JSON, 'parse').returns([])
+      $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').resolves()
+    })
+
+    it('forces daemonStatus WARNING when platform phase is Progressing', async () => {
+      await $subject
+      expect(ioFogManager.update).to.have.been.calledWith(
+        { uuid: $uuid },
+        sinon.match.has('daemonStatus', FogStates.WARNING),
+        transaction
+      )
+    })
+
+    context('when platform phase is Ready', () => {
+      def('platformPhase', () => 'Ready')
+
+      it('accepts agent daemonStatus', async () => {
+        await $subject
+        expect(ioFogManager.update).to.have.been.calledWith(
+          { uuid: $uuid },
+          sinon.match.has('daemonStatus', 'RUNNING'),
+          transaction
+        )
+      })
+    })
+
+    context('when platform phase is Deleting', () => {
+      def('platformPhase', () => 'Deleting')
+
+      it('accepts agent daemonStatus', async () => {
+        await $subject
+        expect(ioFogManager.update).to.have.been.calledWith(
+          { uuid: $uuid },
+          sinon.match.has('daemonStatus', 'RUNNING'),
+          transaction
+        )
+      })
+    })
+
+    context('when platform status is missing but warningMessage has migration prefix', () => {
+      def('platformPhase', () => null)
+      def('existingWarningMessage', () => 'Platform reconcile: router create failed')
+
+      it('forces daemonStatus WARNING for migration compatibility', async () => {
+        await $subject
+        expect(ioFogManager.update).to.have.been.calledWith(
+          { uuid: $uuid },
+          sinon.match.has('daemonStatus', FogStates.WARNING),
+          transaction
+        )
       })
     })
   })

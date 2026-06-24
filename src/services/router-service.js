@@ -123,7 +123,7 @@ async function createRouterForFog (fogData, uuid, upstreamRouters, transaction) 
     await _createRouterPorts(routerMicroservice.uuid, fogData.edgeRouterPort, transaction)
     await _createRouterPorts(routerMicroservice.uuid, fogData.interRouterPort, transaction)
   }
-  await _ensureRouterSslVolumeMountsAndMappings(uuid, routerMicroservice.uuid, transaction, false)
+  await _ensureRouterTlsVolumeMountsAndMappings(uuid, routerMicroservice.uuid, transaction, false)
 
   return router
 }
@@ -251,7 +251,7 @@ async function updateConfig (routerID, containerEngine, transaction) {
     newConfig.connectors[connectorConfig.name] = connectorConfig
   }
 
-  await _ensureRouterSslVolumeMountsAndMappings(router.iofogUuid, routerMicroservice.uuid, transaction, true)
+  await _ensureRouterTlsVolumeMountsAndMappings(router.iofogUuid, routerMicroservice.uuid, transaction, true)
   await ChangeTrackingService.update(router.iofogUuid, ChangeTrackingService.events.microserviceConfig, transaction)
 
   // Check if configuration needs update
@@ -545,7 +545,7 @@ const ROUTER_SSL_PROFILE_NAMES = (name) => [
   `router-local-agent-${name}`
 ]
 
-async function _ensureRouterSslVolumeMountsAndMappings (iofogUuid, routerMicroserviceUuid, transaction, doCleanup = false) {
+async function _ensureRouterTlsVolumeMountsAndMappings (iofogUuid, routerMicroserviceUuid, transaction, doCleanup = false) {
   const fog = await FogManager.findOne({ uuid: iofogUuid }, transaction)
   if (!fog) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, iofogUuid))

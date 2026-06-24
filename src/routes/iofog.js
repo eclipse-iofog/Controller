@@ -200,6 +200,40 @@ module.exports = [
   },
   {
     method: 'post',
+    path: '/api/v3/iofog/:uuid/reconcile',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errCodes = [
+        {
+          code: 401,
+          errors: [Errors.AuthenticationError]
+        },
+        {
+          code: 404,
+          errors: [Errors.NotFoundError]
+        }
+      ]
+
+      await rbacMiddleware.protect()(req, res, async () => {
+        const reconcileFogEndpoint = ResponseDecorator.handleErrors(
+          FogController.reconcileFogEndPoint,
+          successCode,
+          errCodes
+        )
+        const responseObject = await reconcileFogEndpoint(req)
+        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
+        res
+          .status(responseObject.code)
+          .send(responseObject.body)
+
+        logger.apiRes({ req, user, res, responseObject })
+      })
+    }
+  },
+  {
+    method: 'post',
     path: '/api/v3/iofog/:uuid/version/:versionCommand',
     middleware: async (req, res) => {
       logger.apiReq(req)
