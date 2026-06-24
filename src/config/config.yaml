@@ -20,9 +20,20 @@ server:
     maxPayload: 1048576          # 1MB
     maxFrameSize: 65536          # 64KB
     session:
-      timeout: 3600000             # Session timeout in milliseconds (1 hour)
+      timeout: 3600000             # Legacy idle fallback (ms); exec uses execMaxDurationMs
       maxConnections: 100          # Maximum connections per session
       cleanupInterval: 30000       # Session cleanup interval (30 seconds)
+      execPendingTimeoutMs: 60000  # Exec: user wait for agent (R81)
+      execMaxDurationMs: 28800000  # Exec: max active session 8h (R81)
+      logPendingTimeoutMs: 120000  # Log: user wait for agent (R82)
+      logIdleTimeoutMs: 7200000    # Log: idle session 2h (R82)
+      logMaxConcurrentPerResource: 3  # Log: max user WS per MS or fog (R82)
+      logTailMaxLines: 5000        # Log: tail query param max (R82)
+      replicaMaxConcurrentWs: 500    # Scale SLO per replica (R88)
+      drainTimeoutMs: 30000        # Graceful drain on SIGTERM/preStop (R85)
+    ha:
+      crossReplicaRequiresAmqp: true   # Cross-replica exec/log relay requires AMQP router (R84)
+      failFastOnRouterUnavailable: true
     security:
       maxConnectionsPerIp: 10
       maxRequestsPerMinute: 60
@@ -74,6 +85,7 @@ settings:
   hubRouterConfigLockTimeoutSeconds: 120         # Hub router ConfigMap lock wait in seconds (default: 120)
   serviceLoadBalancerWatchTimeoutSeconds: 300    # LoadBalancer IP watch timeout in service reconcile (default: 300)
   jobStartupDelaySeconds: 3                      # Delay before reconcile-heavy background jobs start (default: 3)
+  wsSessionReconcileIntervalSeconds: 60          # WS exec/log stale DB row reconcile interval (R89)
 
 # Database Configuration
 database:

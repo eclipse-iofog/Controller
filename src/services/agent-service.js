@@ -633,27 +633,26 @@ const getControllerCA = async function (fog, transaction) {
 const getAgentLogSessions = async function (fog, transaction) {
   const Op = require('sequelize').Op
 
-  // Get all microservices for this fog
   const microservices = await MicroserviceManager.findAll(
     { iofogUuid: fog.uuid },
     transaction
   )
 
   const allSessions = []
+  const microserviceUuids = microservices.map(ms => ms.uuid)
 
-  // Get microservice log sessions
-  for (const ms of microservices) {
-    const sessions = await MicroserviceLogStatusManager.findAll(
+  if (microserviceUuids.length > 0) {
+    const msSessions = await MicroserviceLogStatusManager.findAll(
       {
-        microserviceUuid: ms.uuid,
+        microserviceUuid: { [Op.in]: microserviceUuids },
         status: { [Op.in]: ['PENDING', 'ACTIVE'] }
       },
       transaction
     )
 
-    for (const session of sessions) {
+    for (const session of msSessions) {
       allSessions.push({
-        microserviceUuid: ms.uuid,
+        microserviceUuid: session.microserviceUuid,
         sessionId: session.sessionId,
         tailConfig: JSON.parse(session.tailConfig),
         status: session.status,
@@ -662,7 +661,6 @@ const getAgentLogSessions = async function (fog, transaction) {
     }
   }
 
-  // Get fog node log sessions
   const fogSessions = await FogLogStatusManager.findAll(
     {
       iofogUuid: fog.uuid,

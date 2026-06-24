@@ -182,8 +182,14 @@ initialize().then(() => {
   }
 
   function registerServers (api, consoleServer) {
-    process.once('SIGTERM', async function (code) {
+    process.once('SIGTERM', async function () {
       console.log('SIGTERM received. Shutting down.')
+      try {
+        const wsServer = WebSocketServer.getInstance()
+        await wsServer.drain()
+      } catch (error) {
+        logger.error('WebSocket drain failed during shutdown', { error: error.message })
+      }
       await new Promise((resolve) => { api.close(resolve) })
       console.log('API Server closed.')
       await new Promise((resolve) => { consoleServer.close(resolve) })

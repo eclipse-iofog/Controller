@@ -14,6 +14,12 @@ const AuthDecorator = require('../decorators/authorization-decorator')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const msgpack = require('@msgpack/msgpack')
 const WebSocketQueueService = require('../services/websocket-queue-service')
+const RouterConnectionService = require('../services/router-connection-service')
+const {
+  recordExecSessionActive,
+  recordLogSessionActive,
+  recordPairingDurationMs
+} = require('./ws-metrics')
 const AppHelper = require('../helpers/app-helper')
 const MicroserviceLogStatusManager = require('../data/managers/microservice-log-status-manager')
 const FogLogStatusManager = require('../data/managers/fog-log-status-manager')
@@ -33,6 +39,13 @@ const MESSAGE_TYPES = {
   LOG_STOP: 8, // Log streaming stopped
   LOG_ERROR: 9 // Log streaming error
 }
+
+const ROUTER_UNAVAILABLE_CLOSE_CODE = 1013
+const ROUTER_UNAVAILABLE_CLOSE_REASON = 'Router unavailable for cross-replica session'
+const DRAIN_CLOSE_CODE = 1001
+const DRAIN_CLOSE_REASON = 'Server draining'
+// when user WS bufferedAmount exceeds this, drop LOG_LINE silently and emit LOG_ERROR once.
+const LOG_BACKPRESSURE_BUFFER_BYTES = 256 * 1024
 
 const EventService = require('../services/event-service')
 const { isAuthConfigured: isOidcAuthConfigured } = require('../config/oidc')
@@ -155,8 +168,13 @@ class WebSocketServer {
     this.rateLimits = new Map()
     this.sessionManager = new SessionManager(config.get('server.webSocket'))
     this.logSessionManager = new LogSessionManager(config.get('server.webSocket'))
+    this.sessionConfig = config.get('server.webSocket.session')
     this.queueService = WebSocketQueueService
     this.pendingCloseTimeouts = new Map() // Track pending CLOSE messages in cross-replica scenarios
+    this.haConfig = config.get('server.webSocket.ha') || {}
+    this.isDraining = false
+    this.drainPromise = null
+    this.logBackpressureNotified = new Set()
     this.config = {
       pingInterval: process.env.WS_PING_INTERVAL || config.get('server.webSocket.pingInterval'),
       pongTimeout: process.env.WS_PONG_TIMEOUT || config.get('server.webSocket.pongTimeout'),
@@ -187,17 +205,11 @@ class WebSocketServer {
   // MessagePack encoding/decoding helpers with improved error handling
   encodeMessage (message) {
     try {
-      // Ensure we're only encoding the actual message content
       const encoded = msgpack.encode(message)
-      logger.debug('Encoded MessagePack message:' + JSON.stringify({
-        type: typeof message,
-        isMap: message instanceof Map,
-        keys: message instanceof Map ? Array.from(message.keys()) : Object.keys(message),
-        hasExecId: message instanceof Map ? message.has('execId') : 'execId' in message,
-        hasMicroserviceUuid: message instanceof Map ? message.has('microserviceUuid') : 'microserviceUuid' in message,
+      logger.debug('Encoded MessagePack message', {
         encodedLength: encoded.length,
-        firstBytes: encoded.subarray(0, 16).toString('hex')
-      }))
+        hasExecId: message instanceof Map ? message.has('execId') : 'execId' in message
+      })
       return encoded
     } catch (error) {
       logger.error('Failed to encode message:' + JSON.stringify({
@@ -211,21 +223,15 @@ class WebSocketServer {
   decodeMessage (buffer) {
     try {
       const decoded = msgpack.decode(buffer)
-      logger.debug('Decoded MessagePack message:' + JSON.stringify({
-        type: typeof decoded,
-        isMap: decoded instanceof Map,
-        keys: decoded instanceof Map ? Array.from(decoded.keys()) : Object.keys(decoded),
-        hasExecId: decoded instanceof Map ? decoded.has('execId') : 'execId' in decoded,
-        hasMicroserviceUuid: decoded instanceof Map ? decoded.has('microserviceUuid') : 'microserviceUuid' in decoded,
+      logger.debug('Decoded MessagePack message', {
         bufferLength: buffer.length,
-        firstBytes: buffer.subarray(0, 16).toString('hex')
-      }))
+        hasExecId: decoded instanceof Map ? decoded.has('execId') : 'execId' in decoded
+      })
       return decoded
     } catch (error) {
       logger.error('Failed to decode MessagePack message:' + JSON.stringify({
         error: error.message,
-        bufferLength: buffer.length,
-        firstBytes: buffer.subarray(0, 16).toString('hex')
+        bufferLength: buffer.length
       }))
       throw error
     }
@@ -259,6 +265,8 @@ class WebSocketServer {
 
     // Handle individual connection errors
     this.wss.on('connection', (ws, req) => {
+      this.trackConnectionLimit(ws, req)
+
       // Note: Connection logging moved to after successful authorization in handleConnection
       // This ensures we only log connections that pass RBAC checks
 
@@ -269,18 +277,6 @@ class WebSocketServer {
         ws._socket.setNoDelay(true)
         ws._socket.setKeepAlive(true, 30000) // Enable keep-alive instead of disabling
       }
-
-      // Add detailed frame-level logging
-      ws.on('message', (data, isBinary) => {
-        const buffer = Buffer.from(data)
-        logger.debug('WebSocket frame received:' + JSON.stringify({
-          isBinary,
-          length: buffer.length,
-          firstBytes: buffer.subarray(0, 16).toString('hex'),
-          lastBytes: buffer.subarray(-16).toString('hex'),
-          url: req.url
-        }))
-      })
 
       // Add error handler for each connection
       ws.on('error', (error) => {
@@ -348,10 +344,168 @@ class WebSocketServer {
     }
 
     this.sessionManager.startCleanup()
+    this.sessionManager.setSessionExpiredHandler(async (microserviceUuid, execId) => {
+      await TransactionDecorator.generateTransaction(async (tx) => {
+        if (execId) {
+          await this.cleanupSession(execId, tx)
+        } else {
+          await this.disableExecForMicroservice(microserviceUuid, tx)
+        }
+      })()
+    })
+  }
+
+  async disableExecForMicroservice (microserviceUuid, transaction) {
+    await MicroserviceExecStatusManager.update(
+      { microserviceUuid },
+      { execSessionId: '', status: microserviceExecState.INACTIVE },
+      transaction
+    )
+    await MicroserviceManager.update({ uuid: microserviceUuid }, { execEnabled: false }, transaction)
+    const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
+    if (microservice) {
+      await ChangeTrackingService.update(
+        microservice.iofogUuid,
+        ChangeTrackingService.events.microserviceExecSessions,
+        transaction
+      )
+    }
+  }
+
+  /**
+   * Tear down all in-memory exec sessions and agent sockets for a microservice.
+   * Ensures Edgelet must open a fresh agent WS on the next exec attempt (exec_b / timeout).
+   */
+  async cleanupExecSessionsForMicroservice (microserviceUuid, transaction) {
+    const execIdsToCleanup = []
+    for (const [execId, session] of this.sessionManager.sessions) {
+      if (session.microserviceUuid === microserviceUuid) {
+        execIdsToCleanup.push(execId)
+      }
+    }
+
+    for (const execId of execIdsToCleanup) {
+      await this.cleanupSession(execId, transaction)
+    }
+
+    if (this.sessionManager.pendingAgents.has(microserviceUuid)) {
+      const agents = this.sessionManager.pendingAgents.get(microserviceUuid)
+      for (const [, agentInfo] of agents.entries()) {
+        if (agentInfo.ws && agentInfo.ws.readyState === WebSocket.OPEN) {
+          try {
+            agentInfo.ws.close(1000, 'Exec session ended')
+          } catch (error) {
+            logger.debug('[WS-CLEANUP] Failed to close pending agent socket', {
+              microserviceUuid,
+              error: error.message
+            })
+          }
+        }
+      }
+      this.sessionManager.pendingAgents.delete(microserviceUuid)
+    }
+
+    if (execIdsToCleanup.length > 0) {
+      logger.info('[WS-CLEANUP] Cleaned exec sessions for microservice:' + JSON.stringify({
+        microserviceUuid,
+        sessionCount: execIdsToCleanup.length
+      }))
+    }
+  }
+
+  getLogConcurrencyLimit () {
+    return this.sessionConfig.logMaxConcurrentPerResource || 3
+  }
+
+  getLogTailMaxLines () {
+    return this.sessionConfig.logTailMaxLines || 5000
+  }
+
+  getExecPendingTimeoutMs () {
+    return this.sessionConfig.execPendingTimeoutMs || 60000
+  }
+
+  getLogPendingTimeoutMs () {
+    return this.sessionConfig.logPendingTimeoutMs || 120000
+  }
+
+  getDrainTimeoutMs () {
+    return this.sessionConfig.drainTimeoutMs || 30000
+  }
+
+  isCrossReplicaSession (session) {
+    return !!(session && (!session.agent || !session.user))
+  }
+
+  async requireRouterForCrossReplica (ws) {
+    if (this.haConfig.failFastOnRouterUnavailable === false) {
+      return true
+    }
+    const available = await RouterConnectionService.isRouterAvailable()
+    if (!available) {
+      logger.warn('[WS-HA] Router unavailable for cross-replica session')
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close(ROUTER_UNAVAILABLE_CLOSE_CODE, ROUTER_UNAVAILABLE_CLOSE_REASON)
+      }
+      return false
+    }
+    return true
+  }
+
+  recordPairingDuration (startedAt) {
+    if (startedAt) {
+      recordPairingDurationMs(Date.now() - startedAt)
+    }
+  }
+
+  async countLogSessionsInDb (microserviceUuid, fogUuid, transaction) {
+    if (microserviceUuid) {
+      const rows = await MicroserviceLogStatusManager.findAll({ microserviceUuid }, transaction)
+      return rows.length
+    }
+    if (fogUuid) {
+      const rows = await FogLogStatusManager.findAll({ iofogUuid: fogUuid }, transaction)
+      return rows.length
+    }
+    return 0
+  }
+
+  parseLogTailConfig (url, ws) {
+    const tailMax = this.getLogTailMaxLines()
+    const tailDefault = 100
+    const tailParam = url.searchParams.get('tail')
+
+    if (tailParam !== null && tailParam !== '') {
+      const parsed = parseInt(tailParam, 10)
+      if (Number.isNaN(parsed) || parsed < 1) {
+        ws.close(1008, `Invalid tail parameter. Must be between 1 and ${tailMax}.`)
+        return null
+      }
+      if (parsed > tailMax) {
+        ws.close(1008, `Tail exceeds maximum of ${tailMax} lines.`)
+        return null
+      }
+    }
+
+    const tailLines = (tailParam !== null && tailParam !== '')
+      ? parseInt(tailParam, 10)
+      : tailDefault
+
+    return {
+      lines: tailLines,
+      follow: url.searchParams.get('follow') !== 'false',
+      since: url.searchParams.get('since') || null,
+      until: url.searchParams.get('until') || null
+    }
   }
 
   async verifyClient (info, callback) {
     try {
+      if (this.isDraining) {
+        callback(new Error(DRAIN_CLOSE_REASON), false)
+        return
+      }
+
       // Check connection limits
       const clientIp = info.req.socket.remoteAddress
       const currentConnections = this.connectionLimits.get(clientIp) || 0
@@ -376,10 +530,32 @@ class WebSocketServer {
       rateLimit.count++
       this.rateLimits.set(clientIp, rateLimit)
 
+      this.connectionLimits.set(clientIp, currentConnections + 1)
+
       callback(null, true)
     } catch (error) {
       callback(new Error('Internal server error'), false)
     }
+  }
+
+  decrementConnectionCount (clientIp) {
+    const current = this.connectionLimits.get(clientIp) || 0
+    if (current <= 1) {
+      this.connectionLimits.delete(clientIp)
+    } else {
+      this.connectionLimits.set(clientIp, current - 1)
+    }
+  }
+
+  trackConnectionLimit (ws, req) {
+    const clientIp = req.socket.remoteAddress
+    let released = false
+    const release = () => {
+      if (released) return
+      released = true
+      this.decrementConnectionCount(clientIp)
+    }
+    ws.once('close', release)
   }
 
   extractMicroserviceUuid (url) {
@@ -390,6 +566,13 @@ class WebSocketServer {
   }
 
   handleConnection (ws, req) {
+    if (this.isDraining) {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close(DRAIN_CLOSE_CODE, DRAIN_CLOSE_REASON)
+      }
+      return
+    }
+
     // Add error handler for this connection
     ws.on('error', (error) => {
       logger.error('WebSocket connection error:' + JSON.stringify({
@@ -506,12 +689,7 @@ class WebSocketServer {
             ws.close(1008, error.message || 'Internal server error')
             const microserviceUuid = this.extractMicroserviceUuid(req.url)
             if (microserviceUuid) {
-              await MicroserviceExecStatusManager.update(
-                { microserviceUuid },
-                { execSessionId: '', status: microserviceExecState.INACTIVE },
-                transaction
-              )
-              await MicroserviceManager.update({ uuid: microserviceUuid }, { execEnabled: false }, transaction)
+              await this.disableExecForMicroservice(microserviceUuid, transaction)
             }
           }
         } catch (closeError) {
@@ -643,233 +821,207 @@ class WebSocketServer {
     }
   }
 
+  scheduleAgentExecConnectEvent (req, resourceId) {
+    setImmediate(async () => {
+      try {
+        const authHeader = req.headers.authorization
+        let actorId = null
+        if (authHeader) {
+          const [scheme, token] = authHeader.split(' ')
+          if (scheme.toLowerCase() === 'bearer' && token) {
+            try {
+              const tokenParts = token.split('.')
+              if (tokenParts.length === 3) {
+                const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
+                actorId = payload.sub || null
+              }
+            } catch (err) {
+              // Ignore token parsing errors
+            }
+          }
+        }
+        await EventService.createWsConnectEvent({
+          timestamp: Date.now(),
+          endpointType: 'agent',
+          actorId,
+          path: req.url,
+          resourceId,
+          ipAddress: EventService.extractIPv4Address(req) || null
+        })
+      } catch (err) {
+        logger.error('Failed to create WS_CONNECT event (non-blocking):', err)
+      }
+    })
+  }
+
+  async processAgentInitialMessage (ws, req, data, isBinary, microserviceUuid, transaction) {
+    logger.debug('[WS-INIT] Received initial message from agent:' + JSON.stringify({
+      isBinary,
+      url: req.url,
+      microserviceUuid
+    }))
+
+    if (!isBinary) {
+      logger.error('[WS-ERROR] Expected binary message from agent')
+      ws.close(1008, 'Expected binary message')
+      return
+    }
+
+    const buffer = Buffer.from(data)
+    logger.debug('[WS-INIT] Processing initial message from agent', {
+      isBinary,
+      length: buffer.length
+    })
+
+    let execMsg
+    try {
+      execMsg = this.decodeMessage(buffer)
+      logger.info('[WS-INIT] Decoded MessagePack from agent:' + JSON.stringify(execMsg))
+    } catch (err) {
+      logger.error('[WS-ERROR] Failed to decode MessagePack from agent:' + JSON.stringify({
+        error: err.message,
+        stack: err.stack
+      }))
+      ws.close(1008, 'Invalid MessagePack')
+      return
+    }
+
+    const execId = execMsg instanceof Map ? execMsg.get('execId') : execMsg.execId
+    const msgMicroserviceUuid = execMsg instanceof Map ? execMsg.get('microserviceUuid') : execMsg.microserviceUuid
+    if (!execId || !msgMicroserviceUuid) {
+      logger.error('[WS-ERROR] Agent message missing execId or microserviceUuid:' + JSON.stringify(execMsg))
+      ws.close(1008, 'Missing required fields')
+      return
+    }
+
+    const existingSession = this.sessionManager.getSession(execId)
+    if (existingSession && existingSession.agent === ws && existingSession.awaitingUser && !existingSession.user) {
+      logger.debug('[WS-INIT] Ignoring duplicate agent init for pending session', {
+        execId,
+        microserviceUuid: msgMicroserviceUuid
+      })
+      return
+    }
+
+    for (const [existingExecId, existingSessionEntry] of this.sessionManager.sessions) {
+      if (existingSessionEntry.agent === ws && existingExecId !== execId) {
+        await this.cleanupSession(existingExecId, transaction, { preserveAgentSocket: true })
+      }
+    }
+
+    const session = await this.sessionManager.tryActivateSession(msgMicroserviceUuid, execId, ws, true, transaction)
+    if (session) {
+      logger.info('[WS-SESSION] Session activated for agent:' + JSON.stringify({
+        execId,
+        microserviceUuid: msgMicroserviceUuid
+      }))
+      logger.debug('[WS-FORWARD] Setting up message forwarding:' + JSON.stringify({
+        execId,
+        microserviceUuid: msgMicroserviceUuid
+      }))
+      await this.setupMessageForwarding(execId, transaction)
+      this.scheduleAgentExecConnectEvent(req, msgMicroserviceUuid)
+      return
+    }
+
+    this.attachPendingKeepAliveHandler(ws)
+    try {
+      await MicroserviceExecStatusManager.update(
+        { microserviceUuid: msgMicroserviceUuid },
+        { execSessionId: execId, status: microserviceExecState.PENDING },
+        transaction
+      )
+      logger.debug('[WS-SESSION] Updated microservice exec status to PENDING', {
+        execId,
+        microserviceUuid: msgMicroserviceUuid
+      })
+    } catch (error) {
+      logger.error('[WS-SESSION] Failed to update microservice exec status to PENDING', {
+        execId,
+        microserviceUuid: msgMicroserviceUuid,
+        error: error.message,
+        stack: error.stack
+      })
+    }
+
+    const agentOnlySession = this.sessionManager.createSession(execId, msgMicroserviceUuid, ws, null, transaction)
+    agentOnlySession.awaitingUser = true
+
+    try {
+      await this.queueService.enableForSession(agentOnlySession, async (closeExecId) => {
+        const timeout = this.pendingCloseTimeouts.get(closeExecId)
+        if (timeout) {
+          clearTimeout(timeout)
+          this.pendingCloseTimeouts.delete(closeExecId)
+          logger.debug('[WS-SESSION] Cleared pending CLOSE timeout - agent responded', { execId: closeExecId })
+        }
+        await TransactionDecorator.generateTransaction(async (failTx) => {
+          await this.cleanupSession(closeExecId, failTx)
+        })()
+      })
+      agentOnlySession.queueBridgeEnabled = true
+    } catch (error) {
+      logger.warn('[WS-SESSION] Optional queue bridge for pending agent failed; direct relay when user connects on same replica:', {
+        execId,
+        microserviceUuid: msgMicroserviceUuid,
+        error: error.message
+      })
+      agentOnlySession.queueBridgeEnabled = false
+    }
+
+    logger.info('[WS-SESSION] Agent pending — awaiting user before ACTIVATION:' + JSON.stringify({
+      execId,
+      microserviceUuid: msgMicroserviceUuid
+    }))
+    this.scheduleAgentExecConnectEvent(req, msgMicroserviceUuid)
+  }
+
   async handleAgentConnection (ws, req, token, microserviceUuid, transaction) {
     try {
       this.ensureSocketPongHandler(ws)
+      ws._agentExecHandshakeContext = { req, microserviceUuid }
       logger.debug('[WS-CONN] Processing agent connection:' + JSON.stringify({
         url: req.url,
         microserviceUuid,
         remoteAddress: req.socket.remoteAddress
       }))
 
-      // Set up message handler for initial message only
-      const initialMessageHandler = async (data, isBinary) => {
-        logger.debug('[WS-INIT] Received initial message from agent:' + JSON.stringify({
-          isBinary,
-          url: req.url,
-          microserviceUuid
-        }))
-
-        if (!isBinary) {
-          logger.error('[WS-ERROR] Expected binary message from agent')
-          ws.close(1008, 'Expected binary message')
-          return
-        }
-
-        const buffer = Buffer.from(data)
-        logger.debug('[WS-INIT] Processing initial message from agent:' + JSON.stringify({
-          isBinary,
-          length: buffer.length,
-          firstBytes: buffer.subarray(0, 16).toString('hex'),
-          lastBytes: buffer.subarray(-16).toString('hex')
-        }))
-
-        let execMsg
-        try {
-          execMsg = this.decodeMessage(buffer)
-          logger.info('[WS-INIT] Decoded MessagePack from agent:' + JSON.stringify(execMsg))
-        } catch (err) {
-          logger.error('[WS-ERROR] Failed to decode MessagePack from agent:' + JSON.stringify({
-            error: err.message,
-            stack: err.stack
-          }))
-          ws.close(1008, 'Invalid MessagePack')
-          return
-        }
-
-        const { execId, microserviceUuid: msgMicroserviceUuid } = execMsg
-        if (!execId || !msgMicroserviceUuid) {
-          logger.error('[WS-ERROR] Agent message missing execId or microserviceUuid:' + JSON.stringify(execMsg))
-          ws.close(1008, 'Missing required fields')
-          return
-        }
-
-        // Remove the initial message handler
-        ws.removeListener('message', initialMessageHandler)
-
-        // Try to activate session with the execId from the message
-        const session = await this.sessionManager.tryActivateSession(msgMicroserviceUuid, execId, ws, true, transaction)
-        if (session) {
-          logger.info('[WS-SESSION] Session activated for agent:' + JSON.stringify({
-            execId,
-            microserviceUuid: msgMicroserviceUuid
-          }))
-          // Set up message forwarding
-          logger.debug('[WS-FORWARD] Setting up message forwarding:' + JSON.stringify({
-            execId,
-            microserviceUuid: msgMicroserviceUuid
-          }))
-          await this.setupMessageForwarding(execId, transaction)
-
-          // Record WebSocket connection event (non-blocking)
-          setImmediate(async () => {
-            try {
-              const authHeader = req.headers.authorization
-              let actorId = null
-              if (authHeader) {
-                const [scheme, token] = authHeader.split(' ')
-                if (scheme.toLowerCase() === 'bearer' && token) {
-                  try {
-                    const tokenParts = token.split('.')
-                    if (tokenParts.length === 3) {
-                      const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
-                      actorId = payload.sub || null
-                    }
-                  } catch (err) {
-                    // Ignore token parsing errors
-                  }
-                }
-              }
-              await EventService.createWsConnectEvent({
-                timestamp: Date.now(),
-                endpointType: 'agent',
-                actorId,
-                path: req.url,
-                resourceId: msgMicroserviceUuid,
-                ipAddress: EventService.extractIPv4Address(req) || null
-              })
-            } catch (err) {
-              logger.error('Failed to create WS_CONNECT event (non-blocking):', err)
-            }
-          })
-        } else {
-          this.attachPendingKeepAliveHandler(ws)
-          try {
-            await MicroserviceExecStatusManager.update(
-              { microserviceUuid },
-              { execSessionId: execId, status: microserviceExecState.PENDING },
-              transaction
-            )
-            logger.debug('[WS-SESSION] Updated microservice exec status to PENDING', {
-              execId,
-              microserviceUuid
-            })
-          } catch (error) {
-            logger.error('[WS-SESSION] Failed to update microservice exec status to PENDING', {
-              execId,
-              microserviceUuid,
-              error: error.message,
-              stack: error.stack
-            })
-            // Continue anyway - the in-memory state is correct
-          }
-          // Create session with agent only and enable queue bridge for cross-replica support
-          // This allows the agent to receive messages from users on other replicas via AMQP queues
-          const agentOnlySession = this.sessionManager.createSession(execId, msgMicroserviceUuid, ws, null, transaction)
-          try {
-            // Pass cleanup callback so queue service can notify us when CLOSE is received
-            await this.queueService.enableForSession(agentOnlySession, (execId) => {
-              // Clear timeout if it exists (agent responded to CLOSE)
-              const timeout = this.pendingCloseTimeouts.get(execId)
-              if (timeout) {
-                clearTimeout(timeout)
-                this.pendingCloseTimeouts.delete(execId)
-                logger.debug('[WS-SESSION] Cleared pending CLOSE timeout - agent responded', { execId })
-              }
-              this.cleanupSession(execId, transaction)
-            })
-            agentOnlySession.queueBridgeEnabled = true
-            logger.info('[WS-SESSION] No pending user found for agent, added to pending list and enabled queue bridge for cross-replica support:' + JSON.stringify({
-              execId,
-              microserviceUuid: msgMicroserviceUuid
-            }))
-            await this.setupMessageForwarding(execId, transaction)
-
-            // Record WebSocket connection event for agent (non-blocking)
-            // This covers the case when agent connects but no user is waiting (cross-replica or normal)
-            setImmediate(async () => {
-              try {
-                const authHeader = req.headers.authorization
-                let actorId = null
-                if (authHeader) {
-                  const [scheme, token] = authHeader.split(' ')
-                  if (scheme.toLowerCase() === 'bearer' && token) {
-                    try {
-                      const tokenParts = token.split('.')
-                      if (tokenParts.length === 3) {
-                        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
-                        actorId = payload.sub || null
-                      }
-                    } catch (err) {
-                      // Ignore token parsing errors
-                    }
-                  }
-                }
-                await EventService.createWsConnectEvent({
-                  timestamp: Date.now(),
-                  endpointType: 'agent',
-                  actorId,
-                  path: req.url,
-                  resourceId: msgMicroserviceUuid,
-                  ipAddress: EventService.extractIPv4Address(req) || null
-                })
-              } catch (err) {
-                logger.error('Failed to create WS_CONNECT event (non-blocking):', err)
-              }
-            })
-          } catch (error) {
-            logger.warn('[WS-SESSION] Failed to enable queue bridge for pending agent, will use direct relay when user connects:', {
-              execId,
-              microserviceUuid: msgMicroserviceUuid,
-              error: error.message
-            })
-            agentOnlySession.queueBridgeEnabled = false
-
-            // Record WebSocket connection event even if queue bridge failed (non-blocking)
-            setImmediate(async () => {
-              try {
-                const authHeader = req.headers.authorization
-                let actorId = null
-                if (authHeader) {
-                  const [scheme, token] = authHeader.split(' ')
-                  if (scheme.toLowerCase() === 'bearer' && token) {
-                    try {
-                      const tokenParts = token.split('.')
-                      if (tokenParts.length === 3) {
-                        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
-                        actorId = payload.sub || null
-                      }
-                    } catch (err) {
-                      // Ignore token parsing errors
-                    }
-                  }
-                }
-                await EventService.createWsConnectEvent({
-                  timestamp: Date.now(),
-                  endpointType: 'agent',
-                  actorId,
-                  path: req.url,
-                  resourceId: msgMicroserviceUuid,
-                  ipAddress: EventService.extractIPv4Address(req) || null
-                })
-              } catch (err) {
-                logger.error('Failed to create WS_CONNECT event (non-blocking):', err)
-              }
-            })
-          }
+      // Capture the first frame during validation so Edgelet's immediate-on-open msgpack is not lost (Plan 16-A).
+      let capturedInitialFrame = null
+      const captureHandler = (data, isBinary) => {
+        if (capturedInitialFrame === null) {
+          capturedInitialFrame = { data, isBinary }
         }
       }
+      ws.on('message', captureHandler)
 
-      // Bind the message handler BEFORE validation
-      ws.on('message', initialMessageHandler)
-
-      // Now validate the connection
       const fog = await this.validateAgentConnection(token, microserviceUuid, transaction)
       logger.debug('[WS-VALIDATE] Agent connection validated:' + JSON.stringify({
         fogUuid: fog.uuid,
         microserviceUuid,
         url: req.url
       }))
+
+      if (capturedInitialFrame) {
+        ws.removeListener('message', captureHandler)
+        await this.processAgentInitialMessage(
+          ws,
+          req,
+          capturedInitialFrame.data,
+          capturedInitialFrame.isBinary,
+          microserviceUuid,
+          transaction
+        )
+      } else {
+        const initialMessageHandler = async (data, isBinary) => {
+          ws.removeListener('message', initialMessageHandler)
+          ws.removeListener('message', captureHandler)
+          await this.processAgentInitialMessage(ws, req, data, isBinary, microserviceUuid, transaction)
+        }
+        // Register the follow-up handler before removing capture to avoid losing a fast first frame.
+        ws.on('message', initialMessageHandler)
+        ws.removeListener('message', captureHandler)
+      }
 
       // Handle connection close
       ws.on('close', async (code, reason) => {
@@ -906,36 +1058,36 @@ class WebSocketServer {
           }
         })
 
-        for (const [execId, session] of this.sessionManager.sessions) {
-          if (session.agent === ws) {
-            // In cross-replica scenarios, send CLOSE message to user via queue
-            // Note: session.user is null on agent's replica in cross-replica scenarios
-            const queueEnabled = this.queueService.shouldUseQueue(execId)
-            if (queueEnabled) {
-              try {
-                const closeMsg = {
-                  type: MESSAGE_TYPES.CLOSE,
-                  execId,
-                  microserviceUuid: session.microserviceUuid,
-                  timestamp: Date.now(),
-                  data: Buffer.from('Agent closed connection')
+        await TransactionDecorator.generateTransaction(async (closeTransaction) => {
+          for (const [execId, session] of this.sessionManager.sessions) {
+            if (session.agent === ws) {
+              const queueEnabled = this.queueService.shouldUseQueue(execId)
+              if (queueEnabled) {
+                try {
+                  const closeMsg = {
+                    type: MESSAGE_TYPES.CLOSE,
+                    execId,
+                    microserviceUuid: session.microserviceUuid,
+                    timestamp: Date.now(),
+                    data: Buffer.from('Agent closed connection')
+                  }
+                  const encoded = this.encodeMessage(closeMsg)
+                  await this.queueService.publishToUser(execId, encoded, { messageType: MESSAGE_TYPES.CLOSE })
+                  logger.info('[WS-CLOSE] Sent CLOSE message to user via queue after agent disconnect', {
+                    execId,
+                    microserviceUuid: session.microserviceUuid
+                  })
+                } catch (error) {
+                  logger.error('[WS-CLOSE] Failed to send CLOSE message to user via queue', {
+                    execId,
+                    error: error.message
+                  })
                 }
-                const encoded = this.encodeMessage(closeMsg)
-                await this.queueService.publishToUser(execId, encoded, { messageType: MESSAGE_TYPES.CLOSE })
-                logger.info('[WS-CLOSE] Sent CLOSE message to user via queue after agent disconnect', {
-                  execId,
-                  microserviceUuid: session.microserviceUuid
-                })
-              } catch (error) {
-                logger.error('[WS-CLOSE] Failed to send CLOSE message to user via queue', {
-                  execId,
-                  error: error.message
-                })
               }
+              await this.cleanupSession(execId, closeTransaction)
             }
-            this.cleanupSession(execId, transaction)
           }
-        }
+        })()
         this.sessionManager.removePendingAgent(microserviceUuid, ws)
         logger.debug('[WS-CLOSE] Agent connection closed:' + JSON.stringify({
           url: req.url,
@@ -997,16 +1149,12 @@ class WebSocketServer {
       await this.validateUserConnection(token, microserviceUuid, expectSystem, transaction)
       logger.info('User connection validated successfully for microservice:' + microserviceUuid)
 
-      // Check if there's already an active session for this microservice
-      const existingSession = Array.from(this.sessionManager.sessions.values())
-        .find(session => session.microserviceUuid === microserviceUuid && session.user && session.user.readyState === WebSocket.OPEN)
-
-      if (existingSession) {
-        logger.debug('Microservice has already active exec session:' + JSON.stringify({
-          microserviceUuid,
-          existingExecId: existingSession.execId
+      // Check if there's already an active or pending exec session for this microservice
+      if (this.sessionManager.hasActiveOrPendingUser(microserviceUuid)) {
+        logger.debug('Microservice already has an exec session in progress:' + JSON.stringify({
+          microserviceUuid
         }))
-        ws.close(1008, 'Microservice has already active exec session.')
+        ws.close(1008, 'An exec session is already in progress for this microservice. Only one user exec WebSocket is allowed.')
         return
       }
 
@@ -1024,7 +1172,7 @@ class WebSocketServer {
 
         if (pendingAgent) {
           // Activate session using agent's execId (agent is on same replica)
-          const session = this.sessionManager.tryActivateSession(microserviceUuid, availableExecId, ws, false, transaction)
+          const session = await this.sessionManager.tryActivateSession(microserviceUuid, availableExecId, ws, false, transaction)
           if (session) {
             logger.info('Session activated for user:', {
               execId: availableExecId,
@@ -1063,6 +1211,9 @@ class WebSocketServer {
             execId: availableExecId,
             microserviceUuid
           })
+          if (!(await this.requireRouterForCrossReplica(ws))) {
+            return
+          }
           this.sessionManager.createSession(availableExecId, microserviceUuid, null, ws, transaction)
           await MicroserviceExecStatusManager.update(
             { microserviceUuid },
@@ -1125,7 +1276,7 @@ class WebSocketServer {
         if (pendingAgent) {
           // Remove user from pending first since we're activating
           this.sessionManager.removePendingUser(microserviceUuid, ws)
-          const session = this.sessionManager.tryActivateSession(microserviceUuid, availableExecId, ws, false, transaction)
+          const session = await this.sessionManager.tryActivateSession(microserviceUuid, availableExecId, ws, false, transaction)
           if (session) {
             logger.info('Session activated immediately after re-check:' + JSON.stringify({
               execId: availableExecId,
@@ -1163,6 +1314,10 @@ class WebSocketServer {
             execId: availableExecId,
             microserviceUuid
           })
+          if (!(await this.requireRouterForCrossReplica(ws))) {
+            this.sessionManager.removePendingUser(microserviceUuid, ws)
+            return
+          }
           // Remove user from pending first
           this.sessionManager.removePendingUser(microserviceUuid, ws)
           this.sessionManager.createSession(availableExecId, microserviceUuid, null, ws, transaction)
@@ -1257,7 +1412,7 @@ class WebSocketServer {
               if (pendingAgent) {
                 // Remove user from pending first
                 this.sessionManager.removePendingUser(microserviceUuid, ws)
-                const session = this.sessionManager.tryActivateSession(microserviceUuid, availableExecId, ws, false, transaction)
+                const session = await this.sessionManager.tryActivateSession(microserviceUuid, availableExecId, ws, false, transaction)
                 if (session) {
                   logger.info('Session activated via periodic retry:' + JSON.stringify({
                     execId: availableExecId,
@@ -1296,6 +1451,11 @@ class WebSocketServer {
                   execId: availableExecId,
                   microserviceUuid
                 })
+                if (!(await this.requireRouterForCrossReplica(ws))) {
+                  clearInterval(retryTimer)
+                  this.sessionManager.removePendingUser(microserviceUuid, ws)
+                  return
+                }
                 // Remove user from pending first
                 this.sessionManager.removePendingUser(microserviceUuid, ws)
                 this.sessionManager.createSession(availableExecId, microserviceUuid, null, ws, transaction)
@@ -1348,8 +1508,8 @@ class WebSocketServer {
       // Store timer reference for cleanup
       this.sessionManager.setUserRetryTimer(microserviceUuid, ws, retryTimer)
 
-      // Add timeout mechanism for pending users (60 seconds)
-      const PENDING_USER_TIMEOUT = 60000
+      // Add timeout mechanism for pending users
+      const PENDING_USER_TIMEOUT = this.getExecPendingTimeoutMs()
       setTimeout(() => {
         if (this.sessionManager.isUserStillPending(microserviceUuid, ws)) {
           logger.warn('Pending user timeout, closing connection:' + JSON.stringify({
@@ -1401,6 +1561,15 @@ class WebSocketServer {
           }
 
           this.sessionManager.removePendingUser(microserviceUuid, ws)
+          TransactionDecorator.generateTransaction(async (timeoutTransaction) => {
+            await this.cleanupExecSessionsForMicroservice(microserviceUuid, timeoutTransaction)
+            await this.disableExecForMicroservice(microserviceUuid, timeoutTransaction)
+          })().catch((err) => {
+            logger.error('Failed to disable exec after pending user timeout:' + JSON.stringify({
+              error: err.message,
+              microserviceUuid
+            }))
+          })
         }
       }, PENDING_USER_TIMEOUT)
 
@@ -1427,11 +1596,23 @@ class WebSocketServer {
           }
         })
 
-        for (const [execId, session] of this.sessionManager.sessions) {
-          if (session.user === ws) {
-            this.cleanupSession(execId, transaction)
+        TransactionDecorator.generateTransaction(async (closeTransaction) => {
+          const wasPending = this.sessionManager.isUserStillPending(microserviceUuid, ws)
+          for (const [execId, session] of this.sessionManager.sessions) {
+            if (session.user === ws) {
+              await this.cleanupSession(execId, closeTransaction)
+            }
           }
-        }
+          if (wasPending) {
+            await this.cleanupExecSessionsForMicroservice(microserviceUuid, closeTransaction)
+            await this.disableExecForMicroservice(microserviceUuid, closeTransaction)
+          }
+        })().catch((err) => {
+          logger.error('Failed to cleanup exec session on user disconnect:' + JSON.stringify({
+            error: err.message,
+            microserviceUuid
+          }))
+        })
 
         // Clear retry timer before removing user
         const retryTimer = this.sessionManager.getUserRetryTimer(microserviceUuid, ws)
@@ -1476,6 +1657,62 @@ class WebSocketServer {
   //   return noisePatterns.some(pattern => pattern.test(output))
   // }
 
+  async sendExecActivationToAgent (session, execId, transaction) {
+    if (!session.user) {
+      return false
+    }
+    if (session.activationSent) {
+      return true
+    }
+
+    const activationMsg = {
+      type: MESSAGE_TYPES.ACTIVATION,
+      data: Buffer.from(JSON.stringify({
+        execId,
+        microserviceUuid: session.microserviceUuid,
+        timestamp: Date.now()
+      })),
+      microserviceUuid: session.microserviceUuid,
+      execId,
+      timestamp: Date.now()
+    }
+
+    try {
+      const success = await this.sendMessageToAgent(session.agent, activationMsg, execId, session.microserviceUuid)
+      if (success) {
+        session.activationSent = true
+        session.awaitingUser = false
+        logger.info('[RELAY] Session activation complete:' + JSON.stringify({
+          execId,
+          microserviceUuid: session.microserviceUuid,
+          agentState: session.agent ? session.agent.readyState : 'N/A (cross-replica)',
+          queueEnabled: this.queueService.shouldUseQueue(execId)
+        }))
+      } else {
+        logger.error('[RELAY] Session activation failed:' + JSON.stringify({
+          execId,
+          microserviceUuid: session.microserviceUuid,
+          agentState: session.agent ? session.agent.readyState : 'N/A',
+          queueEnabled: this.queueService.shouldUseQueue(execId)
+        }))
+        if (session.agent) {
+          await this.cleanupSession(execId, transaction)
+        }
+      }
+      return success
+    } catch (error) {
+      logger.error('[RELAY] Session activation error:' + JSON.stringify({
+        execId,
+        microserviceUuid: session.microserviceUuid,
+        error: error.message
+      }))
+      if (session.agent) {
+        await this.cleanupSession(execId, transaction)
+      }
+      return false
+    }
+  }
+
   async setupMessageForwarding (execId, transaction) {
     const session = this.sessionManager.getSession(execId)
     if (!session) {
@@ -1494,79 +1731,61 @@ class WebSocketServer {
     }))
     this.detachPendingKeepAliveHandler(user)
     this.detachPendingKeepAliveHandler(agent)
-    try {
-      // Pass cleanup callback so queue service can notify us when CLOSE is received
-      await this.queueService.enableForSession(session, (execId) => {
-        // Clear timeout if it exists (agent responded to CLOSE)
-        const timeout = this.pendingCloseTimeouts.get(execId)
-        if (timeout) {
-          clearTimeout(timeout)
-          this.pendingCloseTimeouts.delete(execId)
-          logger.debug('[RELAY] Cleared pending CLOSE timeout - agent responded', { execId })
+    if (!session.queueBridgeEnabled) {
+      try {
+        // Pass cleanup callback so queue service can notify us when CLOSE is received
+        await this.queueService.enableForSession(session, async (execId) => {
+          // Clear timeout if it exists (agent responded to CLOSE)
+          const timeout = this.pendingCloseTimeouts.get(execId)
+          if (timeout) {
+            clearTimeout(timeout)
+            this.pendingCloseTimeouts.delete(execId)
+            logger.debug('[RELAY] Cleared pending CLOSE timeout - agent responded', { execId })
+          }
+          const currentTransaction = session.transaction
+          await this.cleanupSession(execId, currentTransaction)
+        })
+        session.queueBridgeEnabled = true
+        logger.info('[RELAY] AMQP queue bridge enabled for exec session', {
+          execId,
+          microserviceUuid: session.microserviceUuid
+        })
+      } catch (error) {
+        session.queueBridgeEnabled = false
+        if (this.isCrossReplicaSession(session) && this.haConfig.failFastOnRouterUnavailable !== false) {
+          logger.error('[RELAY] AMQP required for cross-replica session but router bridge failed', {
+            execId,
+            error: error.message
+          })
+          if (session.user && session.user.readyState === WebSocket.OPEN) {
+            session.user.close(ROUTER_UNAVAILABLE_CLOSE_CODE, ROUTER_UNAVAILABLE_CLOSE_REASON)
+          }
+          if (session.agent && session.agent.readyState === WebSocket.OPEN) {
+            session.agent.close(ROUTER_UNAVAILABLE_CLOSE_CODE, ROUTER_UNAVAILABLE_CLOSE_REASON)
+          }
+          await this.cleanupSession(execId, transaction)
+          return
         }
-        const currentTransaction = session.transaction
-        this.cleanupSession(execId, currentTransaction)
-      })
-      session.queueBridgeEnabled = true
-      logger.info('[RELAY] AMQP queue bridge enabled for exec session', {
+        logger.warn('[RELAY] Failed to enable AMQP queue bridge, falling back to direct WebSocket relay', {
+          execId,
+          error: error.message
+        })
+      }
+    }
+
+    if (user) {
+      if (!session.metricsActive) {
+        session.metricsActive = true
+        recordExecSessionActive(1)
+        this.recordPairingDuration(session.pairingStartedAt)
+      }
+      await this.sendExecActivationToAgent(session, execId, transaction)
+    } else {
+      logger.debug('[RELAY] Relay handlers deferred — user leg not connected; ACTIVATION withheld', {
         execId,
         microserviceUuid: session.microserviceUuid
       })
-    } catch (error) {
-      session.queueBridgeEnabled = false
-      logger.warn('[RELAY] Failed to enable AMQP queue bridge, falling back to direct WebSocket relay', {
-        execId,
-        error: error.message
-      })
     }
-
-    // Send activation message to agent (works for both direct WebSocket and queue-based forwarding)
-    const activationMsg = {
-      type: MESSAGE_TYPES.ACTIVATION,
-      data: Buffer.from(JSON.stringify({
-        execId,
-        microserviceUuid: session.microserviceUuid,
-        timestamp: Date.now()
-      })),
-      microserviceUuid: session.microserviceUuid,
-      execId,
-      timestamp: Date.now()
-    }
-
-    // sendMessageToAgent handles queue-based forwarding when agent is null
-    this.sendMessageToAgent(session.agent, activationMsg, execId, session.microserviceUuid)
-      .then(success => {
-        if (success) {
-          logger.info('[RELAY] Session activation complete:' + JSON.stringify({
-            execId,
-            microserviceUuid: session.microserviceUuid,
-            agentState: session.agent ? session.agent.readyState : 'N/A (cross-replica)',
-            queueEnabled: this.queueService.shouldUseQueue(execId)
-          }))
-        } else {
-          logger.error('[RELAY] Session activation failed:' + JSON.stringify({
-            execId,
-            microserviceUuid: session.microserviceUuid,
-            agentState: session.agent ? session.agent.readyState : 'N/A',
-            queueEnabled: this.queueService.shouldUseQueue(execId)
-          }))
-          // Only cleanup if we have a direct agent connection (not queue-based)
-          if (session.agent) {
-            this.cleanupSession(execId, transaction)
-          }
-        }
-      })
-      .catch(error => {
-        logger.error('[RELAY] Session activation error:' + JSON.stringify({
-          execId,
-          microserviceUuid: session.microserviceUuid,
-          error: error.message
-        }))
-        // Only cleanup if we have a direct agent connection (not queue-based)
-        if (session.agent) {
-          this.cleanupSession(execId, transaction)
-        }
-      })
 
     // Remove any previous message handlers to avoid duplicates
     if (user) {
@@ -1645,7 +1864,7 @@ class WebSocketServer {
               })
 
               // Set timeout in case agent doesn't respond
-              const timeout = setTimeout(() => {
+              const timeout = setTimeout(async () => {
                 const currentSession = this.sessionManager.getSession(execId)
                 if (currentSession && currentSession.user && currentSession.user.readyState === WebSocket.OPEN) {
                   logger.warn('[RELAY] Agent did not respond to CLOSE within timeout, closing user socket', {
@@ -1656,7 +1875,7 @@ class WebSocketServer {
                   try {
                     currentSession.user.close(1000, 'Session closed (timeout)')
                     const currentTransaction = currentSession.transaction
-                    this.cleanupSession(execId, currentTransaction)
+                    await this.cleanupSession(execId, currentTransaction)
                   } catch (error) {
                     logger.error('[RELAY] Failed to close user socket on timeout', {
                       execId,
@@ -1691,7 +1910,7 @@ class WebSocketServer {
 
               // Get current transaction from the session and cleanup
               const currentTransaction = session.transaction
-              this.cleanupSession(execId, currentTransaction)
+              await this.cleanupSession(execId, currentTransaction)
               return
             }
           }
@@ -1789,7 +2008,7 @@ class WebSocketServer {
 
             // Get current transaction from the session
             const currentTransaction = session.transaction
-            this.cleanupSession(execId, currentTransaction)
+            await this.cleanupSession(execId, currentTransaction)
             return
           }
 
@@ -2047,6 +2266,72 @@ class WebSocketServer {
   }
 
   // Singleton instance
+  async drain (timeoutMs = null) {
+    if (this.drainPromise) {
+      return this.drainPromise
+    }
+
+    const drainBudgetMs = timeoutMs || this.getDrainTimeoutMs()
+    this.isDraining = true
+    logger.info('[WS-DRAIN] Starting graceful drain', { timeoutMs: drainBudgetMs })
+
+    this.drainPromise = (async () => {
+      const deadline = Date.now() + drainBudgetMs
+      this.sessionManager.closeAllPendingUsers(DRAIN_CLOSE_CODE, DRAIN_CLOSE_REASON)
+
+      const execIds = this.sessionManager.getAllExecSessionIds()
+      const logSessionIds = this.logSessionManager.getAllLogSessionIds()
+      const cleanupTasks = []
+
+      for (const execId of execIds) {
+        cleanupTasks.push(
+          TransactionDecorator.generateTransaction(async (tx) => {
+            await this.cleanupSession(execId, tx)
+          })().catch((error) => {
+            logger.warn('[WS-DRAIN] Exec session cleanup failed', { execId, error: error.message })
+          })
+        )
+      }
+
+      for (const sessionId of logSessionIds) {
+        cleanupTasks.push(
+          TransactionDecorator.generateTransaction(async (tx) => {
+            await this.cleanupLogSession(sessionId, tx)
+          })().catch((error) => {
+            logger.warn('[WS-DRAIN] Log session cleanup failed', { sessionId, error: error.message })
+          })
+        )
+      }
+
+      const remainingMs = deadline - Date.now()
+      if (remainingMs > 0 && cleanupTasks.length > 0) {
+        await Promise.race([
+          Promise.allSettled(cleanupTasks),
+          new Promise((resolve) => setTimeout(resolve, remainingMs))
+        ])
+      }
+
+      if (this.wss) {
+        for (const client of this.wss.clients) {
+          if (client.readyState === WebSocket.OPEN) {
+            try {
+              client.close(DRAIN_CLOSE_CODE, DRAIN_CLOSE_REASON)
+            } catch (error) {
+              logger.debug('[WS-DRAIN] Failed to close lingering client', { error: error.message })
+            }
+          }
+        }
+      }
+
+      logger.info('[WS-DRAIN] Graceful drain complete', {
+        execSessions: execIds.length,
+        logSessions: logSessionIds.length
+      })
+    })()
+
+    return this.drainPromise
+  }
+
   static getInstance () {
     if (!WebSocketServer.instance) {
       WebSocketServer.instance = new WebSocketServer()
@@ -2055,9 +2340,15 @@ class WebSocketServer {
   }
 
   // Clean up session and close sockets
-  cleanupSession (execId, transaction) {
+  async cleanupSession (execId, transaction, options = {}) {
+    const preserveAgentSocket = options.preserveAgentSocket === true
     const session = this.sessionManager.getSession(execId)
     if (!session) return
+
+    if (session.metricsActive) {
+      recordExecSessionActive(-1)
+      session.metricsActive = false
+    }
 
     // Clear any pending CLOSE timeout
     const timeout = this.pendingCloseTimeouts.get(execId)
@@ -2068,7 +2359,7 @@ class WebSocketServer {
     }
 
     // Send CLOSE message to agent if it's still connected
-    if (session.agent && session.agent.readyState === WebSocket.OPEN) {
+    if (!preserveAgentSocket && session.agent && session.agent.readyState === WebSocket.OPEN) {
       const closeMsg = {
         type: MESSAGE_TYPES.CLOSE,
         execId,
@@ -2100,11 +2391,11 @@ class WebSocketServer {
     if (session.user && session.user.readyState === WebSocket.OPEN) {
       session.user.close(1000, 'Session closed')
     }
-    if (session.agent && session.agent.readyState === WebSocket.OPEN) {
+    if (!preserveAgentSocket && session.agent && session.agent.readyState === WebSocket.OPEN) {
       session.agent.close(1000, 'Session closed')
     }
 
-    this.sessionManager.removeSession(execId, transaction)
+    await this.sessionManager.removeSession(execId, transaction)
     logger.info('[RELAY] Session cleaned up for execId=' + execId)
     this.queueService.cleanup(execId)
       .catch(error => {
@@ -2269,9 +2560,14 @@ class WebSocketServer {
   }
 
   attachPendingKeepAliveHandler (ws) {
-    if (!ws || ws._pendingKeepAliveHandler) {
+    if (!ws) {
       return
     }
+
+    if (ws._pendingKeepAliveHandler) {
+      ws.removeListener('message', ws._pendingKeepAliveHandler)
+    }
+
     ws._pendingKeepAliveHandler = (data, isBinary) => {
       if (!isBinary) return
       let msg
@@ -2280,23 +2576,46 @@ class WebSocketServer {
       } catch (error) {
         return
       }
-      if (msg.type === MESSAGE_TYPES.CONTROL) {
+
+      const msgType = msg instanceof Map ? msg.get('type') : msg.type
+      const execId = msg instanceof Map ? msg.get('execId') : msg.execId
+      const msgMicroserviceUuid = msg instanceof Map ? msg.get('microserviceUuid') : msg.microserviceUuid
+
+      if (msgType === MESSAGE_TYPES.CONTROL) {
         const controlData = msg.data ? msg.data.toString() : ''
         if (controlData === 'keepalive') {
-          this._sendKeepAliveResponse(ws, msg.execId || 'pending', msg.microserviceUuid || null)
+          this._sendKeepAliveResponse(ws, execId || 'pending', msgMicroserviceUuid || null)
         }
+        return
+      }
+
+      // Edgelet may reuse an open agent socket and send a fresh init frame (execId + microserviceUuid, no type).
+      if (execId && msgMicroserviceUuid && (msgType === undefined || msgType === null) && ws._agentExecHandshakeContext) {
+        const ctx = ws._agentExecHandshakeContext
+        TransactionDecorator.generateTransaction(async (tx) => {
+          await this.processAgentInitialMessage(ws, ctx.req, data, isBinary, ctx.microserviceUuid, tx)
+        })().catch((err) => {
+          logger.error('[WS-INIT] Failed to process agent re-init on reused socket', {
+            error: err.message,
+            microserviceUuid: ctx.microserviceUuid
+          })
+        })
       }
     }
     ws.on('message', ws._pendingKeepAliveHandler)
-    ws.on('ping', () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        try {
-          ws.pong()
-        } catch (error) {
-          logger.debug('[RELAY] Failed to send pong on pending connection', { error: error.message })
+
+    if (!ws._pendingKeepAlivePingHandler) {
+      ws._pendingKeepAlivePingHandler = () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          try {
+            ws.pong()
+          } catch (error) {
+            logger.debug('[RELAY] Failed to send pong on pending connection', { error: error.message })
+          }
         }
       }
-    })
+      ws.on('ping', ws._pendingKeepAlivePingHandler)
+    }
   }
 
   detachPendingKeepAliveHandler (ws) {
@@ -2468,13 +2787,9 @@ class WebSocketServer {
       // 2. Parse tail configuration from query parameters
       const url = new URL(req.url, `http://${req.headers.host}`)
 
-      // Parse and validate tail config
-      const tailLines = parseInt(url.searchParams.get('tail'))
-      const tailConfig = {
-        lines: (tailLines && tailLines >= 1 && tailLines <= 10000) ? tailLines : 100, // Default: 100, Range: 1-10000
-        follow: url.searchParams.get('follow') !== 'false', // default: true
-        since: url.searchParams.get('since') || null, // ISO 8601 format
-        until: url.searchParams.get('until') || null // ISO 8601 format
+      const tailConfig = this.parseLogTailConfig(url, ws)
+      if (!tailConfig) {
+        return
       }
 
       // Validate ISO 8601 format for since/until (if provided)
@@ -2484,6 +2799,14 @@ class WebSocketServer {
       }
       if (tailConfig.until && !this.isValidISO8601(tailConfig.until)) {
         ws.close(1008, 'Invalid until format. Expected ISO 8601.')
+        return
+      }
+
+      // Enforce max concurrent log sessions per resource (R82)
+      const logConcurrencyLimit = this.getLogConcurrencyLimit()
+      const existingLogCount = await this.countLogSessionsInDb(microserviceUuid, fogUuid, transaction)
+      if (existingLogCount >= logConcurrencyLimit) {
+        ws.close(1008, `Maximum of ${logConcurrencyLimit} concurrent log sessions allowed for this resource.`)
         return
       }
 
@@ -2550,7 +2873,7 @@ class WebSocketServer {
       }))
 
       // 6. Create in-memory session (one-to-one: user only, waiting for agent)
-      this.logSessionManager.createLogSession(
+      const logSession = this.logSessionManager.createLogSession(
         sessionId,
         microserviceUuid,
         fogUuid,
@@ -2559,6 +2882,8 @@ class WebSocketServer {
         tailConfig,
         transaction
       )
+      logSession.metricsActive = true
+      recordLogSessionActive(1)
 
       // 7. Send sessionId to user (MessagePack encoded)
       const sessionInfoMsg = {
@@ -2598,6 +2923,44 @@ class WebSocketServer {
       // 9. Setup message forwarding (will be activated when agent connects)
       await this.setupLogMessageForwarding(sessionId, transaction)
 
+      // Pending timeout: close if agent does not connect within logPendingTimeoutMs
+      const LOG_PENDING_TIMEOUT = this.getLogPendingTimeoutMs()
+      const pendingTimer = setTimeout(async () => {
+        const session = this.logSessionManager.getLogSession(sessionId)
+        if (!session || session.agent) {
+          return
+        }
+        logger.warn('Log session pending timeout:' + JSON.stringify({
+          sessionId,
+          microserviceUuid,
+          fogUuid,
+          timeout: LOG_PENDING_TIMEOUT
+        }))
+        try {
+          if (ws.readyState === WebSocket.OPEN) {
+            const timeoutMsg = {
+              type: MESSAGE_TYPES.LOG_LINE,
+              data: Buffer.from('Timeout waiting for agent connection.\n'),
+              sessionId,
+              timestamp: Date.now(),
+              microserviceUuid: microserviceUuid || null,
+              iofogUuid: fogUuid || null
+            }
+            ws.send(this.encodeMessage(timeoutMsg), { binary: true })
+            ws.close(1008, 'Timeout waiting for agent connection')
+          }
+        } catch (error) {
+          logger.warn('Failed to close log session on pending timeout:' + error.message)
+        }
+        try {
+          await TransactionDecorator.generateTransaction(async (timeoutTransaction) => {
+            await this.logSessionManager.removeLogSession(sessionId, timeoutTransaction)
+          })()
+        } catch (error) {
+          logger.error('Failed to remove log session after pending timeout:' + error.message)
+        }
+      }, LOG_PENDING_TIMEOUT)
+
       // 10. Record WebSocket connection event (non-blocking)
       setImmediate(async () => {
         try {
@@ -2621,39 +2984,46 @@ class WebSocketServer {
 
       // Handle user disconnect
       ws.on('close', async (code, reason) => {
+        clearTimeout(pendingTimer)
         const session = this.logSessionManager.getLogSession(sessionId)
         if (session) {
-          session.user = null // Mark user as disconnected
+          session.user = null
           session.lastActivity = Date.now()
 
-          // Update database
-          if (microserviceUuid) {
-            await MicroserviceLogStatusManager.update(
-              { sessionId },
-              { userConnected: false },
-              transaction
-            )
-          } else if (fogUuid) {
-            await FogLogStatusManager.update(
-              { sessionId },
-              { userConnected: false },
-              transaction
-            )
-          }
+          try {
+            await TransactionDecorator.generateTransaction(async (closeTransaction) => {
+              if (microserviceUuid) {
+                await MicroserviceLogStatusManager.update(
+                  { sessionId },
+                  { userConnected: false },
+                  closeTransaction
+                )
+              } else if (fogUuid) {
+                await FogLogStatusManager.update(
+                  { sessionId },
+                  { userConnected: false },
+                  closeTransaction
+                )
+              }
 
-          // If agent also disconnected, remove session
-          if (!session.agent) {
-            await this.logSessionManager.removeLogSession(sessionId, transaction)
-          } else {
-            // Trigger change tracking (agent will see user disconnected on next poll)
-            const fogForTracking = await FogManager.findOne({
-              uuid: fogUuid || (await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)).iofogUuid
-            }, transaction)
-            await ChangeTrackingService.update(
-              fogForTracking.uuid,
-              fogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
-              transaction
-            )
+              if (!session.agent) {
+                await this.logSessionManager.removeLogSession(sessionId, closeTransaction)
+              } else {
+                const fogForTracking = await FogManager.findOne({
+                  uuid: fogUuid || (await MicroserviceManager.findOne({ uuid: microserviceUuid }, closeTransaction)).iofogUuid
+                }, closeTransaction)
+                await ChangeTrackingService.update(
+                  fogForTracking.uuid,
+                  fogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
+                  closeTransaction
+                )
+              }
+            })()
+          } catch (err) {
+            logger.error('Failed to cleanup log session on user disconnect:' + JSON.stringify({
+              error: err.message,
+              sessionId
+            }))
           }
         }
 
@@ -2748,6 +3118,9 @@ class WebSocketServer {
       let session = this.logSessionManager.getLogSession(sessionId)
       if (!session) {
         // Session might be on different replica, create it
+        if (!(await this.requireRouterForCrossReplica(ws))) {
+          return
+        }
         session = this.logSessionManager.createLogSession(
           sessionId,
           logStatus.microserviceUuid,
@@ -2757,6 +3130,8 @@ class WebSocketServer {
           tailConfig,
           transaction
         )
+        session.metricsActive = true
+        recordLogSessionActive(1)
       } else {
         session.agent = ws
         session.lastActivity = Date.now()
@@ -2889,37 +3264,43 @@ class WebSocketServer {
       ws.on('close', async (code, reason) => {
         const session = this.logSessionManager.getLogSession(sessionId)
         if (session) {
-          session.agent = null // Mark agent as disconnected
+          session.agent = null
           session.lastActivity = Date.now()
 
-          // Update database
-          if (microserviceUuid) {
-            await MicroserviceLogStatusManager.update(
-              { sessionId },
-              { agentConnected: false },
-              transaction
-            )
-          } else if (iofogUuid) {
-            await FogLogStatusManager.update(
-              { sessionId },
-              { agentConnected: false },
-              transaction
-            )
-          }
+          try {
+            await TransactionDecorator.generateTransaction(async (closeTransaction) => {
+              if (microserviceUuid) {
+                await MicroserviceLogStatusManager.update(
+                  { sessionId },
+                  { agentConnected: false },
+                  closeTransaction
+                )
+              } else if (iofogUuid) {
+                await FogLogStatusManager.update(
+                  { sessionId },
+                  { agentConnected: false },
+                  closeTransaction
+                )
+              }
 
-          // If user also disconnected, remove session
-          if (!session.user) {
-            await this.logSessionManager.removeLogSession(sessionId, transaction)
-          } else {
-            // Trigger change tracking (agent will see it disconnected on next poll)
-            const fog = await FogManager.findOne({
-              uuid: iofogUuid || logStatus.iofogUuid || (await MicroserviceManager.findOne({ uuid: logStatus.microserviceUuid }, transaction)).iofogUuid
-            }, transaction)
-            await ChangeTrackingService.update(
-              fog.uuid,
-              iofogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
-              transaction
-            )
+              if (!session.user) {
+                await this.logSessionManager.removeLogSession(sessionId, closeTransaction)
+              } else {
+                const fog = await FogManager.findOne({
+                  uuid: iofogUuid || logStatus.iofogUuid || (await MicroserviceManager.findOne({ uuid: logStatus.microserviceUuid }, closeTransaction)).iofogUuid
+                }, closeTransaction)
+                await ChangeTrackingService.update(
+                  fog.uuid,
+                  iofogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
+                  closeTransaction
+                )
+              }
+            })()
+          } catch (err) {
+            logger.error('Failed to cleanup log session on agent disconnect:' + JSON.stringify({
+              error: err.message,
+              sessionId
+            }))
           }
         }
 
@@ -3040,6 +3421,35 @@ class WebSocketServer {
     // Users are read-only
   }
 
+  _shouldDropLogLineForBackpressure (session, sessionId) {
+    const user = session && session.user
+    if (!user || user.readyState !== WebSocket.OPEN) {
+      return true
+    }
+    if (user.bufferedAmount <= LOG_BACKPRESSURE_BUFFER_BYTES) {
+      return false
+    }
+
+    // drop LOG_LINE under backpressure; emit LOG_ERROR once per episode.
+    if (!this.logBackpressureNotified.has(sessionId)) {
+      this.logBackpressureNotified.add(sessionId)
+      try {
+        const errorMsg = this.encodeMessage({
+          type: MESSAGE_TYPES.LOG_ERROR,
+          data: Buffer.from('Log stream backpressure: dropping lines until client catches up\n'),
+          sessionId,
+          timestamp: Date.now(),
+          microserviceUuid: session.microserviceUuid || null,
+          iofogUuid: session.fogUuid || null
+        })
+        user.send(errorMsg, { binary: true })
+      } catch (error) {
+        logger.debug('Failed to notify user of log backpressure', { sessionId, error: error.message })
+      }
+    }
+    return true
+  }
+
   async forwardLogToUser (sessionId, buffer, transaction) {
     const session = this.logSessionManager.getLogSession(sessionId)
     if (!session) {
@@ -3064,6 +3474,10 @@ class WebSocketServer {
       await this.queueService.publishLogToUser(sessionId, buffer)
     } else {
       // Fallback: Direct WebSocket (only if queue not enabled)
+      if (this._shouldDropLogLineForBackpressure(session, sessionId)) {
+        logger.debug('Dropped log line due to backpressure or missing user', { sessionId })
+        return
+      }
       // Send MessagePack encoded buffer directly (binary)
       if (session.user && session.user.readyState === WebSocket.OPEN) {
         try {
@@ -3094,6 +3508,11 @@ class WebSocketServer {
   }
 
   async cleanupLogSession (sessionId, transaction) {
+    const session = this.logSessionManager.getLogSession(sessionId)
+    if (session && session.metricsActive) {
+      recordLogSessionActive(-1)
+    }
+    this.logBackpressureNotified.delete(sessionId)
     await this.logSessionManager.removeLogSession(sessionId, transaction)
     await this.queueService.cleanupLogSession(sessionId)
   }
