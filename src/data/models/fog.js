@@ -397,6 +397,16 @@ module.exports = (sequelize, DataTypes) => {
       as: 'nats'
     })
 
+    Fog.hasOne(models.FogPlatformSpec, {
+      foreignKey: 'fog_uuid',
+      as: 'platformSpec'
+    })
+
+    Fog.hasOne(models.FogPlatformStatus, {
+      foreignKey: 'fog_uuid',
+      as: 'platformStatus'
+    })
+
     Fog.belongsToMany(models.Tags, { through: 'IofogTags', as: 'tags' })
     Fog.belongsToMany(models.VolumeMount, { through: 'FogVolumeMounts', as: 'volumeMounts' })
   }
