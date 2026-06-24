@@ -137,7 +137,70 @@ Full request/response shapes: **`docs/swagger.yaml`** (agent paths).
 | Controller cleanup | `controller-cleanup-job.js` | Orphaned controller MS housekeeping |
 | Event cleanup | `event-cleanup-job.js` | Audit event retention |
 | NATS reconcile | `nats-reconcile-worker-job.js` | NATS operator sync |
+| Platform reconcile | `platform-reconcile-worker-job.js` | Fog + service platform claim/reconcile (one job, two queues) |
+| Fog platform sweep | `fog-platform-sweep-job.js` | Drift detection; re-enqueue stale fog/service tasks |
 | Stopped app status | `stopped-app-status-job.js` | Application state maintenance |
+
+### Platform reconcile (fog + service + resolver)
+
+Router/NATS **fog platform lifecycle**, **service endpoint provisioning**, and the existing **NATS resolver** layer are three separate reconcile queues — not fire-and-forget `setImmediate` blocks in `iofog-service.js` / `services-service.js`.
+
+```mermaid
+flowchart TB
+  subgraph api [Synchronous API]
+    FogAPI[POST/PATCH/DELETE /iofog]
+    SvcAPI[POST/PATCH/DELETE /services + yaml]
+    FogAPI --> FSpec[Upsert FogPlatformSpecs]
+    SvcAPI --> SDB[Write Services + tags]
+    FSpec --> FEnqueue[FogPlatformReconcileTasks]
+    SDB --> SEnqueue[ServicePlatformReconcileTasks]
+  end
+
+  subgraph worker [One job — any Controller replica]
+    ClaimF[claimNextFogTask]
+    ClaimS[claimNextServiceTask]
+    ReconcileF[FogPlatformService.reconcileFog]
+    ReconcileS[ServicePlatformService.reconcileService]
+    HubLock[Hub ConfigMap lock]
+    ClaimF --> ReconcileF
+    ClaimS --> HubLock
+    HubLock --> ReconcileS
+  end
+
+  subgraph runtime [Observed state]
+    Routers[(Routers)]
+    Nats[(NatsInstances)]
+    MS[System MS + secrets]
+    K8sSvc[K8s Service]
+    CM[ConfigMap iofog-router]
+  end
+
+  subgraph resolver [NATS resolver — unchanged]
+    NRT[NatsReconcileTasks]
+  end
+
+  FEnqueue --> ClaimF
+  SEnqueue --> ClaimS
+  ReconcileF --> Routers
+  ReconcileF --> Nats
+  ReconcileF --> MS
+  ReconcileS --> CM
+  ReconcileS --> K8sSvc
+  ReconcileS -->|fan-out service-changed| FEnqueue
+  ReconcileF -->|topology change| NRT
+```
+
+| Layer | Table | Worker | Purpose |
+|-------|-------|--------|---------|
+| **Fog platform** | `FogPlatformReconcileTasks` | Same job: `claimNextFogTask` | Router/NATS instances, PKI, system MS, **full recompute** of service-derived TCP bridges per fog |
+| **Service platform** | `ServicePlatformReconcileTasks` | Same job: `claimNextServiceTask` | Hub connector/listener, K8s Service, ConfigMap (DB lock), fan-out fog tasks on tag change |
+| **NATS resolver** | `NatsReconcileTasks` | `nats-reconcile-worker-job.js` | JWT bundles, account/user creds after app deploy |
+
+**Fog operator API:** `GET /iofog/{uuid}` includes optional **`platformStatus`** (`phase`, `generation`, `lastError`); list/get derive `routerMode`/`natsMode` from **`FogPlatformSpecs`** when runtime rows are pending. **`POST /iofog/{uuid}/reconcile`** for manual retry.
+
+**Service operator API:** JSON + YAML create/update/delete enqueue service reconcile; **`provisioningStatus=ready`** marks hub complete (K8s Service + hub ConfigMap); edge listeners converge via fog fan-out. **`POST /services/{name}/reconcile`** for manual retry.
+
+Full spec: [`.cursor/controllerv3.8/docs/15-fog-platform-reconcile.md`](../.cursor/controllerv3.8/docs/15-fog-platform-reconcile.md) · RFC R69–R79.
 
 ---
 
@@ -197,7 +260,21 @@ For the full bilateral contract (including ControlPlane env vars and verificatio
 
 | Topic | v3.8 behavior |
 |-------|---------------|
-| **Database** | Greenfield v3.8.0 schema — **new install only** (no v3.7 migrator). Supports sqlite (dev), mysql, postgres (production/HA). |
+| **Database** | Greenfield v3.8.0 schema — **new install only** (no v3.7 migrator). Supports **sqlite** (single-controller production), **mysql**, and **postgres** (multi-replica / HA). |
+
+### SQLite single-node production
+
+Small deployments with **one Controller process** may use SQLite as the production database (embedded OIDC requires a single replica in this profile).
+
+| Topic | Behavior |
+|-------|----------|
+| **When to use** | Single Controller, no DB HA requirement, edge/small-cluster PoT |
+| **Concurrency** | WAL journal mode + `busy_timeout` pragmas on connect; connection pool size 1 |
+| **Background jobs** | Reconcile-heavy jobs start after a configurable delay (`settings.jobStartupDelaySeconds`, default 3s) and stagger by 500ms to avoid restart lock bursts |
+| **Task claims** | Fog/service/NATS reconcile task claims retry on `SQLITE_BUSY` (same retry budget as `TransactionDecorator`) |
+| **Persistence** | Mount a persistent volume for `controller_db.sqlite` and WAL sidecar files (`-wal`, `-shm`) |
+| **Backup** | Use SQLite backup API or copy DB + WAL files during a quiet window |
+| **HA path** | mysql/postgres + multiple Controller replicas — see [oidc-configuration.md](oidc-configuration.md) |
 | **Applications** | Table `Applications` (was `Flows`); API identity by **name** string. |
 | **Architectures** | Table `Architectures` (was `FogTypes`); `archId` 0–4. |
 | **PKI** | Central **default-router-local-ca** and **default-nats-local-ca** for all new agents; no per-agent local CAs on provision (greenfield — no v3.7 PKI migration job). See [pki.md](pki.md). |

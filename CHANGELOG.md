@@ -87,6 +87,16 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - Neutral in-tree identity: RBAC **`iofog.org/v3`**, default namespace **`iofog`**, `package.json` name **`controller`**.
 - NATS account/user rule **JWT Latin-1 validation** — rejects rules whose fields cannot be encoded in a NATS JWT (create/update on rules, applications, microservices, and NATS API).
 - RBAC **route catalog utils** (`isPublicCatalogRoute`) — shared lookup of public routes from `rbac-resources.yaml` (empty verb list = no auth required).
+- **Fog + service platform reconcile** — declarative router/NATS and service endpoint lifecycle replaces fire-and-forget `setImmediate` in `iofog-service.js` and `services-service.js`.
+- Tables: **`FogPlatformSpecs`**, **`FogPlatformStatuses`**, **`FogPlatformReconcileTasks`**, **`ServicePlatformReconcileTasks`**, **`HubRouterConfigLocks`** (greenfield migrations amended for sqlite, mysql, postgres).
+- **`platform-reconcile-worker-job.js`** — one worker, two DB-backed claim paths (fog + service); stale reclaim, exponential backoff, max attempts.
+- **`fog-platform-sweep-job.js`** — periodic drift detection for fog and service platform state.
+- **`GET /api/v3/iofog/{uuid}`** — optional **`platformStatus`** (`phase`, `generation`, `lastError`, conditions).
+- **`POST /api/v3/iofog/{uuid}/reconcile`** and **`POST /api/v3/services/{name}/reconcile`** — manual retry after failed or stuck reconcile.
+- Service **`provisioningStatus`** — hub semantics: **`ready`** when hub connector/listener and K8s Service reconcile succeed; edge TCP bridges converge asynchronously via fog platform reconcile fan-out.
+- **K8s control plane:** hub **`iofog-router`** ConfigMap patches serialized via DB lock; K8s Service create/update/delete with LoadBalancer watch timeout.
+- **`service-bridge-config.js`** — full recompute of service-derived TCP bridge config per fog on reconcile (preserves router base config).
+- **SQLite single-node production hardening** — WAL + `busy_timeout` pragmas, reconcile task claim retry on `SQLITE_BUSY`, staggered startup for reconcile-heavy background jobs (`settings.jobStartupDelaySeconds`).
 
 ### Fixed
 
@@ -106,6 +116,13 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - Router microservice **`siteConfig.platform`** defaults to **`edgelet`** (was **`docker`**) when the agent uses the Edgelet runtime.
 - Boolean env vars (`TRUST_PROXY`, `SERVER_DEV_MODE`, `DB_USE_SSL`, `VAULT_ENABLED`, `ENABLE_TELEMETRY`, and other mapped flags) are parsed consistently from Kubernetes string values (`true`/`false`, `1`/`0`) via shared **`config.getBoolean()`** — fixes startup crash when **`TRUST_PROXY=true`** was passed as a string to Express.
 - Postgres/MySQL SSL reads canonical **`DB_SSL_CA`** (via config) instead of undocumented **`DB_SSL_CA_B64`**; **`database.*.useSSL`** config key honored (was **`useSsl`** typo).
+- Spurious **`routerMode`** / **`natsMode`** **`none`** on fog list/get when runtime rows were pending — read path now falls back to **`FogPlatformSpecs`** during reconcile.
+- **`PATCH /api/v3/iofog/{uuid}`** on system fogs with full config (potctl redeploy) — **400** **`Invalid NATS mode 'undefined'`** when `natsMode` was omitted from PATCH body.
+- Partial fog delete orphans when router/NATS teardown failed mid-flight — delete is async via platform reconcile **`Deleting`** phase.
+- Service provisioning races and lost hub ConfigMap updates under multi-Controller — serialized hub lock and DB-backed service reconcile tasks.
+- Dual writers to router microservice bridge config from fog create/update and service create/update/delete — single full-recompute path on fog reconcile.
+- SQLite startup lock contention on single-controller deployments — WAL + `busy_timeout` pragmas on connect, `withDbBusyRetry` on fog/service/NATS task claims, staggered reconcile-heavy job startup.
+- **`reconcileFog` transaction parameter** — removed unused `options` argument so worker-decorated calls receive the transaction correctly.
 
 ### Changed
 

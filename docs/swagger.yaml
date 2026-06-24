@@ -74,6 +74,9 @@ paths:
       tags:
         - ioFog
       summary: Creates a new ioFog node
+      description: >-
+        Platform reconcile is asynchronous. Poll GET /iofog/{uuid} for
+        platformStatus, or POST /iofog/{uuid}/reconcile to retry after failure.
       operationId: createIOFogNode
       security:
         - authToken: []
@@ -102,6 +105,9 @@ paths:
       tags:
         - ioFog
       summary: Updates existing ioFog node
+      description: >-
+        Platform reconcile is asynchronous. Poll GET /iofog/{uuid} for
+        platformStatus, or POST /iofog/{uuid}/reconcile to retry after failure.
       operationId: updateIOFogNode
       parameters:
         - in: path
@@ -184,6 +190,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/IOFogNodeInfoResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Invalid Node Id
+        "500":
+          description: Internal Server Error
+  "/iofog/{uuid}/reconcile":
+    post:
+      tags:
+        - ioFog
+      summary: Manually retries fog platform reconcile
+      operationId: reconcileIOFogNode
+      parameters:
+        - in: path
+          name: uuid
+          description: ioFog node id
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          headers:
+            X-Timestamp:
+              description: FogController server timestamp
+              schema:
+                type: number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IOFogUuidResponse"
         "401":
           description: Not Authorized
         "404":
@@ -4557,6 +4596,46 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+  "/services/{name}/reconcile":
+    post:
+      tags:
+        - Services
+      summary: Manually retries service platform reconcile
+      description: >-
+        Enqueues a service platform reconcile task. When `provisioningStatus` is
+        `failed`, resets it to `pending` and clears `provisioningError` before
+        enqueue. Hub connector/listener, K8s Service, and ConfigMap updates run
+        asynchronously in the platform reconcile worker. `provisioningStatus=ready`
+        means hub provisioning completed successfully; tagged edge fogs receive
+        bridge updates via separate fog platform reconcile tasks.
+      operationId: reconcileService
+      parameters:
+        - in: path
+          name: name
+          description: Service name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          headers:
+            X-Timestamp:
+              description: FogController server timestamp
+              schema:
+                type: number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
   /services/yaml:
     post:
       tags:
@@ -7385,6 +7464,46 @@ components:
           type: array
           items:
             type: string
+        platformStatus:
+          description: Present on GET single fog only; omitted on list responses
+          allOf:
+            - $ref: "#/components/schemas/PlatformStatus"
+    PlatformStatus:
+      type: object
+      properties:
+        phase:
+          type: string
+          enum:
+            - Pending
+            - Progressing
+            - Ready
+            - Failed
+            - Deleting
+        generation:
+          type: integer
+          description: Desired spec generation from FogPlatformSpecs
+        observedGeneration:
+          type: integer
+          description: Generation last reconciled successfully
+        lastError:
+          type: string
+          nullable: true
+        lastTransitionAt:
+          type: string
+          format: date-time
+        conditions:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              status:
+                type: string
+              reason:
+                type: string
+              message:
+                type: string
     UpdateIOFogNodeRequestBody:
       type: object
       properties:
@@ -7525,6 +7644,12 @@ components:
       properties:
         id:
           type: string
+    IOFogUuidResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: ioFog node id
     ProvisioningKeyResponse:
       type: object
       properties:
@@ -9520,6 +9645,30 @@ components:
           type: number
         targetPort:
           type: number
+        servicePort:
+          type: number
+        k8sType:
+          type: string
+          description: K8s Service type when running on a Kubernetes control plane (e.g. LoadBalancer)
+        serviceEndpoint:
+          type: string
+          description: Hub-facing endpoint hostname or LoadBalancer IP after reconcile
+        provisioningStatus:
+          type: string
+          enum:
+            - pending
+            - ready
+            - failed
+          description: >-
+            Hub provisioning lifecycle. `pending` after create/update/delete enqueue
+            or manual retry; `ready` after hub connector/listener and K8s Service
+            reconcile succeed; `failed` after max worker attempts (use POST reconcile
+            to retry). Edge fog bridge updates are tracked separately via fog platform
+            reconcile.
+        provisioningError:
+          type: string
+          nullable: true
+          description: Last hub reconcile error when `provisioningStatus` is `failed`
         tags:
           type: array
           items:
