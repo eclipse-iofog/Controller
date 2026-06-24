@@ -204,6 +204,63 @@ Full spec: [`.cursor/controllerv3.8/docs/15-fog-platform-reconcile.md`](../.curs
 
 ---
 
+## WebSocket exec & log sessions
+
+Interactive **exec** and **log streaming** use paired WebSocket sessions between operators (Bearer JWT), Controller, and Edgelet agents (fog token). Plan 16 hardens lifecycle, quotas, multi-replica HA relay, and observability — **without changing the Edgelet wire protocol**.
+
+```mermaid
+sequenceDiagram
+  participant U as User WS
+  participant C as Controller replica
+  participant DB as Database
+  participant Q as AMQP Router
+  participant A as Agent WS
+
+  Note over U,A: Exec (R80–R81, R84)
+  U->>C: WS exec (RBAC)
+  A->>C: WS agent/exec + execId
+  C->>C: Pair SessionManager
+  C->>Q: Enable agent-{execId} user-{execId}
+  U->>C: STDIN
+  C->>Q->>A: or direct WS same replica
+  A->>C: STDOUT
+  C->>Q->>U: relay
+  U-->>C: close
+  C->>DB: execEnabled=false INACTIVE
+
+  Note over U,A: Logs (R82–R83, R84)
+  U->>C: WS logs + tail params
+  C->>DB: PENDING sessionId
+  A->>C: WS agent/logs/:sessionId
+  A->>C: LOG_LINE
+  C->>Q->>U: logs-user-{sessionId}
+```
+
+| Topic | Normative value (RFC R80–R91) |
+|-------|-------------------------------|
+| Exec lifecycle | **exec_b** — WS close sets `execEnabled=false`; **1** user exec WS per microservice |
+| Exec timeouts | **60s** pending for agent; **8h** max active session |
+| Log concurrency | **3** user log WS per microservice (or per fog for node logs) |
+| Log limits | Tail max **5,000** lines; **120s** pending; **2h** idle |
+| Log content | Live relay only — no log line persistence; audit connect/disconnect |
+| HA relay | Cross-replica sessions **require** AMQP (`WebSocketQueueService`); same-replica may use direct WS; **fail fast** when router down |
+| Graceful drain | **30s** on SIGTERM / k8s `preStop` — CLOSE frames, queue cleanup, DB status update |
+| Security | Agent handlers validate fog token **before** message processing; **50** upgrades/min/IP; **100** active WS/IP; JWT in `?token=` (ingress log redaction required) |
+| Scale SLO | **500** concurrent WS per replica; **p99 pairing < 5s** |
+| Observability | OpenTelemetry: active/pending sessions, pairing latency, AMQP failures, router connectivity |
+
+**OTEL metric names (R87):** `ws_exec_sessions_active`, `ws_log_sessions_active`, `ws_pending_pairings`, `ws_pairing_duration_ms` (histogram), `ws_amqp_publish_errors`, `ws_router_connected` (gauge). Emitted when `ENABLE_TELEMETRY=true`; see `src/websocket/ws-metrics.js`.
+
+**HA config (`server.webSocket.ha`):** `crossReplicaRequiresAmqp` (default `true`), `failFastOnRouterUnavailable` (default `true`). Env: `WS_HA_CROSS_REPLICA_REQUIRES_AMQP`, `WS_HA_FAIL_FAST_ON_ROUTER_UNAVAILABLE`. Graceful drain timeout: `server.webSocket.session.drainTimeoutMs` (default **30s**, env `WS_DRAIN_TIMEOUT_MS`).
+
+**Core modules:** `src/websocket/server.js`, `session-manager.js`, `log-session-manager.js`, `src/services/websocket-queue-service.js`, `src/services/router-connection-service.js`.
+
+**Operator guide:** [operations/ws-sessions.md](operations/ws-sessions.md) — ingress `?token=` log redaction, HTTPS/WSS, multi-replica AMQP requirement, k8s preStop drain, load SLO probe.
+
+Full spec: [`.cursor/controllerv3.8/docs/16-ws-exec-log-hardening.md`](../.cursor/controllerv3.8/docs/16-ws-exec-log-hardening.md) · RFC R80–R91 · Edgelet contract: [edgelet-invariants.md §10](../.cursor/controllerv3.8/docs/edgelet-invariants.md).
+
+---
+
 ## Edgelet agent contract (summary)
 
 Controller v3.8 and Edgelet share a **frozen field-agent REST contract** on `/api/v3/agent/*`. The same release train must be deployed together (e.g. Controller `v3.8.0` + Edgelet `v1.0.0-rc.1`). Edgelet maintains the authoritative wire spec; Controller implements the server side.

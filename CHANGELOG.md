@@ -71,7 +71,7 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 #### Database and distribution
 
 - **Greenfield schema** — **new install required**; no v3.7 → v3.8 database migrator.
-- PKI: central router/NATS local CAs; legacy per-agent CAs migrated via one-time **rotation job** (Plan 5).
+- PKI: central router/NATS local CAs; legacy per-agent CAs migrated via one-time **rotation job**.
 - **Node.js 24.x** required for dev and CI (was 16/18).
 - Dual-mirror container images: **`ghcr.io/eclipse-iofog/controller`** and **`ghcr.io/datasance/controller`** from the **same commit SHA**; publish on **`v*` tags only** via repo variable **`IMAGE_REGISTRY`**.
 
@@ -97,6 +97,7 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - **K8s control plane:** hub **`iofog-router`** ConfigMap patches serialized via DB lock; K8s Service create/update/delete with LoadBalancer watch timeout.
 - **`service-bridge-config.js`** — full recompute of service-derived TCP bridge config per fog on reconcile (preserves router base config).
 - **SQLite single-node production hardening** — WAL + `busy_timeout` pragmas, reconcile task claim retry on `SQLITE_BUSY`, staggered startup for reconcile-heavy background jobs (`settings.jobStartupDelaySeconds`).
+- **WebSocket exec & log session hardening** — quotas (1 exec / 3 log WS per resource), exec_b lifecycle, 60s/120s pending timeouts, 8h exec max, 30s graceful drain, OTEL metrics, HA AMQP fail-fast, integration tests, swagger WS protocol docs, operator guide (`docs/operations/ws-sessions.md`).
 
 ### Fixed
 

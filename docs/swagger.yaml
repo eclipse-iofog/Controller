@@ -2811,6 +2811,279 @@ paths:
           description: Invalid Microservice UUID
         "500":
           description: Internal Server Error
+  "/microservices/exec/{microserviceUuid}":
+    get:
+      tags:
+        - WebSocketSessions
+      summary: User exec WebSocket (HTTP upgrade)
+      description: |
+        Upgrades to a binary MessagePack WebSocket for interactive exec.
+
+        **Auth:** Bearer JWT in `Authorization` header or `?token=` query param.
+        **RBAC:** `execSessions` on `microservices` resource.
+
+        Pairing: user connects first (or agent first on `/agent/exec/{uuid}`); Controller pairs
+        via `SessionManager` and relays STDIN/STDOUT/STDERR. On disconnect, **exec_b** sets
+        `execEnabled=false` (see REST `POST/DELETE …/exec`).
+
+        **HA:** Multi-replica deployments require AMQP router (`WebSocketQueueService`).
+        Cross-replica sessions fail fast with close code **1013** when router is unavailable.
+
+        See `#/components/schemas/WsExecMessageTypes` and `#/components/schemas/WsCloseCodes`.
+      operationId: userMicroserviceExecWebSocket
+      parameters:
+        - in: path
+          name: microserviceUuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: token
+          description: Bearer JWT for browser clients (redact in ingress access logs)
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "101":
+          description: Switching Protocols — WebSocket established
+        "401":
+          description: Not Authorized
+        "403":
+          description: RBAC denied
+  "/microservices/system/exec/{microserviceUuid}":
+    get:
+      tags:
+        - WebSocketSessions
+      summary: User system microservice exec WebSocket
+      description: Same as user exec WS; **RBAC** `systemExecSessions`.
+      operationId: userSystemMicroserviceExecWebSocket
+      parameters:
+        - in: path
+          name: microserviceUuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: token
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "101":
+          description: Switching Protocols
+  "/microservices/{uuid}/logs":
+    get:
+      tags:
+        - WebSocketSessions
+      summary: User microservice log streaming WebSocket
+      description: |
+        Upgrades to binary MessagePack log stream (agent → user after pairing).
+
+        **RBAC:** `logs`. Max **3** concurrent user log WS per microservice.
+
+        Query params control tail behaviour (see parameters). Live relay only — no log persistence.
+      operationId: userMicroserviceLogsWebSocket
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: token
+          schema:
+            type: string
+        - in: query
+          name: tail
+          description: Number of tail lines (1–5000, default from config)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5000
+        - in: query
+          name: follow
+          description: Stream new lines after tail (default true)
+          schema:
+            type: boolean
+            default: true
+        - in: query
+          name: since
+          description: ISO 8601 timestamp — include lines after this time
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: until
+          description: ISO 8601 timestamp — include lines before this time
+          schema:
+            type: string
+            format: date-time
+      security:
+        - authToken: []
+      responses:
+        "101":
+          description: Switching Protocols
+  "/microservices/system/{uuid}/logs":
+    get:
+      tags:
+        - WebSocketSessions
+      summary: User system microservice log WebSocket
+      operationId: userSystemMicroserviceLogsWebSocket
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: token
+          schema:
+            type: string
+        - in: query
+          name: tail
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5000
+        - in: query
+          name: follow
+          schema:
+            type: boolean
+        - in: query
+          name: since
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: until
+          schema:
+            type: string
+            format: date-time
+      security:
+        - authToken: []
+      responses:
+        "101":
+          description: Switching Protocols
+  "/iofog/{uuid}/logs":
+    get:
+      tags:
+        - WebSocketSessions
+      summary: User fog (node) log streaming WebSocket
+      description: Node-level logs; **RBAC** `systemLogs`. Max **3** concurrent sessions per fog.
+      operationId: userFogLogsWebSocket
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: token
+          schema:
+            type: string
+        - in: query
+          name: tail
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5000
+        - in: query
+          name: follow
+          schema:
+            type: boolean
+        - in: query
+          name: since
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: until
+          schema:
+            type: string
+            format: date-time
+      security:
+        - authToken: []
+      responses:
+        "101":
+          description: Switching Protocols
+  "/agent/exec/{microserviceUuid}":
+    get:
+      tags:
+        - WebSocketSessions
+      summary: Agent exec WebSocket
+      description: |
+        Agent-side exec pairing. **Auth:** fog token (not OIDC).
+
+        First binary frame must be MessagePack with `execId` and `microserviceUuid`.
+        Agent handlers validate fog token **before** accepting messages (R86).
+      operationId: agentExecWebSocket
+      parameters:
+        - in: path
+          name: microserviceUuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - fogToken: []
+      responses:
+        "101":
+          description: Switching Protocols
+  "/agent/logs/microservice/{microserviceUuid}/{sessionId}":
+    get:
+      tags:
+        - WebSocketSessions
+      summary: Agent microservice log WebSocket
+      operationId: agentMicroserviceLogsWebSocket
+      parameters:
+        - in: path
+          name: microserviceUuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - fogToken: []
+      responses:
+        "101":
+          description: Switching Protocols
+  "/agent/logs/iofog/{iofogUuid}/{sessionId}":
+    get:
+      tags:
+        - WebSocketSessions
+      summary: Agent fog log WebSocket
+      operationId: agentFogLogsWebSocket
+      parameters:
+        - in: path
+          name: iofogUuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - fogToken: []
+      responses:
+        "101":
+          description: Switching Protocols
   "/microservices/system/{uuid}/exec": 
     post:
       tags:
@@ -3309,7 +3582,7 @@ paths:
       summary: Start OAuth authorization (BFF)
       operationId: oauthAuthorize
       description: >
-        Browser OAuth BFF entry point for EdgeOps Console (Plan 8.2). EdgeOps Console Sign in performs a
+        Browser OAuth BFF entry point for EdgeOps Console. EdgeOps Console Sign in performs a
         full-page redirect here; do **not** POST credentials from the browser.
 
         **External mode:** redirects to the external IdP authorize endpoint.
@@ -3358,7 +3631,7 @@ paths:
 
         **External forced password change** is enforced by the IdP during authorize (e.g. Keycloak
         required actions: `UPDATE_PASSWORD`). **Embedded forced password** uses the interaction
-        `change-password` step (Plan 8.2-3).
+        `change-password` step.
 
         MFA in external browser login is IdP-owned; embedded browser MFA uses interaction endpoints.
       responses:
@@ -6815,6 +7088,10 @@ tags:
     description: Manage ssh tunnels
   - name: Agent
     description: Used by your agents to communicate with your controller
+  - name: WebSocketSessions
+    description: |
+      Interactive exec and log streaming WebSocket endpoints (MessagePack binary).
+      Multi-replica HA requires AMQP router — see operations/ws-sessions.md.
   - name: User
     description: Manage your users
   - name: Secrets
@@ -6843,6 +7120,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    fogToken:
+      type: http
+      scheme: bearer
+      description: Edgelet fog provisioning token (agent routes)
   responses:
     AuthRateLimitExceeded:
       description: Too many authentication requests from this IP address
@@ -6882,6 +7163,59 @@ components:
             $ref: "#/components/schemas/ApplicationTemplateCreateRequest"
       required: true
   schemas:
+    WsExecMessageTypes:
+      type: object
+      description: MessagePack frame types for exec sessions (R80)
+      properties:
+        types:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: integer
+              direction:
+                type: string
+      example:
+        types:
+          - { name: STDIN, value: 0, direction: user → agent }
+          - { name: STDOUT, value: 1, direction: agent → user }
+          - { name: STDERR, value: 2, direction: agent → user }
+          - { name: CONTROL, value: 3, direction: both }
+          - { name: CLOSE, value: 4, direction: both }
+          - { name: ACTIVATION, value: 5, direction: controller → agent }
+    WsLogMessageTypes:
+      type: object
+      description: MessagePack frame types for log sessions (R82)
+      example:
+        types:
+          - { name: LOG_LINE, value: 6, direction: agent → user }
+          - { name: LOG_START, value: 7, direction: both }
+          - { name: LOG_STOP, value: 8, direction: agent → user }
+          - { name: LOG_ERROR, value: 9, direction: agent → user }
+    WsCloseCodes:
+      type: object
+      description: WebSocket close codes used by Controller exec/log sessions
+      properties:
+        codes:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: integer
+              reason:
+                type: string
+              when:
+                type: string
+      example:
+        codes:
+          - { code: 1000, reason: Normal closure, when: Session ended cleanly }
+          - { code: 1001, reason: Server draining, when: SIGTERM / k8s preStop (R85) }
+          - { code: 1008, reason: Policy violation, when: RBAC deny, quota, invalid tail params, pending timeout }
+          - { code: 1013, reason: Router unavailable for cross-replica session, when: AMQP router down (R84) }
     EventRecord:
       type: object
       properties:
