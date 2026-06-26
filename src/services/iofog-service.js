@@ -1262,7 +1262,6 @@ async function enableNodeExecEndPoint (execData, isCLI, transaction) {
     isPrivileged: true,
     logSize: Constants.MICROSERVICE_DEFAULT_LOG_SIZE,
     schedule: 0,
-    execEnabled: true,
     configLastUpdated: Date.now()
   }
 
@@ -1296,8 +1295,7 @@ async function enableNodeExecEndPoint (execData, isCLI, transaction) {
       isPrivileged: debugMicroserviceData.isPrivileged,
       logSize: debugMicroserviceData.logSize,
       schedule: debugMicroserviceData.schedule,
-      configLastUpdated: debugMicroserviceData.configLastUpdated,
-      execEnabled: debugMicroserviceData.execEnabled
+      configLastUpdated: debugMicroserviceData.configLastUpdated
     }
 
     if (execData.image) {

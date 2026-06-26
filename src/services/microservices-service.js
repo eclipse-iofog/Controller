@@ -2665,85 +2665,6 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   return res
 }
 
-async function createExecEndPoint (microserviceUuid, isCLI, transaction) {
-  const microservice = await MicroserviceManager.findOneWithCategory({ uuid: microserviceUuid }, transaction)
-  if (microservice.catalogItem && microservice.catalogItem.category === 'SYSTEM') {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
-  }
-  if (!microservice) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_MICROSERVICE_USER)
-  }
-
-  await MicroserviceManager.update({ uuid: microservice.uuid }, { execEnabled: true }, transaction)
-  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceExecSessions, transaction)
-
-  const updatedMicroservice = await MicroserviceManager.findOneWithCategory({ uuid: microservice.uuid }, transaction)
-
-  return {
-    uuid: microservice.uuid,
-    execEnabled: updatedMicroservice.execEnabled
-  }
-}
-
-async function deleteExecEndPoint (microserviceUuid, isCLI, transaction) {
-  const microservice = await MicroserviceManager.findOneWithCategory({ uuid: microserviceUuid }, transaction)
-  if (microservice.catalogItem && microservice.catalogItem.category === 'SYSTEM') {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
-  }
-  if (!microservice) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_MICROSERVICE_USER)
-  }
-
-  await MicroserviceManager.update({ uuid: microservice.uuid }, { execEnabled: false }, transaction)
-  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceExecSessions, transaction)
-
-  const updatedMicroservice = await MicroserviceManager.findOneWithCategory({ uuid: microservice.uuid }, transaction)
-
-  return {
-    uuid: microservice.uuid,
-    execEnabled: updatedMicroservice.execEnabled
-  }
-}
-
-async function createSystemExecEndPoint (microserviceUuid, isCLI, transaction) {
-  const microservice = await MicroserviceManager.findOneWithCategory({ uuid: microserviceUuid }, transaction)
-  // if (microservice.catalogItem && microservice.catalogItem.category !== 'SYSTEM') {
-  //   throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
-  // }
-  if (!microservice) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_MICROSERVICE_USER)
-  }
-  await MicroserviceManager.update({ uuid: microservice.uuid }, { execEnabled: true }, transaction)
-  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceExecSessions, transaction)
-
-  const updatedMicroservice = await MicroserviceManager.findOneWithCategory({ uuid: microservice.uuid }, transaction)
-
-  return {
-    uuid: microservice.uuid,
-    execEnabled: updatedMicroservice.execEnabled
-  }
-}
-
-async function deleteSystemExecEndPoint (microserviceUuid, isCLI, transaction) {
-  const microservice = await MicroserviceManager.findOneWithCategory({ uuid: microserviceUuid }, transaction)
-  // if (microservice.catalogItem && microservice.catalogItem.category !== 'SYSTEM') {
-  //   throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
-  // }
-  if (!microservice) {
-    throw new Errors.NotFoundError(ErrorMessages.INVALID_MICROSERVICE_USER)
-  }
-
-  await MicroserviceManager.update({ uuid: microservice.uuid }, { execEnabled: false }, transaction)
-  await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceExecSessions, transaction)
-
-  const updatedMicroservice = await MicroserviceManager.findOneWithCategory({ uuid: microservice.uuid }, transaction)
-
-  return {
-    uuid: microservice.uuid,
-    execEnabled: updatedMicroservice.execEnabled
-  }
-}
-
 async function startMicroserviceEndPoint (microserviceUuid, isCLI, transaction) {
   const microservice = await MicroserviceManager.findOneWithCategory({ uuid: microserviceUuid }, transaction)
   if (!microservice) {
@@ -2842,10 +2763,6 @@ module.exports = {
   rebuildSystemMicroserviceEndPoint: TransactionDecorator.generateTransaction(rebuildSystemMicroserviceEndPoint),
   buildGetMicroserviceResponse: _buildGetMicroserviceResponse,
   updateChangeTracking: _updateChangeTracking,
-  createExecEndPoint: TransactionDecorator.generateTransaction(createExecEndPoint),
-  deleteExecEndPoint: TransactionDecorator.generateTransaction(deleteExecEndPoint),
-  createSystemExecEndPoint: TransactionDecorator.generateTransaction(createSystemExecEndPoint),
-  deleteSystemExecEndPoint: TransactionDecorator.generateTransaction(deleteSystemExecEndPoint),
   startMicroserviceEndPoint: TransactionDecorator.generateTransaction(startMicroserviceEndPoint),
   stopMicroserviceEndPoint: TransactionDecorator.generateTransaction(stopMicroserviceEndPoint),
   reconcileNatsForApplication: TransactionDecorator.generateTransaction(reconcileNatsForApplication, bypassOptions),

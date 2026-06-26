@@ -572,8 +572,32 @@ module.exports = [
     }
   },
   {
+    method: 'get',
+    path: '/api/v3/agent/exec/sessions',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AuthenticationError]
+        }
+      ]
+
+      const getAgentExecSessionsEndPoint = ResponseDecorator.handleErrors(AgentController.getAgentExecSessionsEndPoint,
+        successCode, errorCodes)
+      const responseObject = await getAgentExecSessionsEndPoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req, res, responseObject })
+    }
+  },
+  {
     method: 'ws',
-    path: '/api/v3/agent/exec/:microserviceUuid',
+    path: '/api/v3/agent/exec/microservice/:microserviceUuid/:sessionId',
     middleware: async (ws, req) => {
       logger.apiReq(req)
       try {
@@ -591,29 +615,28 @@ module.exports = [
           return
         }
 
-        // Set flag to bypass route matching
-        // Token validation will be done by validateAgentConnection in handleAgentConnection
         req._rbacAuthorized = true
 
-        // Call handler directly (it will validate the token)
         const wsServer = WebSocketServer.getInstance()
         const microserviceUuid = req.params.microserviceUuid
+        const sessionId = req.params.sessionId
         await TransactionDecorator.generateTransaction(async (transaction) => {
-          await wsServer.handleAgentConnection(ws, req, token, microserviceUuid, transaction)
+          await wsServer.handleAgentExecConnection(ws, req, token, microserviceUuid, sessionId, transaction)
         })()
       } catch (error) {
-        logger.error('Error in agent WebSocket connection:' + JSON.stringify({
+        logger.error('Error in agent exec WebSocket connection:' + JSON.stringify({
           error: error.message,
           stack: error.stack,
           url: req.url,
-          microserviceUuid: req.params.microserviceUuid
+          microserviceUuid: req.params.microserviceUuid,
+          sessionId: req.params.sessionId
         }))
         try {
           if (ws.readyState === ws.OPEN) {
             ws.close(1008, error.message || 'Authentication failed')
           }
         } catch (closeError) {
-          logger.error('Error closing agent WebSocket:' + JSON.stringify({
+          logger.error('Error closing agent exec WebSocket:' + JSON.stringify({
             error: closeError.message,
             originalError: error.message
           }))
