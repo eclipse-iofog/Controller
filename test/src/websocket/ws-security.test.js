@@ -117,20 +117,23 @@ describe('WebSocket session security', () => {
       const transaction = { fakeTransaction: true }
 
       let validationResolved = false
-      $sandbox.stub(wsServer, 'validateAgentConnection').callsFake(async () => {
+      $sandbox.stub(wsServer, 'validateAgentExecConnection').callsFake(async () => {
         await delay(30)
         validationResolved = true
         throw new Error('Invalid agent token')
       })
 
-      const agentReq = createMockRequest(`/api/v3/agent/exec/${$ids.microserviceUuid}`)
+      const agentReq = createMockRequest(
+        `/api/v3/agent/exec/microservice/${$ids.microserviceUuid}/${$ids.sessionId}`
+      )
       agentReq.headers.authorization = 'Bearer bad-token'
 
-      const handlerPromise = wsServer.handleAgentConnection(
+      const handlerPromise = wsServer.handleAgentExecConnection(
         agentWs,
         agentReq,
         'Bearer bad-token',
         $ids.microserviceUuid,
+        $ids.sessionId,
         transaction
       )
 
@@ -140,7 +143,7 @@ describe('WebSocket session security', () => {
 
       expect(validationResolved).to.equal(true)
       expect(agentWs.readyState).to.equal(WebSocket.CLOSED)
-      expect(wsServer.sessionManager.sessions.size).to.equal(0)
+      expect(wsServer.execSessionManager.execSessions.size).to.equal(0)
     })
   })
 })

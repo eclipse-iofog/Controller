@@ -25,6 +25,7 @@ server:
       cleanupInterval: 30000       # Session cleanup interval (30 seconds)
       execPendingTimeoutMs: 60000  # Exec: user wait for agent (R81)
       execMaxDurationMs: 28800000  # Exec: max active session 8h (R81)
+      execMaxConcurrentPerResource: 3  # Exec: max user WS per MS (R92)
       logPendingTimeoutMs: 120000  # Log: user wait for agent (R82)
       logIdleTimeoutMs: 7200000    # Log: idle session 2h (R82)
       logMaxConcurrentPerResource: 3  # Log: max user WS per MS or fog (R82)

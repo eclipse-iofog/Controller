@@ -3,13 +3,12 @@ const logger = require('../logger')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const WebSocketServer = require('../websocket/server')
-const MicroserviceExecStatusManager = require('../data/managers/microservice-exec-status-manager')
+const MicroserviceExecSessionManager = require('../data/managers/microservice-exec-session-manager')
 const MicroserviceLogStatusManager = require('../data/managers/microservice-log-status-manager')
 const FogLogStatusManager = require('../data/managers/fog-log-status-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const ChangeTrackingService = require('../services/change-tracking-service')
 const FogManager = require('../data/managers/iofog-manager')
-const { microserviceExecState } = require('../enums/microservice-state')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 
 function getIntervalMs () {
@@ -34,7 +33,7 @@ async function run () {
 
 async function reconcileStaleSessions () {
   const wsServer = WebSocketServer.getInstance()
-  const sessionManager = wsServer.sessionManager
+  const execSessionManager = wsServer.execSessionManager
   const logSessionManager = wsServer.logSessionManager
   const sessionConfig = getSessionConfig()
   const execPendingTimeout = sessionConfig.execPendingTimeoutMs || 60000
@@ -47,35 +46,23 @@ async function reconcileStaleSessions () {
   let logCleaned = 0
 
   await TransactionDecorator.generateTransaction(async (transaction) => {
-    const execStatuses = await MicroserviceExecStatusManager.findAll({
-      status: { [Op.in]: [microserviceExecState.PENDING, microserviceExecState.ACTIVE] }
+    const execRows = await MicroserviceExecSessionManager.findAll({
+      status: { [Op.in]: ['PENDING', 'ACTIVE'] }
     }, transaction)
 
-    for (const row of execStatuses) {
+    for (const row of execRows) {
+      const sessionId = row.sessionId
       const microserviceUuid = row.microserviceUuid
-      const execId = row.execSessionId
-      if (!microserviceUuid) continue
+      if (!sessionId || !microserviceUuid) continue
 
-      const inMemory = execId && sessionManager.getSession(execId)
-      const hasPending = sessionManager.getPendingUserCount(microserviceUuid) > 0 ||
-        (sessionManager.pendingAgents.has(microserviceUuid) &&
-          sessionManager.pendingAgents.get(microserviceUuid).size > 0)
-
-      if (inMemory || hasPending) continue
+      if (execSessionManager.getExecSession(sessionId)) continue
 
       const age = now - new Date(row.updatedAt).getTime()
-      const threshold = row.status === microserviceExecState.PENDING
-        ? execPendingTimeout
-        : execMaxDuration
-
+      const threshold = row.status === 'PENDING' ? execPendingTimeout : execMaxDuration
       if (age < threshold) continue
 
-      await MicroserviceExecStatusManager.update(
-        { microserviceUuid },
-        { execSessionId: '', status: microserviceExecState.INACTIVE },
-        transaction
-      )
-      await MicroserviceManager.update({ uuid: microserviceUuid }, { execEnabled: false }, transaction)
+      await MicroserviceExecSessionManager.deleteBySessionId(sessionId, transaction)
+
       const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
       if (microservice) {
         await ChangeTrackingService.update(
@@ -84,10 +71,11 @@ async function reconcileStaleSessions () {
           transaction
         )
       }
+
       execCleaned++
-      logger.info('Reconciled stale exec status row:' + JSON.stringify({
+      logger.info('Reconciled stale exec session row:' + JSON.stringify({
+        sessionId,
         microserviceUuid,
-        execId,
         status: row.status,
         ageMs: age
       }))

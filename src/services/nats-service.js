@@ -140,17 +140,32 @@ function _configMapDataHash (data) {
   return crypto.createHash('sha256').update(canonical).digest('hex')
 }
 
+async function _updateConfigMapIfChanged (name, data, existing, transaction) {
+  const existingHash = _configMapDataHash(existing.data)
+  const newHash = _configMapDataHash(data)
+  if (existingHash === newHash) {
+    return
+  }
+  return ConfigMapService.updateConfigMapEndpoint(name, { data, immutable: false }, transaction)
+}
+
 async function _ensureConfigMap (name, data, transaction) {
   const existing = await ConfigMapManager.getConfigMap(name, transaction)
   if (existing) {
-    const existingHash = _configMapDataHash(existing.data)
-    const newHash = _configMapDataHash(data)
-    if (existingHash === newHash) {
-      return
-    }
-    return ConfigMapService.updateConfigMapEndpoint(name, { data, immutable: false }, transaction)
+    return _updateConfigMapIfChanged(name, data, existing, transaction)
   }
-  return ConfigMapService.createConfigMapEndpoint({ name, data, immutable: false, useVault: true }, transaction)
+  try {
+    return await ConfigMapService.createConfigMapEndpoint({ name, data, immutable: false, useVault: true }, transaction)
+  } catch (error) {
+    if (error.name !== 'ConflictError') {
+      throw error
+    }
+    const createdConcurrently = await ConfigMapManager.getConfigMap(name, transaction)
+    if (!createdConcurrently) {
+      throw error
+    }
+    return _updateConfigMapIfChanged(name, data, createdConcurrently, transaction)
+  }
 }
 
 async function _ensureVolumeMount (name, opts, transaction) {
@@ -1626,5 +1641,6 @@ module.exports = {
   isReconcileRunning,
   setReconcilePending,
   normalizeJetstreamSize,
-  mergeK8sHubClusterRoutes
+  mergeK8sHubClusterRoutes,
+  _ensureConfigMap
 }

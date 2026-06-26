@@ -94,11 +94,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       field: 'memory_limit'
     },
-    execEnabled: {
-      type: DataTypes.BOOLEAN,
-      field: 'exec_enabled',
-      defaultValue: false
-    },
     delete: {
       type: DataTypes.BOOLEAN,
       field: 'delete',
@@ -210,6 +205,11 @@ module.exports = (sequelize, DataTypes) => {
     Microservice.hasOne(models.MicroserviceExecStatus, {
       foreignKey: 'microservice_uuid',
       as: 'microserviceExecStatus'
+    })
+
+    Microservice.hasMany(models.MicroserviceExecSession, {
+      foreignKey: 'microservice_uuid',
+      as: 'microserviceExecSessions'
     })
 
     Microservice.hasOne(models.MicroserviceHealthCheck, {

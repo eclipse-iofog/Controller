@@ -39,6 +39,17 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - **Diagnostics**, **strace**, image **snapshot** / **download** APIs.
 - All **`/api/v3/flow`** routes.
 
+#### WebSocket exec — multi-session
+
+- **Microservice exec REST removed** — `POST/DELETE /api/v3/microservices/:uuid/exec` and `…/system/:uuid/exec` no longer exist. Open exec with **direct WebSocket** only: `WS /api/v3/microservices/exec/:uuid` (or `…/system/exec/:uuid`).
+- **3 concurrent exec sessions** per microservice (was 1 user exec WS per MS in Plan 16).
+- **Per-session lifecycle** — closing one exec session deletes only that session row only (no microservice-level exec flag).
+- **`execEnabled` removed** — dropped `microservices.exec_enabled` column and agent MS list field; exec attach is poll-driven only (`GET /agent/exec/sessions`).
+- **Agent exec discovery** — new `GET /api/v3/agent/exec/sessions` when change tracking reports `execSessions: true`.
+- **Agent exec WebSocket** — `WS /api/v3/agent/exec/microservice/:microserviceUuid/:sessionId` only; legacy `WS /api/v3/agent/exec/:microserviceUuid` with initial MessagePack pairing frame **removed**.
+- **User session announce** — Controller sends **ACTIVATION** (type 5) to user with `{ sessionId, microserviceUuid }` on connect.
+- **Fog debug** — `POST/DELETE /api/v3/iofog/:uuid/exec` unchanged (provisions debug system MS); interactive shell via `WS /api/v3/microservices/system/exec/:debugMsUuid` (system path — debug MS is a system microservice).
+
 #### Authentication
 
 - **`keycloak-connect` removed** — generic OIDC (`openid-client` + JWKS discovery).
@@ -97,10 +108,12 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - **K8s control plane:** hub **`iofog-router`** ConfigMap patches serialized via DB lock; K8s Service create/update/delete with LoadBalancer watch timeout.
 - **`service-bridge-config.js`** — full recompute of service-derived TCP bridge config per fog on reconcile (preserves router base config).
 - **SQLite single-node production hardening** — WAL + `busy_timeout` pragmas, reconcile task claim retry on `SQLITE_BUSY`, staggered startup for reconcile-heavy background jobs (`settings.jobStartupDelaySeconds`).
-- **WebSocket exec & log session hardening** — quotas (1 exec / 3 log WS per resource), exec_b lifecycle, 60s/120s pending timeouts, 8h exec max, 30s graceful drain, OTEL metrics, HA AMQP fail-fast, integration tests, swagger WS protocol docs, operator guide (`docs/operations/ws-sessions.md`).
+- **WebSocket exec & log session hardening** — quotas (**3 exec** / 3 log WS per resource), per-session exec lifecycle (Plan 17), 60s/120s pending timeouts, 8h exec max, 30s graceful drain, OTEL metrics, HA AMQP fail-fast, integration tests, swagger WS protocol docs, operator guide (`docs/operations/ws-sessions.md`).
+- **Multi exec sessions (Plan 17)** — `GET /api/v3/agent/exec/sessions`; agent exec WS `…/agent/exec/microservice/:uuid/:sessionId`; user ACTIVATION with `sessionId`; `MicroserviceExecSessions` table; `execMaxConcurrentPerResource` config (default **3**).
 
 ### Fixed
 
+- Exec AMQP relay re-attaches queue receivers whenever user or agent WebSocket connects (fixes user-first sessions where ACTIVATION and STDIN never reached Edgelet); ACTIVATION is resent on agent WS reconnect.
 - Controller register accepts optional **`schedule: 0`**; server always enforces schedule **0** on create, re-register, and **`PATCH /api/v3/microservices/system/:uuid`** for controller workloads.
 - Agent version command (**`GET /api/v3/agent/version`**) refreshes the provision key on each pull instead of returning a stale or deleted key.
 - Controller AMQP certificate provisioning uses shared **`default-router-local-ca`** instead of per-fog router local CA secret names.

@@ -23,6 +23,7 @@ module.exports = {
   WS_CLEANUP_INTERVAL: 'server.webSocket.session.cleanupInterval',
   WS_EXEC_PENDING_TIMEOUT_MS: 'server.webSocket.session.execPendingTimeoutMs',
   WS_EXEC_MAX_DURATION_MS: 'server.webSocket.session.execMaxDurationMs',
+  WS_EXEC_MAX_CONCURRENT_PER_RESOURCE: 'server.webSocket.session.execMaxConcurrentPerResource',
   WS_LOG_PENDING_TIMEOUT_MS: 'server.webSocket.session.logPendingTimeoutMs',
   WS_LOG_IDLE_TIMEOUT_MS: 'server.webSocket.session.logIdleTimeoutMs',
   WS_LOG_MAX_CONCURRENT_PER_RESOURCE: 'server.webSocket.session.logMaxConcurrentPerResource',

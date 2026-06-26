@@ -154,11 +154,6 @@ resources:
   # Exec Sessions
   execSessions:
     routes:
-      - path: /api/v3/microservices/:uuid/exec
-        methods:
-          POST: [patch]
-          DELETE: [patch]
-        resourceNameParam: uuid
       - path: /api/v3/microservices/exec/:microserviceUuid
         methods:
           WS: [get]
@@ -168,11 +163,6 @@ resources:
   systemExecSessions:
     routes:
       - path: /api/v3/iofog/:uuid/exec
-        methods:
-          POST: [patch]
-          DELETE: [patch]
-        resourceNameParam: uuid
-      - path: /api/v3/microservices/system/:uuid/exec
         methods:
           POST: [patch]
           DELETE: [patch]
@@ -641,7 +631,10 @@ resources:
       - path: /api/v3/agent/logs/sessions
         methods:
           GET: [list]
-      - path: /api/v3/agent/exec/:microserviceUuid
+      - path: /api/v3/agent/exec/sessions
+        methods:
+          GET: [list]
+      - path: /api/v3/agent/exec/microservice/:microserviceUuid/:sessionId
         methods:
           WS: [get]
         resourceNameParam: microserviceUuid

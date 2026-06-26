@@ -180,26 +180,6 @@ const deleteSystemMicroserviceVolumeMappingEndPoint = async function (req) {
   return MicroservicesService.deleteSystemVolumeMappingEndPoint(uuid, id, false)
 }
 
-const createMicroserviceExecEndPoint = async function (req) {
-  const uuid = req.params.uuid
-  return MicroservicesService.createExecEndPoint(uuid, false)
-}
-
-const deleteMicroserviceExecEndPoint = async function (req) {
-  const uuid = req.params.uuid
-  return MicroservicesService.deleteExecEndPoint(uuid, false)
-}
-
-const createSystemMicroserviceExecEndPoint = async function (req) {
-  const uuid = req.params.uuid
-  return MicroservicesService.createSystemExecEndPoint(uuid, false)
-}
-
-const deleteSystemMicroserviceExecEndPoint = async function (req) {
-  const uuid = req.params.uuid
-  return MicroservicesService.deleteSystemExecEndPoint(uuid, false)
-}
-
 const startMicroserviceEndPoint = async function (req) {
   const uuid = req.params.uuid
   return MicroservicesService.startMicroserviceEndPoint(uuid, false)
@@ -240,10 +220,6 @@ module.exports = {
   getSystemMicroserviceConfigEndPoint,
   deleteMicroserviceConfigEndPoint,
   deleteSystemMicroserviceConfigEndPoint,
-  createMicroserviceExecEndPoint,
-  deleteMicroserviceExecEndPoint,
-  createSystemMicroserviceExecEndPoint,
-  deleteSystemMicroserviceExecEndPoint,
   startMicroserviceEndPoint,
   stopMicroserviceEndPoint
 }

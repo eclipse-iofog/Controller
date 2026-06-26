@@ -2754,63 +2754,6 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
-  "/microservices/{uuid}/exec":
-    post:
-      tags:
-        - Microservices
-      summary: Enables a exec for microservice
-      operationId: enableMicroserviceExec
-      parameters:
-        - in: path
-          name: uuid
-          description: Microservice UUID
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "201":
-          description: Created
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Microservice UUID
-        "500":
-          description: Internal Server Error
-    delete:
-      tags:
-        - Microservices
-      summary: Disables a exec for microservice
-      operationId: disableMicroserviceExec
-      parameters:
-        - in: path
-          name: uuid
-          description: Microservice UUID
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "204":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Microservice UUID
-        "500":
-          description: Internal Server Error
   "/microservices/exec/{microserviceUuid}":
     get:
       tags:
@@ -2822,9 +2765,14 @@ paths:
         **Auth:** Bearer JWT in `Authorization` header or `?token=` query param.
         **RBAC:** `execSessions` on `microservices` resource.
 
-        Pairing: user connects first (or agent first on `/agent/exec/{uuid}`); Controller pairs
-        via `SessionManager` and relays STDIN/STDOUT/STDERR. On disconnect, **exec_b** sets
-        `execEnabled=false` (see REST `POST/DELETE …/exec`).
+        Pairing: user connects directly via WebSocket; Controller creates a per-session row
+        in `MicroserviceExecSessions` and relays STDIN/STDOUT/STDERR by `sessionId`.
+        No prior REST enable step is required (Plan 17). Max **3** concurrent exec sessions
+        per microservice (close code **1008** when quota exceeded).
+
+        On connect, Controller sends **ACTIVATION** (type 5) with JSON
+        `{ sessionId, microserviceUuid }` in the `data` field and top-level `sessionId`,
+        followed by STDERR "waiting for agent…". Relay frames use `execId` equal to `sessionId`.
 
         **HA:** Multi-replica deployments require AMQP router (`WebSocketQueueService`).
         Cross-replica sessions fail fast with close code **1013** when router is unavailable.
@@ -3013,20 +2961,71 @@ paths:
       responses:
         "101":
           description: Switching Protocols
-  "/agent/exec/{microserviceUuid}":
+  "/agent/exec/sessions":
+    get:
+      tags:
+        - Agent
+      summary: List pending and active exec sessions for this agent
+      description: |
+        Returns exec sessions for microservices on the authenticated fog node.
+        Poll when `GET /agent/changes` reports `execSessions: true` (Plan 17).
+
+        Each entry includes `microserviceUuid`, `sessionId`, `status` (`PENDING` | `ACTIVE`),
+        and `agentConnected`. Agent connects with
+        `WS /agent/exec/microservice/{microserviceUuid}/{sessionId}`.
+      operationId: getAgentExecSessions
+      security:
+        - fogToken: []
+      responses:
+        "200":
+          description: Exec session list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  execSessions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        microserviceUuid:
+                          type: string
+                          format: uuid
+                        sessionId:
+                          type: string
+                          format: uuid
+                        status:
+                          type: string
+                          enum: [PENDING, ACTIVE]
+                        agentConnected:
+                          type: boolean
+        "401":
+          description: Not Authorized
+  "/agent/exec/microservice/{microserviceUuid}/{sessionId}":
     get:
       tags:
         - WebSocketSessions
-      summary: Agent exec WebSocket
+      summary: Agent exec WebSocket (session-scoped)
       description: |
-        Agent-side exec pairing. **Auth:** fog token (not OIDC).
+        Agent-side exec pairing for a specific session. **Auth:** fog token (not OIDC).
 
-        First binary frame must be MessagePack with `execId` and `microserviceUuid`.
+        Path includes the `sessionId` from `GET /agent/exec/sessions` or from user ACTIVATION.
+        Controller validates the session row and strict `sessionId` / `microserviceUuid` match
+        before relay. Legacy `WS /agent/exec/{microserviceUuid}` with initial MessagePack frame
+        is **removed** (Plan 17, R96).
+
         Agent handlers validate fog token **before** accepting messages (R86).
-      operationId: agentExecWebSocket
+      operationId: agentExecMicroserviceWebSocket
       parameters:
         - in: path
           name: microserviceUuid
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: sessionId
           required: true
           schema:
             type: string
@@ -3084,63 +3083,6 @@ paths:
       responses:
         "101":
           description: Switching Protocols
-  "/microservices/system/{uuid}/exec": 
-    post:
-      tags:
-        - Microservices
-      summary: Enables a exec for system microservice
-      operationId: enableSystemMicroserviceExec
-      parameters:
-        - in: path  
-          name: uuid
-          description: Microservice UUID
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "201":
-          description: Created
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Microservice UUID
-        "500":
-          description: Internal Server Error
-    delete:
-      tags:
-        - Microservices
-      summary: Disables a exec for system microservice
-      operationId: disableSystemMicroserviceExec
-      parameters:
-        - in: path
-          name: uuid
-          description: Microservice UUID
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "204":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Microservice UUID
-        "500":
-          description: Internal Server Error
   "/iofog/{uuid}/tunnel":
     patch:
       tags:
@@ -7165,7 +7107,7 @@ components:
   schemas:
     WsExecMessageTypes:
       type: object
-      description: MessagePack frame types for exec sessions (R80)
+      description: MessagePack frame types for exec sessions
       properties:
         types:
           type: array
@@ -7185,7 +7127,7 @@ components:
           - { name: STDERR, value: 2, direction: agent → user }
           - { name: CONTROL, value: 3, direction: both }
           - { name: CLOSE, value: 4, direction: both }
-          - { name: ACTIVATION, value: 5, direction: controller → agent }
+          - { name: ACTIVATION, value: 5, direction: controller → user (session announce); controller → agent (optional, shell live) }
     WsLogMessageTypes:
       type: object
       description: MessagePack frame types for log sessions (R82)
@@ -7214,7 +7156,7 @@ components:
         codes:
           - { code: 1000, reason: Normal closure, when: Session ended cleanly }
           - { code: 1001, reason: Server draining, when: SIGTERM / k8s preStop (R85) }
-          - { code: 1008, reason: Policy violation, when: RBAC deny, quota, invalid tail params, pending timeout }
+          - { code: 1008, reason: Policy violation, when: RBAC deny, exec/log quota (3 per MS), invalid tail params, pending timeout, sessionId mismatch }
           - { code: 1013, reason: Router unavailable for cross-replica session, when: AMQP router down (R84) }
     EventRecord:
       type: object

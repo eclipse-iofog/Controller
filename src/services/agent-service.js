@@ -31,6 +31,7 @@ const constants = require('../helpers/constants')
 const SecretManager = require('../data/managers/secret-manager')
 const ConfigMapManager = require('../data/managers/config-map-manager')
 const MicroserviceLogStatusManager = require('../data/managers/microservice-log-status-manager')
+const MicroserviceExecSessionManager = require('../data/managers/microservice-exec-session-manager')
 const FogLogStatusManager = require('../data/managers/fog-log-status-manager')
 const RbacRoleManager = require('../data/managers/rbac-role-manager')
 
@@ -466,7 +467,6 @@ const getAgentMicroservices = async function (fog, transaction) {
       isRouter,
       isNats,
       isController: microservice.isController,
-      execEnabled: microservice.execEnabled,
       schedule: microservice.schedule
     }
 
@@ -682,6 +682,39 @@ const getAgentLogSessions = async function (fog, transaction) {
   return { logSessions: allSessions }
 }
 
+const getAgentExecSessions = async function (fog, transaction) {
+  const Op = require('sequelize').Op
+
+  const microservices = await MicroserviceManager.findAll(
+    { iofogUuid: fog.uuid },
+    transaction
+  )
+
+  const allSessions = []
+  const microserviceUuids = microservices.map(ms => ms.uuid)
+
+  if (microserviceUuids.length > 0) {
+    const msSessions = await MicroserviceExecSessionManager.findAll(
+      {
+        microserviceUuid: { [Op.in]: microserviceUuids },
+        status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+      },
+      transaction
+    )
+
+    for (const session of msSessions) {
+      allSessions.push({
+        microserviceUuid: session.microserviceUuid,
+        sessionId: session.sessionId,
+        status: session.status,
+        agentConnected: session.agentConnected
+      })
+    }
+  }
+
+  return { execSessions: allSessions }
+}
+
 const getAgentLinkedVolumeMounts = async function (fog, transaction) {
   const volumeMounts = []
   const resourceAttributes = [
@@ -758,5 +791,6 @@ module.exports = {
   deleteNode: TransactionDecorator.generateTransaction(deleteNode),
   getAgentLinkedVolumeMounts: TransactionDecorator.generateTransaction(getAgentLinkedVolumeMounts),
   getControllerCA: TransactionDecorator.generateTransaction(getControllerCA),
-  getAgentLogSessions: TransactionDecorator.generateTransaction(getAgentLogSessions)
+  getAgentLogSessions: TransactionDecorator.generateTransaction(getAgentLogSessions),
+  getAgentExecSessions: TransactionDecorator.generateTransaction(getAgentExecSessions)
 }

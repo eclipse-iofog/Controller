@@ -120,8 +120,8 @@ async function createRouterForFog (fogData, uuid, upstreamRouters, transaction) 
   const routerMicroservice = await _createRouterMicroservice(isEdge, uuid, microserviceConfig, transaction)
   await _createRouterPorts(routerMicroservice.uuid, messagingPort, transaction)
   if (!isEdge) {
-    await _createRouterPorts(routerMicroservice.uuid, fogData.edgeRouterPort, transaction)
-    await _createRouterPorts(routerMicroservice.uuid, fogData.interRouterPort, transaction)
+    await _createRouterPorts(routerMicroservice.uuid, router.edgeRouterPort, transaction)
+    await _createRouterPorts(routerMicroservice.uuid, router.interRouterPort, transaction)
   }
   await _ensureRouterTlsVolumeMountsAndMappings(uuid, routerMicroservice.uuid, transaction, false)
 

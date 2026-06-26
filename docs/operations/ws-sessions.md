@@ -18,6 +18,8 @@ Controller exposes **interactive exec** and **log streaming** over WebSocket on 
 | **User auth** | Bearer JWT via `Authorization` header or `?token=` query param (browser Console). RBAC: `execSessions`, `logs`, `systemExecSessions`, `systemLogs`. |
 | **Agent auth** | Fog token on `/api/v3/agent/exec/*` and `/api/v3/agent/logs/*` — OIDC does **not** apply to agent routes. |
 
+> **Plan 17 (MS exec):** Open exec with **direct WebSocket** — `wss://…/api/v3/microservices/exec/:uuid` (app MS) or `…/system/exec/:uuid` (system MS). **No** `POST …/exec` before connect. Up to **3** concurrent exec sessions per microservice. Agent discovers sessions via `GET /api/v3/agent/exec/sessions` and connects `WS /api/v3/agent/exec/microservice/:uuid/:sessionId`. Fog node debug: `POST/DELETE /api/v3/iofog/:uuid/exec` provisions the debug system MS, then **`WS …/microservices/system/exec/:debugMsUuid`** (not the app exec path). Full spec: [17-multi-exec-sessions.md](../.cursor/controllerv3.8/docs/17-multi-exec-sessions.md).
+
 ### Ingress log redaction (required)
 
 Browser clients pass JWT in the query string: `wss://controller.example.com/api/v3/microservices/{uuid}/logs?token=…`
@@ -44,7 +46,7 @@ Without redaction, long-lived bearer tokens may appear in load balancer logs.
 **Requirements:**
 
 1. Deploy the **router** system microservice and ensure Controller can reach AMQP (`RouterConnectionService`).
-2. Run **2+ Controller replicas** behind a load balancer with **sticky sessions optional** — cross-replica exec/log uses AMQP queues (`agent-{execId}`, `user-{execId}`, `logs-user-{sessionId}`).
+2. Run **2+ Controller replicas** behind a load balancer with **sticky sessions optional** — cross-replica exec/log uses AMQP queues (`agent-{sessionId}`, `user-{sessionId}`, `logs-user-{sessionId}`).
 3. When the router is unavailable, new cross-replica sessions close with WebSocket code **1013** (`Router unavailable for cross-replica session`).
 
 Same-replica sessions may relay directly without AMQP when both user and agent land on the same pod.
@@ -88,7 +90,7 @@ spec:
 
 1. Open an exec or log session against a running pod.
 2. `kubectl delete pod <controller-pod> --grace-period=45`
-3. Confirm the client receives close code **1001** within ~30s and exec is disabled (`execEnabled=false` for exec sessions).
+3. Confirm the client receives close code **1001** within ~30s and the session row is cleaned up (Plan 17: per-session delete; no global `execEnabled=false` for MS exec).
 4. Confirm replacement pod accepts new sessions.
 
 ---
@@ -99,13 +101,17 @@ spec:
 |--------|--------|
 | Concurrent WS per replica | **500** (`WS_REPLICA_MAX_CONCURRENT_WS`) |
 | p99 exec pairing latency | **< 5s** |
+| Exec sessions per microservice | **3** concurrent user WS (Plan 17) |
 
 Run the load probe locally:
 
 ```bash
 nvm use 24
 node test/load/ws-pairing-load.js --pairs 500
+node test/load/ws-pairing-load.js --multi-ms 100
 ```
+
+The `--multi-ms` mode creates **3 exec sessions per microservice** (100 MS × 3 = 300 pairs) to validate multi-session pairing latency under the same p99 SLO.
 
 For production validation, repeat against a staging cluster with real agent simulators and record p99 from Controller OTEL histogram `ws_pairing_duration_ms`.
 
@@ -130,7 +136,7 @@ Enable `ENABLE_TELEMETRY=true`. Key metrics (`src/websocket/ws-metrics.js`):
 
 | Session | Limit |
 |---------|-------|
-| Exec user WS per microservice | **1** |
+| Exec user WS per microservice | **3** (Plan 17 — direct WS; no POST/DELETE MS exec REST) |
 | Exec pending (user waits for agent) | **60s** |
 | Exec max duration | **8h** |
 | Log user WS per microservice/fog | **3** |
