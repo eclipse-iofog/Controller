@@ -99,7 +99,15 @@ function createMockQueueService () {
     async enableForSession (session, cleanupCallback) {
       const execId = session.execId
       if (!execId) return false
-      execBridges.set(execId, { session, cleanupCallback })
+      const existing = execBridges.get(execId)
+      if (existing) {
+        existing.session = session
+        if (cleanupCallback) {
+          existing.cleanupCallback = cleanupCallback
+        }
+      } else {
+        execBridges.set(execId, { session, cleanupCallback })
+      }
       return true
     },
 
@@ -110,14 +118,14 @@ function createMockQueueService () {
     async publishToAgent (execId, buffer) {
       const bridge = execBridges.get(execId)
       if (bridge && bridge.session.agent && bridge.session.agent.readyState === WebSocket.OPEN) {
-        bridge.session.agent.emit('message', buffer, true)
+        bridge.session.agent.send(buffer, { binary: true })
       }
     },
 
     async publishToUser (execId, buffer) {
       const bridge = execBridges.get(execId)
       if (bridge && bridge.session.user && bridge.session.user.readyState === WebSocket.OPEN) {
-        bridge.session.user.emit('message', buffer, true)
+        bridge.session.user.send(buffer, { binary: true })
       }
     },
 
@@ -151,7 +159,7 @@ function createMockQueueService () {
 function resetWebSocketServerSingleton (WebSocketServerClass) {
   if (WebSocketServerClass.instance) {
     const instance = WebSocketServerClass.instance
-    instance.sessionManager.stopCleanup()
+    instance.execSessionManager.stopCleanupInterval()
     instance.logSessionManager.stopCleanupInterval()
   }
   WebSocketServerClass.instance = null

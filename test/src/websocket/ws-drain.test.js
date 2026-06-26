@@ -1,10 +1,11 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
-const WebSocket = require('ws')
 
 const WebSocketServerClass = require('../../../src/websocket/server')
-const MicroserviceExecStatusManager = require('../../../src/data/managers/microservice-exec-status-manager')
+const MicroserviceExecSessionManager = require('../../../src/data/managers/microservice-exec-session-manager')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
+const FogManager = require('../../../src/data/managers/iofog-manager')
+const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const {
   createMockWebSocket,
   resetWebSocketServerSingleton,
@@ -29,8 +30,10 @@ describe('WebSocket graceful drain', () => {
 
     $sandbox.stub(wsServer.queueService, 'cleanup').resolves()
     $sandbox.stub(wsServer.queueService, 'cleanupLogSession').resolves()
-    $sandbox.stub(MicroserviceExecStatusManager, 'update').resolves()
-    $sandbox.stub(MicroserviceManager, 'update').resolves()
+    $sandbox.stub(MicroserviceExecSessionManager, 'deleteBySessionId').resolves()
+    $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: $ids.fogUuid })
+    $sandbox.stub(FogManager, 'findOne').resolves({ uuid: $ids.fogUuid })
+    $sandbox.stub(ChangeTrackingService, 'update').resolves()
   })
 
   afterEach(() => {
@@ -41,8 +44,13 @@ describe('WebSocket graceful drain', () => {
   it('sets draining flag and closes active exec sessions within timeout budget', async () => {
     const userWs = createMockWebSocket()
     const agentWs = createMockWebSocket()
-    wsServer.sessionManager.createSession($ids.execId, $ids.microserviceUuid, agentWs, userWs, $transaction)
-    wsServer.sessionManager.addPendingUser($ids.microserviceUuid, createMockWebSocket())
+    wsServer.execSessionManager.createExecSession(
+      $ids.execId,
+      $ids.microserviceUuid,
+      agentWs,
+      userWs,
+      $transaction
+    )
 
     const started = Date.now()
     await wsServer.drain(500)
@@ -50,8 +58,7 @@ describe('WebSocket graceful drain', () => {
 
     expect(wsServer.isDraining).to.equal(true)
     expect(elapsed).to.be.at.most(800)
-    expect(wsServer.sessionManager.getSession($ids.execId)).to.equal(null)
-    expect(wsServer.sessionManager.getPendingUserCount($ids.microserviceUuid)).to.equal(0)
+    expect(wsServer.execSessionManager.getExecSession($ids.execId)).to.equal(null)
   })
 
   it('verifyClient rejects new upgrades while draining', (done) => {

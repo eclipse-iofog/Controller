@@ -2,12 +2,12 @@ const { expect } = require('chai')
 const sinon = require('sinon')
 const WebSocket = require('ws')
 
-const SessionManager = require('../../../src/websocket/session-manager')
+const ExecSessionManager = require('../../../src/websocket/exec-session-manager')
 const LogSessionManager = require('../../../src/websocket/log-session-manager')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const FogManager = require('../../../src/data/managers/iofog-manager')
 const WebSocketServerClass = require('../../../src/websocket/server')
-const MicroserviceExecStatusManager = require('../../../src/data/managers/microservice-exec-status-manager')
+const MicroserviceExecSessionManager = require('../../../src/data/managers/microservice-exec-session-manager')
 const MicroserviceLogStatusManager = require('../../../src/data/managers/microservice-log-status-manager')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const {
@@ -37,6 +37,39 @@ describe('WebSocket session lifecycle', () => {
 
   afterEach(() => {
     $sandbox.restore()
+  })
+
+  describe('exec 3-session quota', () => {
+    let wsServer
+
+    beforeEach(() => {
+      resetWebSocketServerSingleton(WebSocketServerClass)
+      wsServer = new WebSocketServerClass()
+      wsServer.sessionConfig = { ...wsServer.sessionConfig, execMaxConcurrentPerResource: 3 }
+    })
+
+    afterEach(() => {
+      resetWebSocketServerSingleton(WebSocketServerClass)
+    })
+
+    it('rejects fourth concurrent exec session for same microservice', async () => {
+      $sandbox.stub(wsServer, 'validateUserConnection').resolves({ uuid: $ids.microserviceUuid })
+      $sandbox.stub(wsServer, 'countExecSessionsInDb').resolves(3)
+
+      const ws = createMockWebSocket()
+      const req = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)
+
+      await wsServer.handleUserExecConnection(
+        ws,
+        req,
+        'Bearer token',
+        $ids.microserviceUuid,
+        false,
+        $transaction
+      )
+
+      expect(ws.readyState).to.equal(WebSocket.CLOSED)
+    })
   })
 
   describe('log 3-viewer quota', () => {
@@ -122,100 +155,100 @@ describe('WebSocket session lifecycle', () => {
   })
 
   describe('exec pending timeout (60s normative, accelerated in test)', () => {
-    let sessionManager
+    let execSessionManager
 
     beforeEach(() => {
-      sessionManager = new SessionManager(FAST_CONFIG)
-      $sandbox.stub(MicroserviceExecStatusManager, 'update').resolves()
-      $sandbox.stub(MicroserviceManager, 'update').resolves()
+      execSessionManager = new ExecSessionManager(FAST_CONFIG)
+      execSessionManager.stopCleanupInterval()
+      $sandbox.stub(MicroserviceExecSessionManager, 'deleteBySessionId').resolves()
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: $ids.fogUuid })
+      $sandbox.stub(FogManager, 'findOne').resolves({ uuid: $ids.fogUuid })
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
     })
 
-    it('closes pending user after execPendingTimeoutMs via cleanup cycle', async () => {
+    afterEach(() => {
+      execSessionManager.stopCleanupInterval()
+    })
+
+    it('expires user-only pending exec session after execPendingTimeoutMs', async () => {
       const userWs = createMockWebSocket()
-      sessionManager.addPendingUser($ids.microserviceUuid, userWs)
+      execSessionManager.createExecSession(
+        $ids.sessionId,
+        $ids.microserviceUuid,
+        null,
+        userWs,
+        $transaction
+      )
 
-      const users = sessionManager.pendingUsers.get($ids.microserviceUuid)
-      for (const [, info] of users.entries()) {
-        info.timestamp = Date.now() - 200
-      }
+      const session = execSessionManager.getExecSession($ids.sessionId)
+      session.createdAt = 0
+      session.lastActivity = 0
 
-      let expiredMicroservice = null
-      sessionManager.setSessionExpiredHandler(async (microserviceUuid) => {
-        expiredMicroservice = microserviceUuid
-      })
+      const cleaned = await execSessionManager.cleanupExpiredSessions($transaction)
 
-      const now = Date.now()
-      const execPendingTimeout = FAST_CONFIG.session.execPendingTimeoutMs
-      for (const [microserviceUuid, usersMap] of sessionManager.pendingUsers) {
-        for (const [userWsEntry, info] of usersMap.entries()) {
-          if (now - info.timestamp > execPendingTimeout) {
-            if (userWsEntry.readyState === WebSocket.OPEN) {
-              userWsEntry.close(1008, 'Timeout waiting for agent connection')
-            }
-            sessionManager.removePendingUser(microserviceUuid, userWsEntry)
-            if (sessionManager.sessionExpiredHandler) {
-              await sessionManager.sessionExpiredHandler(microserviceUuid, null)
-            }
-          }
-        }
-      }
-
-      expect(expiredMicroservice).to.equal($ids.microserviceUuid)
+      expect(cleaned).to.equal(1)
       expect(userWs.readyState).to.equal(WebSocket.CLOSED)
-      expect(sessionManager.getPendingUserCount($ids.microserviceUuid)).to.equal(0)
+      expect(execSessionManager.getExecSession($ids.sessionId)).to.equal(null)
     })
   })
 
   describe('exec max duration (8h normative, accelerated in test)', () => {
-    let sessionManager
+    let execSessionManager
 
     beforeEach(() => {
-      sessionManager = new SessionManager(FAST_CONFIG)
-      $sandbox.stub(MicroserviceExecStatusManager, 'update').resolves()
-      $sandbox.stub(MicroserviceManager, 'update').resolves()
+      execSessionManager = new ExecSessionManager(FAST_CONFIG)
+      execSessionManager.stopCleanupInterval()
+      $sandbox.stub(MicroserviceExecSessionManager, 'deleteBySessionId').resolves()
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: $ids.fogUuid })
+      $sandbox.stub(FogManager, 'findOne').resolves({ uuid: $ids.fogUuid })
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
     })
 
-    it('invokes sessionExpiredHandler when execMaxDurationMs exceeded', async () => {
+    afterEach(() => {
+      execSessionManager.stopCleanupInterval()
+    })
+
+    it('removes paired exec session when execMaxDurationMs exceeded', async () => {
       const userWs = createMockWebSocket()
       const agentWs = createMockWebSocket()
-      sessionManager.createSession($ids.execId, $ids.microserviceUuid, agentWs, userWs, $transaction)
-      const session = sessionManager.getSession($ids.execId)
+      execSessionManager.createExecSession(
+        $ids.sessionId,
+        $ids.microserviceUuid,
+        agentWs,
+        userWs,
+        $transaction
+      )
+      const session = execSessionManager.getExecSession($ids.sessionId)
       session.lastActivity = Date.now() - 300
 
-      let expiredExecId = null
-      sessionManager.setSessionExpiredHandler(async (microserviceUuid, execId) => {
-        expiredExecId = execId
-        sessionManager.sessions.delete(execId)
-      })
+      const cleaned = await execSessionManager.cleanupExpiredSessions($transaction)
 
-      const execMaxDuration = FAST_CONFIG.session.execMaxDurationMs
-      const now = Date.now()
-      for (const [execId, activeSession] of sessionManager.sessions) {
-        if (now - activeSession.lastActivity > execMaxDuration) {
-          await sessionManager.cleanupSession(execId)
-        }
-      }
-
-      expect(expiredExecId).to.equal($ids.execId)
-      expect(sessionManager.getSession($ids.execId)).to.equal(null)
+      expect(cleaned).to.equal(1)
+      expect(execSessionManager.getExecSession($ids.sessionId)).to.equal(null)
     })
   })
 
-  describe('exec_b lifecycle', () => {
-    it('removeSession sets execEnabled=false and notifies execSessions change', async () => {
-      const sessionManager = new SessionManager(FAST_CONFIG)
-      $sandbox.stub(MicroserviceExecStatusManager, 'update').resolves()
-      $sandbox.stub(MicroserviceManager, 'update').resolves()
+  describe('per-session exec cleanup (no exec_b)', () => {
+    it('removeExecSession deletes DB row and updates execSessions change tracking', async () => {
+      const execSessionManager = new ExecSessionManager(FAST_CONFIG)
+      execSessionManager.stopCleanupInterval()
+      $sandbox.stub(MicroserviceExecSessionManager, 'deleteBySessionId').resolves()
       $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: $ids.fogUuid })
+      $sandbox.stub(FogManager, 'findOne').resolves({ uuid: $ids.fogUuid })
       $sandbox.stub(ChangeTrackingService, 'update').resolves()
 
       const userWs = createMockWebSocket()
-      sessionManager.createSession($ids.execId, $ids.microserviceUuid, null, userWs, $transaction)
-      await sessionManager.removeSession($ids.execId, $transaction)
+      execSessionManager.createExecSession(
+        $ids.sessionId,
+        $ids.microserviceUuid,
+        null,
+        userWs,
+        $transaction
+      )
+      await execSessionManager.removeExecSession($ids.sessionId, $transaction)
 
-      expect(MicroserviceManager.update).to.have.been.calledWith(
-        sinon.match({ uuid: $ids.microserviceUuid }),
-        sinon.match({ execEnabled: false }),
+      expect(MicroserviceExecSessionManager.deleteBySessionId).to.have.been.calledWith(
+        $ids.sessionId,
         $transaction
       )
       expect(ChangeTrackingService.update).to.have.been.calledWith(
