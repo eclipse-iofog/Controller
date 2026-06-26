@@ -10,8 +10,10 @@ const MicroserviceManager = require('../../../src/data/managers/microservice-man
 const VolumeMappingManager = require('../../../src/data/managers/volume-mapping-manager')
 const VolumeMountService = require('../../../src/services/volume-mount-service')
 const ConfigMapService = require('../../../src/services/config-map-service')
+const ConfigMapManager = require('../../../src/data/managers/config-map-manager')
 const NatsAuthService = require('../../../src/services/nats-auth-service')
 const SecretService = require('../../../src/services/secret-service')
+const Errors = require('../../../src/helpers/errors')
 
 describe('NATS Service', () => {
   def('sandbox', () => sinon.createSandbox())
@@ -74,6 +76,81 @@ describe('NATS Service', () => {
       const K8S_NATS_JWT_BUNDLE_CONFIG_MAP = 'iofog-nats-jwt-bundle'
       expect(K8S_NATS_SERVER_CONFIG_MAP).to.equal('iofog-nats-config')
       expect(K8S_NATS_JWT_BUNDLE_CONFIG_MAP).to.equal('iofog-nats-jwt-bundle')
+    })
+  })
+
+  describe('._ensureConfigMap()', () => {
+    const transaction = {}
+    const name = 'iofog-nats-jwt-bundle'
+    const data = { 'bundle.jwt': 'jwt-content' }
+
+    def('subject', () => NatsService._ensureConfigMap(name, data, transaction))
+
+    beforeEach(() => {
+      $sandbox.stub(ConfigMapService, 'createConfigMapEndpoint')
+      $sandbox.stub(ConfigMapService, 'updateConfigMapEndpoint')
+    })
+
+    it('creates the ConfigMap when it does not exist', async () => {
+      $sandbox.stub(ConfigMapManager, 'getConfigMap').resolves(null)
+      ConfigMapService.createConfigMapEndpoint.resolves({ name })
+
+      await $subject
+
+      expect(ConfigMapService.createConfigMapEndpoint).to.have.been.calledOnceWith({
+        name,
+        data,
+        immutable: false,
+        useVault: true
+      }, transaction)
+      expect(ConfigMapService.updateConfigMapEndpoint).to.not.have.been.called
+    })
+
+    it('updates the ConfigMap when content changed', async () => {
+      $sandbox.stub(ConfigMapManager, 'getConfigMap').resolves({ name, data: { 'bundle.jwt': 'old' } })
+      ConfigMapService.updateConfigMapEndpoint.resolves({ name })
+
+      await $subject
+
+      expect(ConfigMapService.createConfigMapEndpoint).to.not.have.been.called
+      expect(ConfigMapService.updateConfigMapEndpoint).to.have.been.calledOnceWith(name, { data, immutable: false }, transaction)
+    })
+
+    it('skips update when content is unchanged', async () => {
+      $sandbox.stub(ConfigMapManager, 'getConfigMap').resolves({ name, data })
+
+      await $subject
+
+      expect(ConfigMapService.createConfigMapEndpoint).to.not.have.been.called
+      expect(ConfigMapService.updateConfigMapEndpoint).to.not.have.been.called
+    })
+
+    it('reconciles after concurrent create ConflictError', async () => {
+      const conflict = new Errors.ConflictError('ConfigMap already exists')
+      $sandbox.stub(ConfigMapManager, 'getConfigMap')
+        .onFirstCall().resolves(null)
+        .onSecondCall().resolves({ name, data })
+      ConfigMapService.createConfigMapEndpoint.rejects(conflict)
+
+      await $subject
+
+      expect(ConfigMapService.createConfigMapEndpoint).to.have.been.calledOnce
+      expect(ConfigMapManager.getConfigMap).to.have.been.calledTwice
+      expect(ConfigMapService.updateConfigMapEndpoint).to.not.have.been.called
+    })
+
+    it('updates after concurrent create when desired content differs', async () => {
+      const conflict = new Errors.ConflictError('ConfigMap already exists')
+      $sandbox.stub(ConfigMapManager, 'getConfigMap')
+        .onFirstCall().resolves(null)
+        .onSecondCall().resolves({ name, data: { 'bundle.jwt': 'old' } })
+      ConfigMapService.createConfigMapEndpoint.rejects(conflict)
+      ConfigMapService.updateConfigMapEndpoint.resolves({ name })
+
+      await $subject
+
+      expect(ConfigMapService.createConfigMapEndpoint).to.have.been.calledOnce
+      expect(ConfigMapService.updateConfigMapEndpoint).to.have.been.calledOnceWith(name, { data, immutable: false }, transaction)
     })
   })
 
