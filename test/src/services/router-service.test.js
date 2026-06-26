@@ -227,6 +227,26 @@ describe('Router Service', () => {
         expect(JSON.parse(createArgs.config).metadata.mode).to.equal('interior')
       })
     })
+
+    context('Interior router with default ports', () => {
+      def('fogData', () => ({ ...fogData, routerMode: 'interior' }))
+      def('createRouterResponse', () => Promise.resolve({
+        ...router,
+        edgeRouterPort: 45671,
+        interRouterPort: 55671,
+        isEdge: false
+      }))
+
+      it('Should open messaging, edge and inter port using router defaults', async () => {
+        await $subject
+        const mappingData = {
+          microserviceUuid: routerMsvc.uuid
+        }
+        expect(MicroservicePortManager.create).to.have.been.calledWith({ ...mappingData, portExternal: 55671, portInternal: 55671 }, transaction)
+        expect(MicroservicePortManager.create).to.have.been.calledWith({ ...mappingData, portExternal: 45671, portInternal: 45671 }, transaction)
+        return expect(MicroservicePortManager.create).to.have.been.calledThrice
+      })
+    })
   })
 
   describe('.updateConfig', () => {
