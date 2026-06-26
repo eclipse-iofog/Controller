@@ -233,7 +233,6 @@ CREATE TABLE IF NOT EXISTS Microservices (
     annotations TEXT,
     pid_mode VARCHAR(36),
     ipc_mode VARCHAR(36),
-    exec_enabled BOOLEAN DEFAULT false,
     schedule INT DEFAULT 50,
     cpu_set_cpus TEXT,
     memory_limit FLOAT,
@@ -704,6 +703,21 @@ CREATE TABLE IF NOT EXISTS MicroserviceLogStatuses (
 
 CREATE INDEX idx_microservice_log_status_microservice_uuid ON MicroserviceLogStatuses (microservice_uuid);
 CREATE INDEX idx_microservice_log_status_session_id ON MicroserviceLogStatuses (session_id);
+
+CREATE TABLE IF NOT EXISTS MicroserviceExecSessions (
+    id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    microservice_uuid VARCHAR(36) NOT NULL,
+    session_id TEXT UNIQUE NOT NULL,
+    status TEXT,
+    user_connected BOOLEAN DEFAULT false,
+    agent_connected BOOLEAN DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_exec_sessions_microservice_uuid ON MicroserviceExecSessions (microservice_uuid);
+CREATE INDEX idx_microservice_exec_sessions_session_id ON MicroserviceExecSessions (session_id);
 
 CREATE TABLE IF NOT EXISTS FogLogStatuses (
     id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
