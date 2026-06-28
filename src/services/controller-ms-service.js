@@ -8,7 +8,6 @@ const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 const MicroserviceExecStatusManager = require('../data/managers/microservice-exec-status-manager')
 const CatalogItemImageManager = require('../data/managers/catalog-item-image-manager')
-const MicroserviceEnvManager = require('../data/managers/microservice-env-manager')
 const RegistryManager = require('../data/managers/registry-manager')
 const VolumeMappingManager = require('../data/managers/volume-mapping-manager')
 const ConfigMapManager = require('../data/managers/config-map-manager')
@@ -16,7 +15,7 @@ const SecretManager = require('../data/managers/secret-manager')
 const MicroservicesService = require('./microservices-service')
 const MicroservicePortService = require('./microservice-ports/microservice-port')
 const VolumeMountService = require('./volume-mount-service')
-const constants = require('../helpers/constants')
+const WorkloadSpec = require('./microservice-workload-spec')
 const isEqual = require('lodash/isEqual')
 const Op = require('sequelize').Op
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
@@ -56,13 +55,6 @@ const { validateImageMatchesFogArch } = require('../helpers/arch-images')
 
 function _validateImageArch (name, fog, images) {
   validateImageMatchesFogArch(name, fog, images)
-}
-
-function _validateMicroserviceConfig (config) {
-  if (config) {
-    return config.split('\\"').join('"').split('"').join('\"') // eslint-disable-line no-useless-escape
-  }
-  return '{}'
 }
 
 function _rejectServiceAccountVolumeMappings (volumeMappings) {
@@ -230,17 +222,6 @@ async function _updateVolumeMappings (microserviceUuid, volumeMappings, fogUuid,
   await _createVolumeMappings(microserviceUuid, volumeMappings, transaction)
 }
 
-async function _updateEnv (env, microserviceUuid, transaction) {
-  await MicroserviceEnvManager.delete({ microserviceUuid }, transaction)
-  for (const envData of env) {
-    await MicroserviceEnvManager.create({
-      microserviceUuid,
-      key: envData.key,
-      value: envData.value
-    }, transaction)
-  }
-}
-
 async function _updateImages (images, microserviceUuid, transaction) {
   await CatalogItemImageManager.delete({ microserviceUuid }, transaction)
   await _createMicroserviceImages(microserviceUuid, images, transaction)
@@ -253,21 +234,18 @@ async function _updatePorts (ports, microservice, transaction) {
   }
 }
 
-async function _createControllerMicroservice (registerData, fog, application, transaction) {
+async function _createControllerMicroservice (registerData, fog, application, validatedExtraHosts, transaction) {
   await _checkForDuplicateName(CONTROLLER_MS_NAME, registerData.uuid, application.id, transaction)
 
   const microserviceData = {
     uuid: registerData.uuid,
     name: CONTROLLER_MS_NAME,
-    config: _validateMicroserviceConfig(registerData.config),
     iofogUuid: fog.uuid,
-    hostNetworkMode: registerData.hostNetworkMode,
-    runtime: registerData.runtime,
     registryId: registerData.registryId,
     schedule: 0,
-    logSize: constants.MICROSERVICE_DEFAULT_LOG_SIZE * 1,
     applicationId: application.id,
-    isController: true
+    isController: true,
+    ...WorkloadSpec.buildCreateScalarColumns(registerData)
   }
 
   const microservice = await MicroserviceManager.create(
@@ -284,17 +262,12 @@ async function _createControllerMicroservice (registerData, fog, application, tr
     }
   }
 
-  if (registerData.env) {
-    for (const env of registerData.env) {
-      await MicroserviceEnvManager.create({
-        microserviceUuid: microservice.uuid,
-        key: env.key,
-        value: env.value
-      }, transaction)
-    }
-  }
-
   await _createVolumeMappings(microservice.uuid, registerData.volumeMappings, transaction)
+
+  await WorkloadSpec.createWorkloadRelations(microservice, registerData, {
+    validatedExtraHosts,
+    transaction
+  })
 
   await MicroserviceStatusManager.create({ microserviceUuid: microservice.uuid }, transaction)
   await MicroserviceExecStatusManager.create({ microserviceUuid: microservice.uuid }, transaction)
@@ -304,38 +277,41 @@ async function _createControllerMicroservice (registerData, fog, application, tr
   return microservice
 }
 
-async function _updateControllerMicroservice (existing, registerData, fog, transaction) {
+async function _updateControllerMicroservice (existing, registerData, fog, validatedExtraHosts, transaction) {
   const existingImages = await CatalogItemImageManager.findAll({
     microserviceUuid: existing.uuid
   }, transaction)
 
   const config = registerData.config !== undefined
-    ? _validateMicroserviceConfig(registerData.config)
+    ? WorkloadSpec.validateMicroserviceConfig(registerData.config)
     : undefined
+  const annotations = registerData.annotations !== undefined
+    ? WorkloadSpec.validateMicroserviceAnnotations(registerData.annotations)
+    : undefined
+
+  const imagesChanged = registerData.images &&
+    registerData.images.length > 0 &&
+    _imagesChanged(registerData.images, existingImages)
 
   const microserviceUpdate = AppHelper.deleteUndefinedFields({
     isController: true,
     schedule: 0,
     registryId: registerData.registryId,
-    hostNetworkMode: registerData.hostNetworkMode,
-    runtime: registerData.runtime,
     config,
-    rebuild: false
+    annotations,
+    rebuild: false,
+    ...WorkloadSpec.buildScalarColumns(registerData)
   })
 
-  if (registerData.images && registerData.images.length > 0 && _imagesChanged(registerData.images, existingImages)) {
+  if (imagesChanged) {
     await _updateImages(registerData.images, existing.uuid, transaction)
     microserviceUpdate.rebuild = true
   }
 
-  microserviceUpdate.rebuild = microserviceUpdate.rebuild || !!(
-    existing.schedule !== 0 ||
-    (registerData.hostNetworkMode !== undefined && existing.hostNetworkMode !== registerData.hostNetworkMode) ||
-    (registerData.runtime !== undefined && existing.runtime !== registerData.runtime) ||
-    (config !== undefined && existing.config !== config) ||
-    registerData.env ||
-    registerData.volumeMappings ||
-    registerData.ports
+  microserviceUpdate.rebuild = microserviceUpdate.rebuild || WorkloadSpec.shouldRebuildForWorkloadChange(
+    existing,
+    registerData,
+    { config, annotations, imagesChanged }
   )
 
   const updatedMicroservice = await MicroserviceManager.updateAndFind(
@@ -353,9 +329,10 @@ async function _updateControllerMicroservice (existing, registerData, fog, trans
     await _updateVolumeMappings(existing.uuid, registerData.volumeMappings, fog.uuid, transaction)
   }
 
-  if (registerData.env) {
-    await _updateEnv(registerData.env, existing.uuid, transaction)
-  }
+  await WorkloadSpec.updateWorkloadRelations(existing.uuid, registerData, {
+    validatedExtraHosts: registerData.extraHosts ? validatedExtraHosts : undefined,
+    transaction
+  })
 
   await MicroservicesService.updateChangeTracking(true, fog.uuid, transaction)
 
@@ -385,6 +362,10 @@ async function registerControllerMicroservice (registerData, fog, transaction) {
     await MicroservicePortService.validatePortMappings({ ports: registerData.ports, iofogUuid: fog.uuid }, transaction)
   }
 
+  const validatedExtraHosts = registerData.extraHosts
+    ? await WorkloadSpec.validateExtraHosts(registerData, fog.uuid, transaction)
+    : undefined
+
   const existing = await MicroserviceManager.findOne({ uuid: registerData.uuid }, transaction)
   if (existing && existing.iofogUuid !== fog.uuid) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, registerData.uuid))
@@ -393,9 +374,9 @@ async function registerControllerMicroservice (registerData, fog, transaction) {
   const application = await ensureSystemApplication(fog, transaction)
 
   if (existing) {
-    await _updateControllerMicroservice(existing, registerData, fog, transaction)
+    await _updateControllerMicroservice(existing, registerData, fog, validatedExtraHosts, transaction)
   } else {
-    await _createControllerMicroservice(registerData, fog, application, transaction)
+    await _createControllerMicroservice(registerData, fog, application, validatedExtraHosts, transaction)
   }
 
   return { uuid: registerData.uuid }

@@ -16,7 +16,7 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - Agent status: removed **`processedMessages`**, **`messageSpeed`**; added **`availableRuntimes`**, optional **`runtimeAgentPhase`**, **`controlPlaneQuiesced`**.
 - Default container registry: **`docker.io`** (was `registry.hub.docker.com`).
 - Reserved ports: **54321**, **54322**, **53**.
-- New field-agent endpoint: **`POST /api/v3/agent/controller/register`** (system fogs only; Edgelet rc.1+).
+- New field-agent endpoint: **`POST /api/v3/agent/controller/register`** (system fogs only; Edgelet rc.1+). Register body accepts full container workload fields (`cmd`, `isPrivileged`, `healthCheck`, `capAdd`/`capDrop`, `extraHosts`, resources, etc.) with the same semantics as user microservice deploy; excludes `serviceAccount`, `natsConfig`, and ownership fields.
 
 #### API — architectures and applications
 
@@ -42,7 +42,7 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 #### WebSocket exec — multi-session
 
 - **Microservice exec REST removed** — `POST/DELETE /api/v3/microservices/:uuid/exec` and `…/system/:uuid/exec` no longer exist. Open exec with **direct WebSocket** only: `WS /api/v3/microservices/exec/:uuid` (or `…/system/exec/:uuid`).
-- **3 concurrent exec sessions** per microservice (was 1 user exec WS per MS in Plan 16).
+- **3 concurrent exec sessions** per microservice (was 1 user exec WS per MS).
 - **Per-session lifecycle** — closing one exec session deletes only that session row only (no microservice-level exec flag).
 - **`execEnabled` removed** — dropped `microservices.exec_enabled` column and agent MS list field; exec attach is poll-driven only (`GET /agent/exec/sessions`).
 - **Agent exec discovery** — new `GET /api/v3/agent/exec/sessions` when change tracking reports `execSessions: true`.
@@ -108,11 +108,15 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - **K8s control plane:** hub **`iofog-router`** ConfigMap patches serialized via DB lock; K8s Service create/update/delete with LoadBalancer watch timeout.
 - **`service-bridge-config.js`** — full recompute of service-derived TCP bridge config per fog on reconcile (preserves router base config).
 - **SQLite single-node production hardening** — WAL + `busy_timeout` pragmas, reconcile task claim retry on `SQLITE_BUSY`, staggered startup for reconcile-heavy background jobs (`settings.jobStartupDelaySeconds`).
-- **WebSocket exec & log session hardening** — quotas (**3 exec** / 3 log WS per resource), per-session exec lifecycle (Plan 17), 60s/120s pending timeouts, 8h exec max, 30s graceful drain, OTEL metrics, HA AMQP fail-fast, integration tests, swagger WS protocol docs, operator guide (`docs/operations/ws-sessions.md`).
-- **Multi exec sessions (Plan 17)** — `GET /api/v3/agent/exec/sessions`; agent exec WS `…/agent/exec/microservice/:uuid/:sessionId`; user ACTIVATION with `sessionId`; `MicroserviceExecSessions` table; `execMaxConcurrentPerResource` config (default **3**).
+- **WebSocket exec & log session hardening** — quotas (**3 exec** / 3 log WS per resource), per-session exec lifecycle, 60s/120s pending timeouts, 8h exec max, 30s graceful drain, OTEL metrics, HA AMQP fail-fast, integration tests, swagger WS protocol docs, operator guide (`docs/operations/ws-sessions.md`).
+- **Multi exec sessions** — `GET /api/v3/agent/exec/sessions`; agent exec WS `…/agent/exec/microservice/:uuid/:sessionId`; user ACTIVATION with `sessionId`; `MicroserviceExecSessions` table; `execMaxConcurrentPerResource` config (default **3**).
+- **WebSocket relay production** — unified **`WsRelayTransport`** abstraction; cross-replica exec/log relay backend selected at startup by **`nats.enabled`** (`NATS_ENABLED`): **AMQP** router pool (8 connections per replica, overflow recovery, sendable gating) when `false`, **NATS Core** pub/sub on platform hub (`controller-relay` account) when `true`. Fail-fast activation on both transports; log backpressure drops `LOG_LINE` under pressure. Config: `server.webSocket.relay.amqp.*`, `server.webSocket.relay.nats.*`. No new relay env var; HA swagger/docs updated per R112.
 
 ### Fixed
 
+- NATS relay and AMQP router connection resolvers — **Remote CP** uses Edgelet bridge DNS then DB host only (no `*.svc.cluster.local`); **Kubernetes CP** uses `nats-server.{namespace}.svc.cluster.local` / `router.{namespace}.svc.cluster.local` with DB host fallback; connect failures log and throw aggregate errors for all attempts; relay log messages are transport-aware.
+- NATS relay **`controller-relay` creds loading** — read Opaque secret values as plain UTF-8 `.creds` text (matches `nats-service.js` and DB storage); fixes **`unable to parse credentials`** on hub connect when `NATS_ENABLED=true`.
+- NATS platform relay identity renamed to account/user **`controller`** with rules **`controller-account`** / **`controller-user`**; **`GET /nats/accounts/controller/users/controller/creds`** supported for operator cred export.
 - Exec AMQP relay re-attaches queue receivers whenever user or agent WebSocket connects (fixes user-first sessions where ACTIVATION and STDIN never reached Edgelet); ACTIVATION is resent on agent WS reconnect.
 - Controller register accepts optional **`schedule: 0`**; server always enforces schedule **0** on create, re-register, and **`PATCH /api/v3/microservices/system/:uuid`** for controller workloads.
 - Agent version command (**`GET /api/v3/agent/version`**) refreshes the provision key on each pull instead of returning a stale or deleted key.
