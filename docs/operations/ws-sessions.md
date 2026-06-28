@@ -6,7 +6,7 @@
 
 ## Overview
 
-Controller exposes **interactive exec** and **log streaming** over WebSocket on the API port (default **51121**). Sessions pair an operator browser/CLI client (Bearer JWT) with an Edgelet agent (fog token). In multi-replica deployments, cross-replica relay requires the **Skupper-style AMQP router** microservice.
+Controller exposes **interactive exec** and **log streaming** over WebSocket on the API port (default **51121**). Sessions pair an operator browser/CLI client (Bearer JWT) with an Edgelet agent (fog token). In multi-replica deployments, cross-replica relay uses a **relay backend** selected at startup by **`nats.enabled`** (Plan 18, R102): **AMQP** router queues when `false`, **NATS Core** on the platform hub when `true`.
 
 ---
 
@@ -38,18 +38,41 @@ Without redaction, long-lived bearer tokens may appear in load balancer logs.
 
 ## Multi-replica HA
 
+Relay transport is selected **once at startup** from existing platform config — **no separate relay env var** (R102):
+
+| `nats.enabled` | Cross-replica relay backend |
+|----------------|----------------------------|
+| `false` (default) | **AMQP** — Skupper-style router queues via `WebSocketQueueService` |
+| `true` | **NATS Core** — hub pub/sub subjects `controller.relay.v1.*` via `NatsRelayTransport` |
+
+Set `NATS_ENABLED=true` only when the platform NATS hub is deployed and all Controller replicas share the same value.
+
 | Setting | Default | Env |
 |---------|---------|-----|
-| Cross-replica requires AMQP | `true` | `WS_HA_CROSS_REPLICA_REQUIRES_AMQP` |
-| Fail fast when router down | `true` | `WS_HA_FAIL_FAST_ON_ROUTER_UNAVAILABLE` |
+| Cross-replica requires relay backend | `true` | `WS_HA_CROSS_REPLICA_REQUIRES_AMQP` |
+| Fail fast when relay backend down | `true` | `WS_HA_FAIL_FAST_ON_ROUTER_UNAVAILABLE |
 
-**Requirements:**
+> Env names retain `AMQP`/`ROUTER` for backward compatibility; semantics apply to the **active relay backend** (AMQP or NATS) per R112.
 
-1. Deploy the **router** system microservice and ensure Controller can reach AMQP (`RouterConnectionService`).
+### AMQP relay (`nats.enabled=false`)
+
+1. Deploy the **router** system microservice and ensure Controller can reach AMQP (`RouterConnectionManager` pool).
 2. Run **2+ Controller replicas** behind a load balancer with **sticky sessions optional** — cross-replica exec/log uses AMQP queues (`agent-{sessionId}`, `user-{sessionId}`, `logs-user-{sessionId}`).
-3. When the router is unavailable, new cross-replica sessions close with WebSocket code **1013** (`Router unavailable for cross-replica session`).
+3. When the router/AMQP backend is unavailable, new cross-replica sessions close with WebSocket code **1013** (`Router unavailable for cross-replica session`).
 
-Same-replica sessions may relay directly without AMQP when both user and agent land on the same pod.
+Plan 18 adds an **8-connection AMQP pool** per replica with overflow recovery — intense log streams must not poison other sessions (no router restart required). **Remote CP** resolves **`router.default.svc.bridge.local`** then default router `host`; **Kubernetes CP** resolves **`router.{namespace}.svc.cluster.local`** then default router `host`. Port from `Routers.messagingPort` (default **5671**).
+
+### NATS relay (`nats.enabled=true`)
+
+1. Platform NATS hub must be running with `NatsInstances.isHub=true`.
+2. Controller provisions dedicated **`controller`** NATS account/user (not SYS / `admin-hub`) via NATS auth reconcile.
+3. Cross-replica exec uses subjects `controller.relay.v1.exec.{sessionId}.agent` / `.user`; logs use `controller.relay.v1.log.{sessionId}.user`. Plain TCP to hub — port from `NatsInstances.serverPort` (default **4222**) for every host in the resolver list.
+4. **Remote CP:** Controller resolves **`nats.default.svc.bridge.local`** (Edgelet internal DNS) then hub `host`; both use hub `serverPort`.
+5. **Kubernetes CP:** Controller resolves **`nats-server.{namespace}.svc.cluster.local`** then hub `host`.
+6. Remote ControlPlane replicas connect to the **hub** NATS only — not local fog NATS leaf.
+7. When NATS relay is unavailable, fail-fast semantics match AMQP (close **1013** when configured).
+
+Same-replica sessions may relay directly without AMQP or NATS when both user and agent land on the same pod.
 
 ---
 
@@ -59,7 +82,7 @@ On shutdown, Controller drains WebSocket sessions for up to **`WS_DRAIN_TIMEOUT_
 
 1. Reject new upgrades (`verifyClient` → draining).
 2. Close pending users with code **1001** (`Server draining`).
-3. Send CLOSE frames, clean exec/log session DB rows, tear down AMQP bridges.
+3. Send CLOSE frames, clean exec/log session DB rows, tear down relay bridges (AMQP or NATS).
 
 ### Kubernetes manifest example
 
@@ -113,6 +136,15 @@ node test/load/ws-pairing-load.js --multi-ms 100
 
 The `--multi-ms` mode creates **3 exec sessions per microservice** (100 MS × 3 = 300 pairs) to validate multi-session pairing latency under the same p99 SLO.
 
+**AMQP profile** (`nats.enabled=false`): run the probe above on a dev machine — it exercises in-process `ExecSessionManager` pairing only (no router required). Record p99 from stdout; target **< 5000 ms**.
+
+**NATS profile** (`nats.enabled=true`): the same probe validates session-manager pairing latency (transport-agnostic SLO). For end-to-end NATS relay validation in staging:
+
+1. Deploy Controller with **`NATS_ENABLED=true`** on **2+ replicas** and a platform NATS hub (`NatsInstances.isHub=true`).
+2. Confirm **`controller`** NATS account reconcile succeeded (NATS auth logs).
+3. Run cross-replica exec/log sessions (user on replica A, agent on replica B) while recording OTEL **`ws_pairing_duration_ms`** p99.
+4. Optionally repeat `node test/load/ws-pairing-load.js --pairs 500` against staging API with agent simulators — same **p99 < 5s** SLO applies.
+
 For production validation, repeat against a staging cluster with real agent simulators and record p99 from Controller OTEL histogram `ws_pairing_duration_ms`.
 
 ---
@@ -128,7 +160,9 @@ Enable `ENABLE_TELEMETRY=true`. Key metrics (`src/websocket/ws-metrics.js`):
 | `ws_pending_pairings` | gauge |
 | `ws_pairing_duration_ms` | histogram |
 | `ws_amqp_publish_errors` | counter |
-| `ws_router_connected` | gauge |
+| `ws_amqp_session_saturated` | counter (Plan 18 overflow/backpressure) |
+| `ws_router_pool_connections` | gauge (Plan 18 AMQP pool health) |
+| `ws_router_pool_unsettled` | gauge (Plan 18 AMQP unsettled deliveries) |
 
 ---
 

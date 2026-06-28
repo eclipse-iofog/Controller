@@ -2774,8 +2774,7 @@ paths:
         `{ sessionId, microserviceUuid }` in the `data` field and top-level `sessionId`,
         followed by STDERR "waiting for agent…". Relay frames use `execId` equal to `sessionId`.
 
-        **HA:** Multi-replica deployments require AMQP router (`WebSocketQueueService`).
-        Cross-replica sessions fail fast with close code **1013** when router is unavailable.
+        **HA (R112):** Multi-replica deployments require a **relay backend** selected at startup by **`nats.enabled`**: AMQP router queues when `false` (default), NATS Core pub/sub on the platform hub when `true`. Cross-replica sessions fail fast with close code **1013** when the active relay backend is unavailable. See `docs/operations/ws-sessions.md`.
 
         See `#/components/schemas/WsExecMessageTypes` and `#/components/schemas/WsCloseCodes`.
       operationId: userMicroserviceExecWebSocket
@@ -6593,11 +6592,16 @@ paths:
       tags:
         - NATS
       summary: Gets NATS creds for specific account user
+      description: |
+        Returns base64-encoded `.creds` file content for the user.
+
+        Path `{appName}` is an **application name** for app-linked accounts, or a **NATS account name** for platform/system accounts (`SYS`, leaf accounts, **`controller`**).
       operationId: getNatsUserCreds
       parameters:
         - in: path
           name: appName
           required: true
+          description: Application name or NATS account name (e.g. `SYS`, `controller`)
           schema:
             type: string
         - in: path
@@ -7033,7 +7037,7 @@ tags:
   - name: WebSocketSessions
     description: |
       Interactive exec and log streaming WebSocket endpoints (MessagePack binary).
-      Multi-replica HA requires AMQP router — see operations/ws-sessions.md.
+      Multi-replica HA requires a relay backend per **`nats.enabled`** (AMQP when `false`, NATS Core when `true`) — see operations/ws-sessions.md.
   - name: User
     description: Manage your users
   - name: Secrets
@@ -8276,7 +8280,11 @@ components:
           description: True when microservice is the ControlPlane controller workload (DB column)
     ControllerRegisterRequest:
       type: object
-      description: Slim register body for Edgelet ControlPlane controller workload
+      description: >-
+        Edgelet ControlPlane controller workload register body. Accepts the same
+        container/workload fields as user microservice deploy (excluding application,
+        serviceAccount, and natsConfig). Ownership fields (iofogUuid, application)
+        are derived from the authenticated system fog.
       required:
         - uuid
         - images
@@ -8298,6 +8306,31 @@ components:
             $ref: "#/components/schemas/MicroserviceContainerImage"
         registryId:
           type: integer
+        config:
+          type: string
+        annotations:
+          type: string
+        hostNetworkMode:
+          type: boolean
+        isPrivileged:
+          type: boolean
+        logSize:
+          type: integer
+          minimum: 0
+        runtime:
+          type: string
+        pidMode:
+          type: string
+        ipcMode:
+          type: string
+        runAsUser:
+          type: string
+        platform:
+          type: string
+        cpuSetCpus:
+          type: string
+        memoryLimit:
+          type: integer
         ports:
           type: array
           items:
@@ -8306,16 +8339,57 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/VolumeMappingRequest"
+        extraHosts:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - address
+            properties:
+              name:
+                type: string
+              address:
+                type: string
         env:
           type: array
           items:
             $ref: "#/components/schemas/AgentEnvRequest"
-        config:
-          type: string
-        hostNetworkMode:
-          type: boolean
-        runtime:
-          type: string
+        cmd:
+          type: array
+          items:
+            type: string
+        cdiDevices:
+          type: array
+          items:
+            type: string
+        capAdd:
+          type: array
+          items:
+            type: string
+        capDrop:
+          type: array
+          items:
+            type: string
+        healthCheck:
+          type: object
+          required:
+            - test
+          properties:
+            test:
+              type: array
+              items:
+                type: string
+            interval:
+              type: integer
+            timeout:
+              type: integer
+            startPeriod:
+              type: integer
+            startInterval:
+              type: integer
+            retries:
+              type: integer
         schedule:
           type: integer
           enum:
