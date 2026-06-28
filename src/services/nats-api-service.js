@@ -341,24 +341,31 @@ async function createUser (appName, payload, transaction) {
   }
 }
 
-async function getUserCreds (appName, userName, transaction) {
-  const application = await ApplicationManager.findOne({ name: appName }, transaction)
+async function _resolveAccountIdForCredsApi (appName, transaction) {
   const sysAccount = await NatsAccountManager.findOne({ name: appName }, transaction)
 
-  if (!application && (!sysAccount || (!sysAccount.isSystem && !sysAccount.isLeafSystem))) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
+  if (NatsAuthService.isPlatformControllerNatsAccount(sysAccount)) {
+    return sysAccount.id
   }
-  let accountId = null
+
+  const application = await ApplicationManager.findOne({ name: appName }, transaction)
   if (application) {
     const account = await NatsAccountManager.findOne({ applicationId: application.id }, transaction)
     if (!account) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_ID, application.id))
     }
-    accountId = account.id
+    return account.id
   }
+
   if (sysAccount && (sysAccount.isSystem || sysAccount.isLeafSystem)) {
-    accountId = sysAccount.id
+    return sysAccount.id
   }
+
+  throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_APPLICATION_NAME, appName))
+}
+
+async function getUserCreds (appName, userName, transaction) {
+  const accountId = await _resolveAccountIdForCredsApi(appName, transaction)
   const user = await NatsUserManager.findOne({ accountId, name: userName }, transaction)
   if (!user) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_NAME, userName))

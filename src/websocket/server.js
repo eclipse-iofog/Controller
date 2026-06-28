@@ -12,8 +12,7 @@ const { microserviceState } = require('../enums/microservice-state')
 const AuthDecorator = require('../decorators/authorization-decorator')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const msgpack = require('@msgpack/msgpack')
-const WebSocketQueueService = require('../services/websocket-queue-service')
-const RouterConnectionService = require('../services/router-connection-service')
+const { resolveTransport } = require('../services/ws-relay-transport-factory')
 const {
   recordExecSessionActive,
   recordLogSessionActive
@@ -39,8 +38,8 @@ const MESSAGE_TYPES = {
   LOG_ERROR: 9 // Log streaming error
 }
 
-const ROUTER_UNAVAILABLE_CLOSE_CODE = 1013
-const ROUTER_UNAVAILABLE_CLOSE_REASON = 'Router unavailable for cross-replica session'
+const RELAY_UNAVAILABLE_CLOSE_CODE = 1013
+const RELAY_UNAVAILABLE_CLOSE_REASON = 'Relay unavailable for cross-replica session'
 const DRAIN_CLOSE_CODE = 1001
 const DRAIN_CLOSE_REASON = 'Server draining'
 // when user WS bufferedAmount exceeds this, drop LOG_LINE silently and emit LOG_ERROR once.
@@ -168,7 +167,23 @@ class WebSocketServer {
     this.logSessionManager = new LogSessionManager(config.get('server.webSocket'))
     this.execSessionManager = new ExecSessionManager(config.get('server.webSocket'))
     this.sessionConfig = config.get('server.webSocket.session')
-    this.queueService = WebSocketQueueService
+    this.relayTransport = resolveTransport()
+    this.relayTransport.onRecovery(async (sessionId, meta) => {
+      if (!meta || meta.kind !== 'exec') return
+      const session = this.execSessionManager.getExecSession(sessionId)
+      if (!session || !session.user || !session.agent) return
+      session.activationSent = false
+      try {
+        await TransactionDecorator.generateTransaction(async (tx) => {
+          await this.sendExecActivationToExecSession(session, sessionId, tx)
+        })()
+      } catch (error) {
+        logger.error('[RELAY] Failed to resend exec activation after relay recovery', {
+          sessionId,
+          error: error.message
+        })
+      }
+    })
     this.pendingCloseTimeouts = new Map() // Track pending CLOSE messages in cross-replica scenarios
     this.haConfig = config.get('server.webSocket.ha') || {}
     this.isDraining = false
@@ -376,15 +391,17 @@ class WebSocketServer {
     return !!(session && (!session.agent || !session.user))
   }
 
-  async requireRouterForCrossReplica (ws) {
+  async requireRelayForCrossReplica (ws) {
     if (this.haConfig.failFastOnRouterUnavailable === false) {
       return true
     }
-    const available = await RouterConnectionService.isRouterAvailable()
+    const available = await this.relayTransport.isAvailable()
     if (!available) {
-      logger.warn('[WS-HA] Router unavailable for cross-replica session')
+      logger.warn('[RELAY] Relay backend unavailable for cross-replica session', {
+        transport: this.relayTransport.getTransport()
+      })
       if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.close(ROUTER_UNAVAILABLE_CLOSE_CODE, ROUTER_UNAVAILABLE_CLOSE_REASON)
+        ws.close(RELAY_UNAVAILABLE_CLOSE_CODE, RELAY_UNAVAILABLE_CLOSE_REASON)
       }
       return false
     }
@@ -1020,7 +1037,7 @@ class WebSocketServer {
 
       let session = this.execSessionManager.getExecSession(sessionId)
       if (!session) {
-        if (!(await this.requireRouterForCrossReplica(ws))) {
+        if (!(await this.requireRelayForCrossReplica(ws))) {
           return
         }
         session = this.execSessionManager.createExecSession(
@@ -1106,12 +1123,12 @@ class WebSocketServer {
                 closeTransaction
               )
 
-              const queueEnabled = this.queueService.shouldUseQueue(sessionId)
+              const relayEnabled = this.relayTransport.shouldUseRelay(sessionId)
 
               if (!currentSession.user) {
                 await this.cleanupExecSession(sessionId, closeTransaction)
               } else {
-                if (queueEnabled) {
+                if (relayEnabled) {
                   try {
                     const closeMsg = {
                       type: MESSAGE_TYPES.CLOSE,
@@ -1122,7 +1139,7 @@ class WebSocketServer {
                       data: Buffer.from('Agent closed connection')
                     }
                     const encoded = this.encodeMessage(closeMsg)
-                    await this.queueService.publishToUser(sessionId, encoded, { messageType: MESSAGE_TYPES.CLOSE })
+                    await this.relayTransport.publishToUser(sessionId, encoded, { messageType: MESSAGE_TYPES.CLOSE })
                   } catch (error) {
                     logger.error('[WS-CLOSE] Failed to send CLOSE to user via queue after agent exec disconnect', {
                       sessionId,
@@ -1236,7 +1253,7 @@ class WebSocketServer {
         logger.info('[RELAY] Exec session activation sent to agent:' + JSON.stringify({
           sessionId,
           microserviceUuid: session.microserviceUuid,
-          queueEnabled: this.queueService.shouldUseQueue(sessionId)
+          relayEnabled: this.relayTransport.shouldUseRelay(sessionId)
         }))
       } else {
         logger.error('[RELAY] Exec session activation to agent failed:' + JSON.stringify({
@@ -1465,6 +1482,10 @@ class WebSocketServer {
         execSessions: execSessionIds.length,
         logSessions: logSessionIds.length
       })
+
+      await this.relayTransport.shutdown().catch((error) => {
+        logger.warn('[WS-DRAIN] Relay transport shutdown failed', { error: error.message })
+      })
     })()
 
     return this.drainPromise
@@ -1582,11 +1603,11 @@ class WebSocketServer {
   async sendMessageToAgent (agent, message, execId, microserviceUuid) {
     try {
       const encoded = this.encodeMessage(message)
-      const isQueueEnabled = this.queueService.shouldUseQueue(execId)
+      const relayEnabled = this.relayTransport.shouldUseRelay(execId)
       const messageType = typeof message.type === 'number' ? message.type : null
 
-      if (isQueueEnabled) {
-        await this.queueService.publishToAgent(execId, encoded, { messageType })
+      if (relayEnabled) {
+        await this.relayTransport.publishToAgent(execId, encoded, { messageType })
         logger.debug('[RELAY] Queued message for agent via AMQP:' + JSON.stringify({
           execId,
           microserviceUuid,
@@ -2103,7 +2124,7 @@ class WebSocketServer {
       let session = this.logSessionManager.getLogSession(sessionId)
       if (!session) {
         // Session might be on different replica, create it
-        if (!(await this.requireRouterForCrossReplica(ws))) {
+        if (!(await this.requireRelayForCrossReplica(ws))) {
           return
         }
         session = this.logSessionManager.createLogSession(
@@ -2339,7 +2360,7 @@ class WebSocketServer {
     }
 
     // Enable queue bridge for cross-replica support (one-to-one, like exec sessions)
-    await this.queueService.enableForLogSession(session, (sessionId) => {
+    await this.relayTransport.enableForLogSession(session, (sessionId) => {
       this.cleanupLogSession(sessionId, transaction)
     })
 
@@ -2445,18 +2466,18 @@ class WebSocketServer {
     // Buffer is already MessagePack encoded from agent
     // Following exec session pattern: Use queue for ALL scenarios (single and multi-replica)
     // One-to-one forwarding (agent → user) via queue
-    const useQueue = this.queueService.shouldUseQueueForLogs(sessionId)
+    const useRelay = this.relayTransport.shouldUseRelayForLogs(sessionId)
     logger.debug('forwardLogToUser:' + JSON.stringify({
       sessionId,
-      useQueue,
+      useRelay,
       hasUser: !!session.user,
       userState: session.user ? session.user.readyState : 'N/A',
       bufferLength: buffer.length
     }))
 
-    if (useQueue) {
-      // Publish MessagePack encoded buffer to user queue
-      await this.queueService.publishLogToUser(sessionId, buffer)
+    if (useRelay) {
+      // Publish MessagePack encoded buffer to user relay
+      await this.relayTransport.publishLogToUser(sessionId, buffer)
     } else {
       // Fallback: Direct WebSocket (only if queue not enabled)
       if (this._shouldDropLogLineForBackpressure(session, sessionId)) {
@@ -2499,7 +2520,7 @@ class WebSocketServer {
     }
     this.logBackpressureNotified.delete(sessionId)
     await this.logSessionManager.removeLogSession(sessionId, transaction)
-    await this.queueService.cleanupLogSession(sessionId)
+    await this.relayTransport.cleanupLogSession(sessionId)
   }
 
   async setupExecMessageForwarding (sessionId, transaction) {
@@ -2514,7 +2535,7 @@ class WebSocketServer {
     const wasQueueBridgeEnabled = session.queueBridgeEnabled
 
     try {
-      await this.queueService.enableForSession(session, async (closeExecId) => {
+      await this.relayTransport.enableForSession(session, async (closeExecId) => {
         const timeout = this.pendingCloseTimeouts.get(closeExecId)
         if (timeout) {
           clearTimeout(timeout)
@@ -2524,9 +2545,10 @@ class WebSocketServer {
       })
       session.queueBridgeEnabled = true
       if (!wasQueueBridgeEnabled) {
-        logger.info('[RELAY] AMQP queue bridge enabled for exec session', {
+        logger.info('[RELAY] Relay bridge enabled for exec session', {
           sessionId,
-          microserviceUuid: session.microserviceUuid
+          microserviceUuid: session.microserviceUuid,
+          transport: this.relayTransport.getTransport()
         })
       }
     } catch (error) {
@@ -2534,27 +2556,36 @@ class WebSocketServer {
       const requireQueue = this.isCrossReplicaSession(session) &&
         this.haConfig.failFastOnRouterUnavailable !== false
       if (requireQueue && !wasQueueBridgeEnabled) {
-        logger.error('[RELAY] AMQP required for cross-replica exec session but router bridge failed', {
+        logger.error('[RELAY] Relay required for cross-replica exec session but bridge failed', {
           sessionId,
+          transport: this.relayTransport.getTransport(),
           error: error.message
         })
         if (session.user && session.user.readyState === WebSocket.OPEN) {
-          session.user.close(ROUTER_UNAVAILABLE_CLOSE_CODE, ROUTER_UNAVAILABLE_CLOSE_REASON)
+          session.user.close(RELAY_UNAVAILABLE_CLOSE_CODE, RELAY_UNAVAILABLE_CLOSE_REASON)
         }
         if (session.agent && session.agent.readyState === WebSocket.OPEN) {
-          session.agent.close(ROUTER_UNAVAILABLE_CLOSE_CODE, ROUTER_UNAVAILABLE_CLOSE_REASON)
+          session.agent.close(RELAY_UNAVAILABLE_CLOSE_CODE, RELAY_UNAVAILABLE_CLOSE_REASON)
         }
         await this.cleanupExecSession(sessionId, transaction)
         return
       }
-      logger.warn('[RELAY] Failed to enable AMQP queue bridge for exec session', {
+      logger.warn('[RELAY] Failed to enable relay bridge for exec session', {
         sessionId,
+        transport: this.relayTransport.getTransport(),
         error: error.message
       })
     }
 
     if (user && agent) {
-      await this.sendExecActivationToExecSession(session, sessionId, transaction)
+      const activated = await this.sendExecActivationToExecSession(session, sessionId, transaction)
+      if (!activated) {
+        logger.error('[RELAY] Exec session activation failed; aborting message forwarding setup', {
+          sessionId,
+          microserviceUuid: session.microserviceUuid
+        })
+        return
+      }
     }
 
     if (user) {
@@ -2576,7 +2607,11 @@ class WebSocketServer {
             sessionId,
             timestamp: Date.now()
           }
-          await this.sendMessageToAgent(session.agent, msg, execId, session.microserviceUuid)
+          const sent = await this.sendMessageToAgent(session.agent, msg, execId, session.microserviceUuid)
+          if (!sent && this.relayTransport.shouldUseRelay(execId)) {
+            logger.error('[RELAY] Exec relay publish failed; closing session', { sessionId: execId })
+            await this.cleanupExecSession(execId, transaction)
+          }
           return
         }
 
@@ -2591,8 +2626,8 @@ class WebSocketServer {
           if (msg.type === MESSAGE_TYPES.CLOSE) {
             await this.sendMessageToAgent(session.agent, msg, execId, session.microserviceUuid)
 
-            const queueEnabled = this.queueService.shouldUseQueue(execId)
-            if (queueEnabled) {
+            const relayEnabled = this.relayTransport.shouldUseRelay(execId)
+            if (relayEnabled) {
               const timeout = setTimeout(async () => {
                 const currentSession = this.execSessionManager.getExecSession(execId)
                 if (currentSession && currentSession.user && currentSession.user.readyState === WebSocket.OPEN) {
@@ -2635,7 +2670,11 @@ class WebSocketServer {
             }
           }
 
-          await this.sendMessageToAgent(session.agent, msg, execId, session.microserviceUuid)
+          const sent = await this.sendMessageToAgent(session.agent, msg, execId, session.microserviceUuid)
+          if (!sent && this.relayTransport.shouldUseRelay(execId)) {
+            logger.error('[RELAY] Exec relay publish failed; closing session', { sessionId: execId })
+            await this.cleanupExecSession(execId, transaction)
+          }
         } catch (error) {
           logger.error('[RELAY] Failed to process exec user message:' + JSON.stringify({
             sessionId: execId,
@@ -2657,10 +2696,10 @@ class WebSocketServer {
           const msg = this.decodeMessage(buffer)
 
           if (msg.type === MESSAGE_TYPES.CLOSE) {
-            const queueEnabled = this.queueService.shouldUseQueue(execId)
-            if (queueEnabled) {
+            const relayEnabled = this.relayTransport.shouldUseRelay(execId)
+            if (relayEnabled) {
               try {
-                await this.queueService.publishToUser(execId, buffer, { messageType: MESSAGE_TYPES.CLOSE })
+                await this.relayTransport.publishToUser(execId, buffer, { messageType: MESSAGE_TYPES.CLOSE })
               } catch (error) {
                 logger.error('[RELAY] Failed to enqueue exec CLOSE for user', {
                   sessionId: execId,
@@ -2674,9 +2713,17 @@ class WebSocketServer {
             return
           }
 
-          const queueEnabled = this.queueService.shouldUseQueue(execId)
-          if (queueEnabled) {
-            await this.queueService.publishToUser(execId, buffer)
+          const relayEnabled = this.relayTransport.shouldUseRelay(execId)
+          if (relayEnabled) {
+            try {
+              await this.relayTransport.publishToUser(execId, buffer)
+            } catch (error) {
+              logger.error('[RELAY] Exec relay publish to user failed; closing session', {
+                sessionId: execId,
+                error: error.message
+              })
+              await this.cleanupExecSession(execId, transaction)
+            }
           } else if (session.user && session.user.readyState === WebSocket.OPEN) {
             if (msg.type === MESSAGE_TYPES.STDOUT || msg.type === MESSAGE_TYPES.STDERR) {
               if (msg.data && msg.data.length > 0) {
@@ -2744,7 +2791,7 @@ class WebSocketServer {
     }
 
     await this.execSessionManager.removeExecSession(sessionId, transaction)
-    await this.queueService.cleanup(sessionId)
+    await this.relayTransport.cleanup(sessionId)
       .catch(error => {
         logger.warn('[RELAY] Failed to cleanup exec queue bridge during session cleanup', {
           sessionId,

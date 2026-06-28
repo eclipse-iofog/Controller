@@ -7,10 +7,17 @@ const NatsUserManager = require('../../../src/data/managers/nats-user-manager')
 const NatsUserRuleManager = require('../../../src/data/managers/nats-user-rule-manager')
 const NatsAccountRuleManager = require('../../../src/data/managers/nats-account-rule-manager')
 const ApplicationManager = require('../../../src/data/managers/application-manager')
+const NatsOperatorManager = require('../../../src/data/managers/nats-operator-manager')
 const SecretService = require('../../../src/services/secret-service')
 const NatsService = require('../../../src/services/nats-service')
 const NatsAuthService = require('../../../src/services/nats-auth-service')
+const NatsSystemRules = require('../../../src/config/nats-system-rules')
 const { createOperator, createAccount } = require('@nats-io/nkeys')
+
+function decodeJwtPayload (jwt) {
+  const parts = jwt.split('.')
+  return JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'))
+}
 
 describe('NATS Auth Service', () => {
   def('sandbox', () => sinon.createSandbox())
@@ -133,6 +140,146 @@ describe('NATS Auth Service', () => {
         expect(NatsAccountManager.update).to.have.been.called
         expect(NatsUserManager.update).to.have.been.called
       })
+    })
+  })
+
+  describe('ensureControllerNatsAccount', () => {
+    const operatorKp = createOperator()
+    const operatorSeed = new TextDecoder().decode(operatorKp.getSeed())
+    const operator = {
+      id: 1,
+      name: 'test-operator',
+      seedSecretName: 'nats-operator-seed',
+      publicKey: operatorKp.getPublicKey()
+    }
+    const relayAccountRule = {
+      id: 50,
+      name: NatsSystemRules.CONTROLLER_ACCOUNT_RULE_NAME,
+      maxConnections: -1,
+      maxLeafNodeConnections: -1,
+      maxData: -1,
+      maxExports: -1,
+      maxImports: -1,
+      maxMsgPayload: -1,
+      maxSubscriptions: -1,
+      exportsAllowWildcards: true
+    }
+    const relayUserRule = {
+      id: 51,
+      name: NatsSystemRules.CONTROLLER_USER_RULE_NAME,
+      bearerToken: false,
+      allowedConnectionTypes: JSON.stringify(['STANDARD']),
+      maxData: -1,
+      maxSubscriptions: -1,
+      maxPayload: -1,
+      pubAllow: JSON.stringify([NatsSystemRules.CONTROLLER_NATS_RELAY_SUBJECT_ALLOW]),
+      subAllow: JSON.stringify([NatsSystemRules.CONTROLLER_NATS_RELAY_SUBJECT_ALLOW])
+    }
+    let createdAccount
+    let createdUser
+
+    beforeEach(() => {
+      createdAccount = null
+      createdUser = null
+      $sandbox.stub(NatsAccountRuleManager, 'updateOrCreate').resolves()
+      $sandbox.stub(NatsUserRuleManager, 'updateOrCreate').resolves()
+      $sandbox.stub(NatsService, 'enqueueReconcileTask').resolves()
+      $sandbox.stub(NatsOperatorManager, 'findOne').resolves(operator)
+      $sandbox.stub(SecretService, 'getSecretEndpoint').callsFake((secretName) => {
+        if (secretName === operator.seedSecretName) {
+          return Promise.resolve({ data: { seed: operatorSeed } })
+        }
+        if (secretName && secretName.startsWith('nats-account-seed-')) {
+          const accountKp = createAccount()
+          return Promise.resolve({ data: { seed: new TextDecoder().decode(accountKp.getSeed()) } })
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(SecretService, 'createSecretEndpoint').resolves()
+      $sandbox.stub(SecretService, 'updateSecretEndpointIfChanged').resolves()
+      $sandbox.stub(NatsAccountRuleManager, 'findOne').callsFake(({ name }) => {
+        if (name === NatsSystemRules.CONTROLLER_ACCOUNT_RULE_NAME) {
+          return Promise.resolve(relayAccountRule)
+        }
+        if (name === NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME) {
+          return Promise.resolve({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME })
+        }
+        if (name === NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME) {
+          return Promise.resolve({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME })
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(NatsUserRuleManager, 'findOne').callsFake(({ name }) => {
+        if (name === NatsSystemRules.CONTROLLER_USER_RULE_NAME) {
+          return Promise.resolve(relayUserRule)
+        }
+        if (name === NatsSystemRules.MICROSERVICE_USER_RULE_NAME) {
+          return Promise.resolve({ name: NatsSystemRules.MICROSERVICE_USER_RULE_NAME })
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(NatsAccountManager, 'findOne').callsFake((query) => {
+        if (createdAccount && query.name === NatsAuthService.CONTROLLER_NATS_ACCOUNT_NAME) {
+          return Promise.resolve(createdAccount)
+        }
+        if (createdAccount && query.id === createdAccount.id) {
+          return Promise.resolve(createdAccount)
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(NatsAccountManager, 'create').callsFake((data) => {
+        createdAccount = { id: 100, ...data }
+        return Promise.resolve(createdAccount)
+      })
+      $sandbox.stub(NatsUserManager, 'findOne').callsFake(({ accountId, name }) => {
+        if (createdUser && accountId === createdAccount.id && name === NatsAuthService.CONTROLLER_NATS_USER_NAME) {
+          return Promise.resolve(createdUser)
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(NatsUserManager, 'create').callsFake((data) => {
+        createdUser = { id: 200, ...data }
+        return Promise.resolve(createdUser)
+      })
+    })
+
+    it('creates controller NATS account and user with scoped pub/sub JWT claims', async () => {
+      const result = await NatsAuthService.ensureControllerNatsAccount(transaction, { triggerReconcile: false })
+
+      expect(result.account.name).to.equal(NatsAuthService.CONTROLLER_NATS_ACCOUNT_NAME)
+      expect(result.user.name).to.equal(NatsAuthService.CONTROLLER_NATS_USER_NAME)
+      expect(result.user.credsSecretName).to.equal(NatsAuthService.controllerNatsCredsSecretName())
+
+      const payload = decodeJwtPayload(result.user.jwt)
+      expect(payload.nats.pub.allow).to.deep.equal([NatsSystemRules.CONTROLLER_NATS_RELAY_SUBJECT_ALLOW])
+      expect(payload.nats.sub.allow).to.deep.equal([NatsSystemRules.CONTROLLER_NATS_RELAY_SUBJECT_ALLOW])
+      expect(NatsAccountManager.create).to.have.been.calledOnce
+      expect(NatsUserManager.create).to.have.been.calledOnce
+    })
+
+    it('is idempotent when account and user already exist', async () => {
+      createdAccount = {
+        id: 100,
+        name: NatsAuthService.CONTROLLER_NATS_ACCOUNT_NAME,
+        applicationId: null,
+        isSystem: false,
+        isLeafSystem: false,
+        seedSecretName: 'nats-account-seed-controller'
+      }
+      createdUser = {
+        id: 200,
+        accountId: createdAccount.id,
+        name: NatsAuthService.CONTROLLER_NATS_USER_NAME,
+        credsSecretName: NatsAuthService.controllerNatsCredsSecretName(),
+        jwt: 'existing.jwt.token'
+      }
+
+      const result = await NatsAuthService.ensureControllerNatsAccount(transaction, { triggerReconcile: false })
+
+      expect(result.account).to.equal(createdAccount)
+      expect(result.user).to.equal(createdUser)
+      expect(NatsAccountManager.create).to.not.have.been.called
+      expect(NatsUserManager.create).to.not.have.been.called
     })
   })
 })

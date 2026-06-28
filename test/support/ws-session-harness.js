@@ -86,15 +86,24 @@ function buildExecFrame (type, execId, microserviceUuid, data) {
 }
 
 /**
- * In-memory AMQP stub for cross-replica exec/log relay tests.
+ * In-memory relay stub for cross-replica exec/log tests.
+ * @param {'amqp'|'nats'} [transport='amqp']
  */
-function createMockQueueService () {
+function createMockRelayTransport (transport = 'amqp') {
   const execBridges = new Map()
   const logBridges = new Map()
 
   return {
     execBridges,
     logBridges,
+
+    getTransport () {
+      return transport
+    },
+
+    async isAvailable () {
+      return true
+    },
 
     async enableForSession (session, cleanupCallback) {
       const execId = session.execId
@@ -111,7 +120,7 @@ function createMockQueueService () {
       return true
     },
 
-    shouldUseQueue (execId) {
+    shouldUseRelay (execId) {
       return execBridges.has(execId)
     },
 
@@ -139,7 +148,7 @@ function createMockQueueService () {
       return true
     },
 
-    shouldUseLogQueue (sessionId) {
+    shouldUseRelayForLogs (sessionId) {
       return logBridges.has(sessionId)
     },
 
@@ -152,8 +161,21 @@ function createMockQueueService () {
 
     async cleanupLogSession (sessionId) {
       logBridges.delete(sessionId)
-    }
+    },
+
+    async shutdown () {},
+
+    onRecovery () {}
   }
+}
+
+function createMockNatsRelayTransport () {
+  return createMockRelayTransport('nats')
+}
+
+/** @deprecated use createMockRelayTransport */
+function createMockQueueService () {
+  return createMockRelayTransport()
 }
 
 function resetWebSocketServerSingleton (WebSocketServerClass) {
@@ -220,6 +242,8 @@ module.exports = {
   decodeExecMessage,
   buildAgentInitialMessage,
   buildExecFrame,
+  createMockRelayTransport,
+  createMockNatsRelayTransport,
   createMockQueueService,
   resetWebSocketServerSingleton,
   buildFakeJwt,

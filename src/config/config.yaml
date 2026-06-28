@@ -32,6 +32,15 @@ server:
       logTailMaxLines: 5000        # Log: tail query param max (R82)
       replicaMaxConcurrentWs: 500    # Scale SLO per replica (R88)
       drainTimeoutMs: 30000        # Graceful drain on SIGTERM/preStop (R85)
+    relay:
+      amqp:
+        poolSize: 8
+        sendTimeoutMs: 5000
+        unsettledWarnThreshold: 1800
+      nats:
+        maxPendingBytes: 33554432
+        maxPendingMessages: 8192
+        publishTimeoutMs: 5000
     ha:
       crossReplicaRequiresAmqp: true   # Cross-replica exec/log relay requires AMQP router (R84)
       failFastOnRouterUnavailable: true

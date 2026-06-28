@@ -28,8 +28,8 @@ describe('WebSocket graceful drain', () => {
       drainTimeoutMs: 500
     }
 
-    $sandbox.stub(wsServer.queueService, 'cleanup').resolves()
-    $sandbox.stub(wsServer.queueService, 'cleanupLogSession').resolves()
+    $sandbox.stub(wsServer.relayTransport, 'cleanup').resolves()
+    $sandbox.stub(wsServer.relayTransport, 'cleanupLogSession').resolves()
     $sandbox.stub(MicroserviceExecSessionManager, 'deleteBySessionId').resolves()
     $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: $ids.fogUuid })
     $sandbox.stub(FogManager, 'findOne').resolves({ uuid: $ids.fogUuid })

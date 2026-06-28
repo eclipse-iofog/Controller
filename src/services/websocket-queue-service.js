@@ -1,12 +1,14 @@
 const WebSocket = require('ws')
 const logger = require('../logger')
-const RouterConnectionService = require('./router-connection-service')
-const { recordAmqpPublishError } = require('../websocket/ws-metrics')
+const RouterConnectionManager = require('./router-connection-manager')
+const {
+  recordAmqpPublishError,
+  recordAmqpSessionSaturation
+} = require('../websocket/ws-metrics')
 const msgpack = require('@msgpack/msgpack')
 
-// Plan 16-C: drop LOG_LINE when user WS buffer exceeds threshold (see forwardLogToUser).
 const LOG_BACKPRESSURE_BUFFER_BYTES = 256 * 1024
-const LOG_MESSAGE_TYPES = { LOG_ERROR: 9 }
+const LOG_MESSAGE_TYPES = { LOG_ERROR: 9, LOG_LINE: 6 }
 
 const MESSAGE_TYPES = {
   STDIN: 0,
@@ -38,10 +40,49 @@ function getBufferFromBody (body) {
   return Buffer.from(body)
 }
 
+function decodeLogMessageType (buffer) {
+  try {
+    const msg = msgpack.decode(buffer)
+    return typeof msg.type === 'number' ? msg.type : null
+  } catch (error) {
+    return null
+  }
+}
+
 class WebSocketQueueService {
   constructor () {
     this.execBridges = new Map()
-    this.logBridges = new Map() // New: for log sessions
+    this.logBridges = new Map()
+    this.recoveryCallbacks = []
+    this.rebinding = new Set()
+
+    RouterConnectionManager.onSlotRecovery((slotId) => {
+      this._handleSlotRecovery(slotId).catch((error) => {
+        logger.error('[AMQP][QUEUE] Slot recovery handling failed', {
+          slotId,
+          error: error.message
+        })
+      })
+    })
+  }
+
+  onRecovery (cb) {
+    if (typeof cb === 'function') {
+      this.recoveryCallbacks.push(cb)
+    }
+  }
+
+  async _handleSlotRecovery (slotId) {
+    for (const [execId, bridge] of this.execBridges.entries()) {
+      if (bridge.slotId === slotId) {
+        await this.rebindSessionBridges(execId)
+      }
+    }
+    for (const [sessionId, bridge] of this.logBridges.entries()) {
+      if (bridge.slotId === slotId) {
+        await this.rebindLogSessionBridges(sessionId)
+      }
+    }
   }
 
   async enableForSession (session, cleanupCallback) {
@@ -51,14 +92,19 @@ class WebSocketQueueService {
       return false
     }
 
+    const slotId = RouterConnectionManager.slotIdForSession(execId)
     const bridge = this.execBridges.get(execId) || {
       execId,
+      slotId,
+      session: null,
       senders: {},
       receivers: {},
+      linkRefs: {},
       cleanupCallback: null
     }
 
-    // Store cleanup callback for CLOSE message handling
+    bridge.slotId = slotId
+    bridge.session = session
     if (cleanupCallback) {
       bridge.cleanupCallback = cleanupCallback
     }
@@ -93,6 +139,47 @@ class WebSocketQueueService {
     this.execBridges.delete(execId)
   }
 
+  async rebindSessionBridges (execId) {
+    if (this.rebinding.has(execId)) return
+    this.rebinding.add(execId)
+
+    try {
+      const bridge = this.execBridges.get(execId)
+      if (!bridge || !bridge.session) return
+
+      logger.info('[AMQP][QUEUE] Rebinding exec session bridges after slot recovery', {
+        execId,
+        slotId: bridge.slotId
+      })
+
+      this._closeBridgeLinks(bridge, execId)
+      bridge.senders = {}
+      bridge.receivers = {}
+      bridge.linkRefs = {}
+
+      const session = bridge.session
+      if (session.user) {
+        await this._ensureReceiver(bridge, 'user', session.user, session)
+      }
+      if (session.agent) {
+        await this._ensureReceiver(bridge, 'agent', session.agent, session)
+      }
+
+      for (const cb of this.recoveryCallbacks) {
+        try {
+          cb(execId, { kind: 'exec', slotId: bridge.slotId })
+        } catch (error) {
+          logger.error('[AMQP][QUEUE] Exec recovery callback failed', {
+            execId,
+            error: error.message
+          })
+        }
+      }
+    } finally {
+      this.rebinding.delete(execId)
+    }
+  }
+
   _closeBridgeLinks (bridge, sessionKey) {
     const closeLink = (linkWrapper) => {
       if (!linkWrapper) return
@@ -116,17 +203,24 @@ class WebSocketQueueService {
     closeLink(bridge.receivers?.user)
     closeLink(bridge.senders?.agent)
     closeLink(bridge.senders?.user)
+    bridge.linkRefs = {}
   }
 
   _invalidateExecSender (bridge, side) {
     if (bridge.senders[side]) {
       bridge.senders[side] = null
     }
+    if (bridge.linkRefs) {
+      bridge.linkRefs[`sender:${side}`] = null
+    }
   }
 
   _invalidateExecReceiver (bridge, side) {
     if (bridge.receivers[side]) {
       bridge.receivers[side] = null
+    }
+    if (bridge.linkRefs) {
+      bridge.linkRefs[`receiver:${side}`] = null
     }
   }
 
@@ -169,11 +263,15 @@ class WebSocketQueueService {
   }
 
   async _send (execId, side, buffer, options = {}) {
-    const bridge = await this._ensureSender(execId, side)
-    if (!bridge) {
-      throw new Error('Queue bridge missing for execId=' + execId)
-    }
+    let bridge
     try {
+      bridge = await this._ensureSender(execId, side)
+      if (!bridge) {
+        throw new Error('Queue bridge missing for execId=' + execId)
+      }
+
+      await RouterConnectionManager.waitForSendable(bridge.sender)
+
       const message = {
         body: buffer,
         content_type: 'application/octet-stream'
@@ -199,6 +297,7 @@ class WebSocketQueueService {
     } catch (error) {
       recordAmqpPublishError({ sessionType: 'exec', side })
       logger.error('[AMQP][QUEUE] Failed to publish message', { execId, side, error: error.message })
+      RouterConnectionManager.handleSendError(execId, error)
       const execBridge = this.execBridges.get(execId)
       if (execBridge) {
         this._invalidateExecSender(execBridge, side)
@@ -219,7 +318,7 @@ class WebSocketQueueService {
       side === 'agent' ? MESSAGE_QUEUE_PREFIX.agent : MESSAGE_QUEUE_PREFIX.user,
       execId
     )
-    const connection = await RouterConnectionService.getConnection()
+    const connection = await RouterConnectionManager.acquire(execId)
     const sender = await new Promise((resolve, reject) => {
       const link = connection.open_sender({
         target: {
@@ -238,13 +337,13 @@ class WebSocketQueueService {
     this._attachSenderLifecycle(bridge, side, sender, execId)
 
     bridge.senders[side] = { sender }
+    bridge.linkRefs[`sender:${side}`] = sender
     return bridge.senders[side]
   }
 
   async _ensureReceiver (bridge, side, socket, session) {
     if (!socket) return
     if (bridge.receivers[side]) {
-      // Update socket reference if receiver already exists
       bridge.receivers[side].socket = socket
       logger.debug('[AMQP][QUEUE] Updated socket reference for existing receiver', {
         execId: session.execId,
@@ -263,7 +362,7 @@ class WebSocketQueueService {
       side,
       queueName
     })
-    const connection = await RouterConnectionService.getConnection()
+    const connection = await RouterConnectionManager.acquire(session.execId)
 
     const receiver = await new Promise((resolve, reject) => {
       const link = connection.open_receiver({
@@ -290,7 +389,6 @@ class WebSocketQueueService {
 
     receiver.on('message', async (context) => {
       try {
-        // Always get the latest socket reference from the bridge
         const currentBridge = this.execBridges.get(session.execId)
         const ws = currentBridge && currentBridge.receivers[side] ? currentBridge.receivers[side].socket : null
         const body = getBufferFromBody(context.message.body)
@@ -298,7 +396,6 @@ class WebSocketQueueService {
           ? context.message.application_properties.messageType
           : null
 
-        // Handle CLOSE messages (works for both user and agent sides)
         if (msgType === MESSAGE_TYPES.CLOSE) {
           await this._handleCloseMessage({
             bridge: currentBridge,
@@ -311,7 +408,6 @@ class WebSocketQueueService {
           return
         }
 
-        // Forward message to socket (normal message or non-CLOSE message)
         if (ws && ws.readyState === WebSocket.OPEN) {
           try {
             ws.send(body, {
@@ -363,6 +459,7 @@ class WebSocketQueueService {
     })
 
     bridge.receivers[side] = { receiver, socket }
+    bridge.linkRefs[`receiver:${side}`] = receiver
     logger.info('[AMQP][QUEUE] Receiver setup complete', {
       execId: session.execId,
       side,
@@ -385,7 +482,6 @@ class WebSocketQueueService {
       closeAck
     })
 
-    // Attempt to close the socket gracefully (if present)
     if (ws && ws.readyState === WebSocket.OPEN) {
       try {
         const reason = closeInitiator === 'agent' ? 'Agent closed connection' : 'User closed connection'
@@ -432,7 +528,6 @@ class WebSocketQueueService {
       }
     }
 
-    // Invoke cleanup callback to remove session/queue resources
     if (bridge && bridge.cleanupCallback) {
       try {
         await bridge.cleanupCallback(execId)
@@ -445,11 +540,6 @@ class WebSocketQueueService {
     }
   }
 
-  // ========== Log Session Queue Methods ==========
-
-  // Enable queue bridge for log session (unidirectional: agent → user, one-to-one)
-  // Following exec session pattern: Use queues for ALL scenarios
-  // Each sessionId has its own queues (one-to-one, like exec sessions)
   async enableForLogSession (session, cleanupCallback) {
     const sessionId = session.sessionId
     if (!sessionId) {
@@ -457,25 +547,30 @@ class WebSocketQueueService {
       return false
     }
 
+    const slotId = RouterConnectionManager.slotIdForSession(sessionId)
     const bridge = this.logBridges.get(sessionId) || {
       sessionId,
+      slotId,
+      session: null,
       agentSender: null,
       agentReceiver: null,
-      userReceiver: null, // Single user receiver (one-to-one)
-      userSender: null, // User queue sender
-      cleanupCallback: null
+      userReceiver: null,
+      userSender: null,
+      linkRefs: {},
+      cleanupCallback: null,
+      backpressureNotified: false
     }
 
+    bridge.slotId = slotId
+    bridge.session = session
     if (cleanupCallback) {
       bridge.cleanupCallback = cleanupCallback
     }
 
-    // Agent side: single receiver (agent receives from queue)
     if (session.agent) {
       await this._ensureLogAgentReceiver(bridge, session.agent, session)
     }
 
-    // User side: single receiver (one-to-one, like exec sessions)
     if (session.user) {
       await this._ensureLogUserReceiver(bridge, session.user, session)
     }
@@ -488,51 +583,46 @@ class WebSocketQueueService {
     return this.logBridges.has(sessionId)
   }
 
-  // Forward to user via queue (one-to-one, like exec sessions)
-  // Note: Exec sessions use queues for BOTH single and multi-replica
-  // We follow the same pattern for consistency
-  // Buffer is already MessagePack encoded from agent
   async publishLogToUser (sessionId, buffer, options = {}) {
     const bridge = this.logBridges.get(sessionId)
     if (!bridge) {
       throw new Error(`Log bridge missing for sessionId=${sessionId}`)
     }
 
-    // Ensure user queue sender exists
-    if (!bridge.userSender) {
-      const userQueueName = `logs-user-${sessionId}`
-      const connection = await RouterConnectionService.getConnection()
-      const sender = await new Promise((resolve, reject) => {
-        const link = connection.open_sender({
-          target: {
-            address: userQueueName,
-            durable: 0,
-            expiry_policy: 'link-detach'
-          },
-          autosettle: true
-        })
+    const messageType = decodeLogMessageType(buffer)
+    const isLogLine = messageType === LOG_MESSAGE_TYPES.LOG_LINE
 
-        link.once('sender_open', () => resolve(link))
-        link.once('sender_close', reject)
-        link.once('error', reject)
-      })
-      bridge.userSender = { sender }
+    if (!bridge.userSender) {
+      await this._ensureLogUserSender(sessionId)
     }
 
-    // Buffer is already MessagePack encoded, send as binary
+    if (isLogLine && bridge.userSender && bridge.userSender.sender) {
+      const sender = bridge.userSender.sender
+      if (typeof sender.sendable === 'function' && !sender.sendable()) {
+        return this._dropLogLineForPublishBackpressure(bridge, sessionId)
+      }
+    }
+
     const message = {
-      body: buffer, // MessagePack encoded buffer
+      body: buffer,
       content_type: 'application/octet-stream',
       application_properties: options.applicationProperties || {}
     }
 
     try {
+      if (bridge.userSender && bridge.userSender.sender) {
+        await RouterConnectionManager.waitForSendable(bridge.userSender.sender)
+      }
       bridge.userSender.sender.send(message)
       logger.debug('[AMQP][QUEUE] Published log message to user queue', {
         sessionId,
         messageSize: buffer.length
       })
     } catch (error) {
+      if (isLogLine) {
+        RouterConnectionManager.handleSendError(sessionId, error)
+        return this._dropLogLineForPublishBackpressure(bridge, sessionId)
+      }
       recordAmqpPublishError({ sessionType: 'log', side: 'user' })
       logger.error('[AMQP][QUEUE] Failed to publish log message to user queue', {
         sessionId,
@@ -543,16 +633,64 @@ class WebSocketQueueService {
     }
   }
 
-  // Setup receiver for agent queue (one-to-one per sessionId)
+  _dropLogLineForPublishBackpressure (bridge, sessionId) {
+    if (!bridge.backpressureNotified) {
+      bridge.backpressureNotified = true
+      recordAmqpSessionSaturation()
+      logger.warn('[AMQP][QUEUE] Dropping log line due to publish-side backpressure', { sessionId })
+      const session = bridge.session
+      const user = session && session.user
+      if (user && user.readyState === WebSocket.OPEN) {
+        try {
+          const errorBody = msgpack.encode({
+            type: LOG_MESSAGE_TYPES.LOG_ERROR,
+            data: Buffer.from('Log stream backpressure: dropping lines until client catches up\n'),
+            sessionId,
+            timestamp: Date.now()
+          })
+          user.send(errorBody, { binary: true })
+        } catch (sendError) {
+          logger.debug('[AMQP][QUEUE] Failed to notify user of log publish backpressure', {
+            sessionId,
+            error: sendError.message
+          })
+        }
+      }
+    }
+  }
+
+  async _ensureLogUserSender (sessionId) {
+    const bridge = this.logBridges.get(sessionId)
+    if (!bridge || bridge.userSender) return
+
+    const userQueueName = `logs-user-${sessionId}`
+    const connection = await RouterConnectionManager.acquire(sessionId)
+    const sender = await new Promise((resolve, reject) => {
+      const link = connection.open_sender({
+        target: {
+          address: userQueueName,
+          durable: 0,
+          expiry_policy: 'link-detach'
+        },
+        autosettle: true
+      })
+
+      link.once('sender_open', () => resolve(link))
+      link.once('sender_close', reject)
+      link.once('error', reject)
+    })
+    bridge.userSender = { sender }
+    bridge.linkRefs.userSender = sender
+  }
+
   async _ensureLogAgentReceiver (bridge, agentWs, session) {
     if (bridge.agentReceiver) {
       bridge.agentReceiver.socket = agentWs
       return
     }
 
-    // Queue name per sessionId (one-to-one)
     const queueName = `logs-agent-${session.sessionId}`
-    const connection = await RouterConnectionService.getConnection()
+    const connection = await RouterConnectionManager.acquire(session.sessionId)
 
     const receiver = await new Promise((resolve, reject) => {
       const link = connection.open_receiver({
@@ -574,8 +712,6 @@ class WebSocketQueueService {
       const ws = currentBridge && currentBridge.agentReceiver ? currentBridge.agentReceiver.socket : null
       const body = getBufferFromBody(context.message.body)
 
-      // Body is already MessagePack encoded from agent
-      // Forward directly to agent WebSocket (binary)
       if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(body, { binary: true })
         context.delivery.accept()
@@ -585,47 +721,17 @@ class WebSocketQueueService {
     })
 
     bridge.agentReceiver = { receiver, socket: agentWs }
+    bridge.linkRefs.agentReceiver = receiver
   }
 
-  // Setup sender for agent queue (one-to-one per sessionId)
-  async _ensureLogAgentSender (sessionId) {
-    const bridge = this.logBridges.get(sessionId)
-    if (!bridge) return null
-    if (bridge.agentSender) return bridge.agentSender
-
-    // Queue name per sessionId (one-to-one)
-    const queueName = `logs-agent-${sessionId}`
-    const connection = await RouterConnectionService.getConnection()
-
-    const sender = await new Promise((resolve, reject) => {
-      const link = connection.open_sender({
-        target: {
-          address: queueName,
-          durable: 0,
-          expiry_policy: 'link-detach'
-        },
-        autosettle: true
-      })
-
-      link.once('sender_open', () => resolve(link))
-      link.once('sender_close', reject)
-      link.once('error', reject)
-    })
-
-    bridge.agentSender = { sender }
-    return bridge.agentSender
-  }
-
-  // Setup receiver for user queue (one-to-one, like exec session pattern)
   async _ensureLogUserReceiver (bridge, userWs, session) {
     if (bridge.userReceiver) {
       bridge.userReceiver.socket = userWs
       return
     }
 
-    // Queue name per sessionId (one-to-one)
     const queueName = `logs-user-${session.sessionId}`
-    const connection = await RouterConnectionService.getConnection()
+    const connection = await RouterConnectionManager.acquire(session.sessionId)
 
     const receiver = await new Promise((resolve, reject) => {
       const link = connection.open_receiver({
@@ -677,9 +783,71 @@ class WebSocketQueueService {
     })
 
     bridge.userReceiver = { receiver, socket: userWs }
+    bridge.linkRefs.userReceiver = receiver
   }
 
-  // Cleanup log session (one-to-one)
+  async rebindLogSessionBridges (sessionId) {
+    if (this.rebinding.has(`log:${sessionId}`)) return
+    this.rebinding.add(`log:${sessionId}`)
+
+    try {
+      const bridge = this.logBridges.get(sessionId)
+      if (!bridge || !bridge.session) return
+
+      logger.info('[AMQP][QUEUE] Rebinding log session bridges after slot recovery', {
+        sessionId,
+        slotId: bridge.slotId
+      })
+
+      const closeLink = (linkWrapper) => {
+        if (!linkWrapper) return
+        try {
+          if (linkWrapper.receiver) {
+            linkWrapper.receiver.removeAllListeners()
+            linkWrapper.receiver.close()
+          } else if (linkWrapper.sender) {
+            linkWrapper.sender.removeAllListeners()
+            linkWrapper.sender.close()
+          }
+        } catch (error) {
+          logger.debug('[AMQP][QUEUE] Failed to close log link during rebind', {
+            sessionId,
+            error: error.message
+          })
+        }
+      }
+
+      closeLink(bridge.agentReceiver)
+      closeLink(bridge.userReceiver)
+      closeLink(bridge.userSender)
+      bridge.agentReceiver = null
+      bridge.userReceiver = null
+      bridge.userSender = null
+      bridge.linkRefs = {}
+
+      const session = bridge.session
+      if (session.agent) {
+        await this._ensureLogAgentReceiver(bridge, session.agent, session)
+      }
+      if (session.user) {
+        await this._ensureLogUserReceiver(bridge, session.user, session)
+      }
+
+      for (const cb of this.recoveryCallbacks) {
+        try {
+          cb(sessionId, { kind: 'log', slotId: bridge.slotId })
+        } catch (error) {
+          logger.error('[AMQP][QUEUE] Log recovery callback failed', {
+            sessionId,
+            error: error.message
+          })
+        }
+      }
+    } finally {
+      this.rebinding.delete(`log:${sessionId}`)
+    }
+  }
+
   async cleanupLogSession (sessionId) {
     const bridge = this.logBridges.get(sessionId)
     if (!bridge) return
@@ -709,6 +877,16 @@ class WebSocketQueueService {
     }
 
     this.logBridges.delete(sessionId)
+  }
+
+  async shutdown () {
+    for (const execId of this.execBridges.keys()) {
+      await this.cleanup(execId)
+    }
+    for (const sessionId of this.logBridges.keys()) {
+      await this.cleanupLogSession(sessionId)
+    }
+    await RouterConnectionManager.shutdown()
   }
 }
 

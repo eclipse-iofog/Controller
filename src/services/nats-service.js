@@ -336,6 +336,17 @@ async function _buildHubJwtBundle (transaction) {
       jwtBundle[`${account.publicKey}.jwt`] = account.jwt
     }
   }
+  if (config.getBoolean('nats.enabled', false)) {
+    const relayAccount = await NatsAccountManager.findOne({
+      name: NatsAuthService.CONTROLLER_NATS_ACCOUNT_NAME,
+      applicationId: null,
+      isSystem: false,
+      isLeafSystem: false
+    }, transaction)
+    if (relayAccount) {
+      jwtBundle[`${relayAccount.publicKey}.jwt`] = relayAccount.jwt
+    }
+  }
   return jwtBundle
 }
 
@@ -1367,6 +1378,12 @@ async function _reconcileResolverArtifactsOnce (options = {}, transaction) {
 
   const reconcileTriggerOptions = { triggerReconcile: false }
   await NatsAuthServiceRuntime.ensureSystemAccount(transaction, reconcileTriggerOptions)
+  if (config.getBoolean('nats.enabled', false)) {
+    const hubInstance = (natsInstances || []).find((ni) => ni.isHub)
+    if (hubInstance) {
+      await NatsAuthServiceRuntime.ensureControllerNatsAccount(transaction, reconcileTriggerOptions)
+    }
+  }
   const systemAccount = await NatsAccountManager.findOne({ isSystem: true }, transaction)
 
   const systemNatsMicroservices = candidateFogUuids.length > 0

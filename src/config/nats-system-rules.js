@@ -5,6 +5,9 @@ const APPLICATION_ACCOUNT_RULE_NAME = 'default-account'
 const MICROSERVICE_USER_RULE_NAME = 'default-user'
 const MQTT_BEARER_USER_RULE_NAME = 'default-mqtt-user'
 const DEFAULT_LEAF_USER_RULE_NAME = 'default-leaf-user'
+const CONTROLLER_ACCOUNT_RULE_NAME = 'controller-account'
+const CONTROLLER_USER_RULE_NAME = 'controller-user'
+const CONTROLLER_NATS_RELAY_SUBJECT_ALLOW = 'controller.relay.v1.>'
 
 const SYS_ACCOUNT_EXPORTS_INLINE = Object.freeze([
   Object.freeze({
@@ -58,6 +61,25 @@ const ACCOUNT_RULES = Object.freeze([
     maxMsgPayload: -1,
     maxSubscriptions: -1,
     exportsAllowWildcards: true
+  }),
+  Object.freeze({
+    name: CONTROLLER_ACCOUNT_RULE_NAME,
+    description: 'Controller WebSocket relay account with standard app limits, no exports',
+    memStorage: -1,
+    diskStorage: -1,
+    streams: -1,
+    maxAckPending: -1,
+    memMaxStreamBytes: -1,
+    diskMaxStreamBytes: -1,
+    consumer: -1,
+    maxLeafNodeConnections: -1,
+    maxImports: -1,
+    maxExports: -1,
+    maxConnections: -1,
+    maxData: -1,
+    maxMsgPayload: -1,
+    maxSubscriptions: -1,
+    exportsAllowWildcards: true
   })
 ])
 
@@ -88,6 +110,17 @@ const USER_RULES = Object.freeze([
     maxSubscriptions: -1,
     maxPayload: -1,
     allowedConnectionTypes: ['LEAFNODE', 'WEBSOCKET']
+  }),
+  Object.freeze({
+    name: CONTROLLER_USER_RULE_NAME,
+    description: 'Controller WebSocket relay user with standard app limits, scoped to controller.relay.v1.>',
+    bearerToken: false,
+    allowedConnectionTypes: ['STANDARD'],
+    maxData: -1,
+    maxSubscriptions: -1,
+    maxPayload: -1,
+    pubAllow: [CONTROLLER_NATS_RELAY_SUBJECT_ALLOW],
+    subAllow: [CONTROLLER_NATS_RELAY_SUBJECT_ALLOW]
   })
 ])
 
@@ -125,6 +158,9 @@ module.exports = {
   MICROSERVICE_USER_RULE_NAME,
   MQTT_BEARER_USER_RULE_NAME,
   DEFAULT_LEAF_USER_RULE_NAME,
+  CONTROLLER_ACCOUNT_RULE_NAME,
+  CONTROLLER_USER_RULE_NAME,
+  CONTROLLER_NATS_RELAY_SUBJECT_ALLOW,
   isReservedRuleName,
   getSystemAccountRuleDefinitions,
   getSystemUserRuleDefinitions,
