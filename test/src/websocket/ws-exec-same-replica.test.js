@@ -37,9 +37,9 @@ describe('WebSocket exec — same-replica integration (Plan 17)', () => {
     agentWs = createMockWebSocket()
     transaction = { fakeTransaction: true }
 
-    $sandbox.stub(wsServer.queueService, 'enableForSession').resolves(true)
-    $sandbox.stub(wsServer.queueService, 'shouldUseQueue').returns(false)
-    $sandbox.stub(wsServer.queueService, 'cleanup').resolves()
+    $sandbox.stub(wsServer.relayTransport, 'enableForSession').resolves(true)
+    $sandbox.stub(wsServer.relayTransport, 'shouldUseRelay').returns(false)
+    $sandbox.stub(wsServer.relayTransport, 'cleanup').resolves()
 
     $sandbox.stub(wsServer, 'validateUserConnection').resolves({ uuid: $ids.microserviceUuid })
     $sandbox.stub(wsServer, 'validateAgentExecConnection').resolves({ uuid: $ids.fogUuid })

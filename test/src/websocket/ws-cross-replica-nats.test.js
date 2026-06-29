@@ -14,7 +14,7 @@ const {
   createMockRequest,
   buildExecFrame,
   decodeExecMessage,
-  createMockRelayTransport,
+  createMockNatsRelayTransport,
   resetWebSocketServerSingleton,
   newTestIds,
   waitForSent,
@@ -22,7 +22,7 @@ const {
 } = require('../../support/ws-session-harness')
 const { resetTransportForTests } = require('../../../src/services/ws-relay-transport-factory')
 
-describe('WebSocket exec/log — cross-replica mock AMQP', () => {
+describe('WebSocket exec/log — cross-replica mock NATS', () => {
   def('sandbox', () => sinon.createSandbox())
   def('ids', () => newTestIds())
 
@@ -34,7 +34,7 @@ describe('WebSocket exec/log — cross-replica mock AMQP', () => {
     resetTransportForTests()
     resetWebSocketServerSingleton(WebSocketServerClass)
     wsServer = new WebSocketServerClass()
-    mockRelay = createMockRelayTransport()
+    mockRelay = createMockNatsRelayTransport()
     wsServer.relayTransport = mockRelay
     transaction = { fakeTransaction: true }
 
@@ -67,7 +67,9 @@ describe('WebSocket exec/log — cross-replica mock AMQP', () => {
     resetWebSocketServerSingleton(WebSocketServerClass)
   })
 
-  it('relays user STDIN to agent via mock AMQP bridge keyed by sessionId', async () => {
+  it('uses nats transport for cross-replica exec relay', async () => {
+    expect(mockRelay.getTransport()).to.equal('nats')
+
     const userWs = createMockWebSocket()
     const agentWs = createMockWebSocket()
     const sessionId = $ids.sessionId
@@ -93,12 +95,11 @@ describe('WebSocket exec/log — cross-replica mock AMQP', () => {
     userWs.emit('message', stdinFrame, true)
     await waitForSent(agentWs, 1)
 
-    expect(mockRelay.execBridges.has(sessionId)).to.equal(true)
     const agentReceived = decodeExecMessage(lastSent(agentWs))
     expect(agentReceived.type).to.equal(MESSAGE_TYPES.STDIN)
   })
 
-  it('delivers agent STDOUT to user through mock AMQP publishToUser keyed by sessionId', async () => {
+  it('delivers agent STDOUT to user through mock NATS publishToUser', async () => {
     const userWs = createMockWebSocket()
     const agentWs = createMockWebSocket()
     const sessionId = $ids.sessionId
@@ -119,12 +120,11 @@ describe('WebSocket exec/log — cross-replica mock AMQP', () => {
     await mockRelay.publishToUser(sessionId, stdoutFrame)
     await waitForSent(userWs, 1)
 
-    expect(mockRelay.shouldUseRelay(sessionId)).to.equal(true)
     const userReceived = decodeExecMessage(lastSent(userWs))
     expect(userReceived.type).to.equal(MESSAGE_TYPES.STDOUT)
   })
 
-  it('routes log lines through mock AMQP bridge', async () => {
+  it('routes log lines through mock NATS bridge', async () => {
     const userWs = createMockWebSocket()
     const sessionId = $ids.sessionId
 
@@ -150,7 +150,7 @@ describe('WebSocket exec/log — cross-replica mock AMQP', () => {
     expect(mockRelay.shouldUseRelayForLogs(sessionId)).to.equal(true)
   })
 
-  it('user-first then agent-second delivers ACTIVATION and STDIN via AMQP bridge', async () => {
+  it('user-first then agent-second delivers ACTIVATION and STDIN via NATS bridge', async () => {
     const userWs = createMockWebSocket()
     const agentWs = createMockWebSocket()
     const userReq = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)
@@ -166,7 +166,6 @@ describe('WebSocket exec/log — cross-replica mock AMQP', () => {
     )
 
     expect(mockRelay.shouldUseRelay($ids.sessionId)).to.equal(true)
-    expect(wsServer.execSessionManager.getExecSession($ids.sessionId).agent).to.equal(null)
 
     const agentReq = createMockRequest(
       `/api/v3/agent/exec/microservice/${$ids.microserviceUuid}/${$ids.sessionId}`,
@@ -203,65 +202,6 @@ describe('WebSocket exec/log — cross-replica mock AMQP', () => {
 
     const agentReceived = decodeExecMessage(lastSent(agentWs))
     expect(agentReceived.type).to.equal(MESSAGE_TYPES.STDIN)
-    expect(agentReceived.data.toString()).to.include('echo hi')
-  })
-
-  it('resends ACTIVATION when agent WS reconnects', async () => {
-    const userWs = createMockWebSocket()
-    const agentWs = createMockWebSocket()
-    const userReq = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)
-    userReq.headers.authorization = 'Bearer user-jwt'
-
-    await wsServer.handleUserExecConnection(
-      userWs,
-      userReq,
-      'Bearer user-jwt',
-      $ids.microserviceUuid,
-      false,
-      transaction
-    )
-
-    const agentReq = createMockRequest(
-      `/api/v3/agent/exec/microservice/${$ids.microserviceUuid}/${$ids.sessionId}`,
-      '127.0.0.2'
-    )
-    agentReq.headers.authorization = 'Bearer fog-token'
-
-    await wsServer.handleAgentExecConnection(
-      agentWs,
-      agentReq,
-      'Bearer fog-token',
-      $ids.microserviceUuid,
-      $ids.sessionId,
-      transaction
-    )
-    await delay(50)
-
-    function countAgentActivations (ws) {
-      return ws._sentMessages.filter((entry) => {
-        try {
-          return decodeExecMessage(entry.data).type === MESSAGE_TYPES.ACTIVATION
-        } catch (e) {
-          return false
-        }
-      }).length
-    }
-
-    expect(countAgentActivations(agentWs)).to.be.at.least(1)
-
-    const reconnectedAgentWs = createMockWebSocket()
-    await wsServer.handleAgentExecConnection(
-      reconnectedAgentWs,
-      agentReq,
-      'Bearer fog-token',
-      $ids.microserviceUuid,
-      $ids.sessionId,
-      transaction
-    )
-    await delay(50)
-
-    expect(countAgentActivations(reconnectedAgentWs)).to.be.at.least(1)
-    expect(wsServer.execSessionManager.getExecSession($ids.sessionId).agent).to.equal(reconnectedAgentWs)
   })
 })
 

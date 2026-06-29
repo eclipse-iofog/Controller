@@ -44,9 +44,9 @@ async function startTelemetry () {
 
   try {
     await sdk.start()
-    const RouterConnectionService = require('../services/router-connection-service')
+    const RouterConnectionManager = require('../services/router-connection-manager')
     const { initWsMetrics } = require('../websocket/ws-metrics')
-    initWsMetrics(RouterConnectionService)
+    initWsMetrics(RouterConnectionManager)
     logger.info('OpenTelemetry initialized successfully')
   } catch (error) {
     logger.error('Error initializing OpenTelemetry:', error)

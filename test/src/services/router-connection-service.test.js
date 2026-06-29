@@ -6,9 +6,9 @@ const config = require('../../../src/config')
 const RouterManager = require('../../../src/data/managers/router-manager')
 const CertificateService = require('../../../src/services/certificate-service')
 const SecretService = require('../../../src/services/secret-service')
-const RouterConnectionService = require('../../../src/services/router-connection-service')
+const RouterConnectionManager = require('../../../src/services/router-connection-manager')
 
-describe('Router Connection Service', () => {
+describe('Router Connection Manager', () => {
   def('sandbox', () => sinon.createSandbox())
 
   const defaultRouter = {
@@ -21,12 +21,17 @@ describe('Router Connection Service', () => {
   const originalNamespace = process.env.CONTROLLER_NAMESPACE
 
   beforeEach(() => {
-    RouterConnectionService.connection = null
-    RouterConnectionService.connectionPromise = null
-    RouterConnectionService.cachedRouterRecord = null
-    RouterConnectionService.cachedCertificate = null
-    RouterConnectionService.connectionOptions = null
-    RouterConnectionService.certificatePromise = null
+    for (const slot of RouterConnectionManager.slots) {
+      slot.connection = null
+      slot.connectionPromise = null
+      slot.healthy = true
+      slot.unsettledCount = 0
+    }
+    RouterConnectionManager.cachedRouterRecord = null
+    RouterConnectionManager.cachedCertificate = null
+    RouterConnectionManager.certificatePromise = null
+    RouterConnectionManager.shuttingDown = false
+    RouterConnectionManager.saturationCount = 0
 
     $sandbox.stub(RouterManager, 'findOne').resolves(defaultRouter)
   })
@@ -47,33 +52,53 @@ describe('Router Connection Service', () => {
     }
   })
 
+  describe('pool acquire — sticky assignment', () => {
+    it('maps the same sessionId to the same slot', () => {
+      const sessionId = 'exec-session-sticky-abc'
+      const first = RouterConnectionManager.slotIdForSession(sessionId)
+      const second = RouterConnectionManager.slotIdForSession(sessionId)
+      expect(first).to.equal(second)
+      expect(first).to.be.at.least(0).and.below(RouterConnectionManager.poolSize)
+    })
+
+    it('distributes different sessionIds across the pool range', () => {
+      const slots = new Set()
+      for (let i = 0; i < 64; i++) {
+        slots.add(RouterConnectionManager.slotIdForSession(`session-${i}`))
+      }
+      expect(slots.size).to.be.at.least(2)
+    })
+  })
+
   describe('_resolveRouterEndpoint() — Kubernetes control plane', () => {
     beforeEach(() => {
       process.env.CONTROL_PLANE = 'kubernetes'
       process.env.CONTROLLER_NAMESPACE = 'iofog'
     })
 
-    it('returns a single cluster.local service host', async () => {
-      const result = await RouterConnectionService._resolveRouterEndpoint()
+    it('returns cluster service host then DB host fallback', async () => {
+      const result = await RouterConnectionManager._resolveRouterEndpoint()
 
-      expect(result.hosts).to.deep.equal(['router.iofog.svc.cluster.local'])
+      expect(result.hosts).to.deep.equal([
+        'router.iofog.svc.cluster.local',
+        defaultRouter.host
+      ])
       expect(result.host).to.equal('router.iofog.svc.cluster.local')
       expect(result.port).to.equal(5671)
       expect(result.routerUuid).to.equal(defaultRouter.iofogUuid)
     })
 
-    it('does not include bridge DNS or DB host in the fallback list', async () => {
-      const result = await RouterConnectionService._resolveRouterEndpoint()
+    it('does not include bridge DNS in the fallback list', async () => {
+      const result = await RouterConnectionManager._resolveRouterEndpoint()
 
       expect(result.hosts).to.not.include(Constants.ROUTER_BRIDGE_DNS_SAN)
-      expect(result.hosts).to.not.include(defaultRouter.host)
     })
 
     it('falls back to DB host when namespace is unset', async () => {
       delete process.env.CONTROLLER_NAMESPACE
       $sandbox.stub(config, 'get').withArgs('app.namespace').returns('')
 
-      const result = await RouterConnectionService._resolveRouterEndpoint()
+      const result = await RouterConnectionManager._resolveRouterEndpoint()
 
       expect(result.hosts).to.deep.equal([defaultRouter.host])
     })
@@ -86,7 +111,7 @@ describe('Router Connection Service', () => {
         host: ''
       })
 
-      const result = await RouterConnectionService._resolveRouterEndpoint()
+      const result = await RouterConnectionManager._resolveRouterEndpoint()
 
       expect(result.hosts).to.deep.equal(['router'])
     })
@@ -98,13 +123,12 @@ describe('Router Connection Service', () => {
       process.env.CONTROLLER_NAMESPACE = 'edge-ns'
     })
 
-    it('returns ordered fallback hosts: bridge DNS, DB host, cluster.local', async () => {
-      const result = await RouterConnectionService._resolveRouterEndpoint()
+    it('returns ordered fallback hosts: bridge DNS then DB host', async () => {
+      const result = await RouterConnectionManager._resolveRouterEndpoint()
 
       expect(result.hosts).to.deep.equal([
         Constants.ROUTER_BRIDGE_DNS_SAN,
-        defaultRouter.host,
-        'router.edge-ns.svc.cluster.local'
+        defaultRouter.host
       ])
       expect(result.host).to.equal(Constants.ROUTER_BRIDGE_DNS_SAN)
       expect(result.port).to.equal(5671)
@@ -116,11 +140,10 @@ describe('Router Connection Service', () => {
         host: Constants.ROUTER_BRIDGE_DNS_SAN
       })
 
-      const result = await RouterConnectionService._resolveRouterEndpoint()
+      const result = await RouterConnectionManager._resolveRouterEndpoint()
 
       expect(result.hosts).to.deep.equal([
-        Constants.ROUTER_BRIDGE_DNS_SAN,
-        'router.edge-ns.svc.cluster.local'
+        Constants.ROUTER_BRIDGE_DNS_SAN
       ])
     })
 
@@ -128,7 +151,7 @@ describe('Router Connection Service', () => {
       delete process.env.CONTROLLER_NAMESPACE
       $sandbox.stub(config, 'get').withArgs('app.namespace').returns('')
 
-      const result = await RouterConnectionService._resolveRouterEndpoint()
+      const result = await RouterConnectionManager._resolveRouterEndpoint()
 
       expect(result.hosts).to.deep.equal([
         Constants.ROUTER_BRIDGE_DNS_SAN,
@@ -142,7 +165,7 @@ describe('Router Connection Service', () => {
         messagingPort: null
       })
 
-      const result = await RouterConnectionService._resolveRouterEndpoint()
+      const result = await RouterConnectionManager._resolveRouterEndpoint()
 
       expect(result.port).to.equal(5671)
     })
@@ -172,7 +195,7 @@ describe('Router Connection Service', () => {
     })
 
     it('ensures default-router-local-ca before creating the exec client certificate', async () => {
-      await RouterConnectionService._createControllerCertificate()
+      await RouterConnectionManager._createControllerCertificate()
 
       expect(CertificateService.ensureRouterLocalCA).to.have.been.calledOnce
       expect(CertificateService.createCertificateEndpoint).to.have.been.calledOnce
@@ -183,7 +206,7 @@ describe('Router Connection Service', () => {
     })
   })
 
-  describe('_createConnection() — Remote connect fallback', () => {
+  describe('_createSlotConnection() — Remote connect fallback', () => {
     const certBundle = {
       cert: Buffer.from('cert'),
       key: Buffer.from('key'),
@@ -193,44 +216,105 @@ describe('Router Connection Service', () => {
     def('mockConnection', () => ({ is_open: () => true }))
 
     beforeEach(() => {
-      $sandbox.stub(RouterConnectionService, '_ensureControllerCertificate').resolves(certBundle)
+      $sandbox.stub(RouterConnectionManager, '_ensureControllerCertificate').resolves(certBundle)
     })
 
     it('tries hosts in order until one connects', async () => {
-      const hosts = [Constants.ROUTER_BRIDGE_DNS_SAN, defaultRouter.host, 'router.edge-ns.svc.cluster.local']
-      $sandbox.stub(RouterConnectionService, '_resolveRouterEndpoint').resolves({ hosts, port: 5671 })
-      const connectStub = $sandbox.stub(RouterConnectionService, '_connectToHost')
+      const hosts = [Constants.ROUTER_BRIDGE_DNS_SAN, defaultRouter.host]
+      $sandbox.stub(RouterConnectionManager, '_resolveRouterEndpoint').resolves({ hosts, port: 5671 })
+      const connectStub = $sandbox.stub(RouterConnectionManager, '_connectToHost')
         .onCall(0).rejects(new Error('ECONNREFUSED'))
         .onCall(1).resolves($mockConnection)
 
-      const connection = await RouterConnectionService._createConnection()
+      const slot = RouterConnectionManager.slots[0]
+      const connection = await RouterConnectionManager._createSlotConnection(slot)
 
       expect(connection).to.equal($mockConnection)
       expect(connectStub).to.have.been.calledTwice
-      expect(connectStub.firstCall.args[0]).to.equal(Constants.ROUTER_BRIDGE_DNS_SAN)
-      expect(connectStub.secondCall.args[0]).to.equal(defaultRouter.host)
+      expect(connectStub.firstCall.args[1]).to.equal(Constants.ROUTER_BRIDGE_DNS_SAN)
+      expect(connectStub.secondCall.args[1]).to.equal(defaultRouter.host)
     })
 
-    it('throws after all hosts fail', async () => {
+    it('throws aggregate error after all hosts fail', async () => {
       const hosts = [Constants.ROUTER_BRIDGE_DNS_SAN, defaultRouter.host]
-      const lastError = new Error('all hosts down')
-      $sandbox.stub(RouterConnectionService, '_resolveRouterEndpoint').resolves({ hosts, port: 5671 })
-      $sandbox.stub(RouterConnectionService, '_connectToHost').rejects(lastError)
+      $sandbox.stub(RouterConnectionManager, '_resolveRouterEndpoint').resolves({ hosts, port: 5671 })
+      $sandbox.stub(RouterConnectionManager, '_connectToHost')
+        .onCall(0).rejects(new Error('bridge down'))
+        .onCall(1).rejects(new Error('db host down'))
 
-      await expect(RouterConnectionService._createConnection()).to.be.rejectedWith('all hosts down')
-      expect(RouterConnectionService._connectToHost).to.have.been.calledTwice
+      const slot = RouterConnectionManager.slots[0]
+      try {
+        await RouterConnectionManager._createSlotConnection(slot)
+        expect.fail('expected connect to fail')
+      } catch (error) {
+        expect(error.message).to.include(Constants.ROUTER_BRIDGE_DNS_SAN)
+        expect(error.message).to.include(defaultRouter.host)
+        expect(error.message).to.include('bridge down')
+        expect(error.message).to.include('db host down')
+      }
+      expect(RouterConnectionManager._connectToHost).to.have.been.calledTwice
     })
 
-    it('connects on first host for Kubernetes single-host list', async () => {
-      const hosts = ['router.iofog.svc.cluster.local']
-      $sandbox.stub(RouterConnectionService, '_resolveRouterEndpoint').resolves({ hosts, port: 5671 })
-      const connectStub = $sandbox.stub(RouterConnectionService, '_connectToHost').resolves($mockConnection)
+    it('connects on second host when first fails for Kubernetes host list', async () => {
+      const hosts = ['router.iofog.svc.cluster.local', defaultRouter.host]
+      $sandbox.stub(RouterConnectionManager, '_resolveRouterEndpoint').resolves({ hosts, port: 5671 })
+      const connectStub = $sandbox.stub(RouterConnectionManager, '_connectToHost')
+        .onCall(0).rejects(new Error('ECONNREFUSED'))
+        .onCall(1).resolves($mockConnection)
 
-      const connection = await RouterConnectionService._createConnection()
+      const slot = RouterConnectionManager.slots[0]
+      const connection = await RouterConnectionManager._createSlotConnection(slot)
 
       expect(connection).to.equal($mockConnection)
-      expect(connectStub).to.have.been.calledOnce
-      expect(connectStub.firstCall.args[0]).to.equal('router.iofog.svc.cluster.local')
+      expect(connectStub).to.have.been.calledTwice
+      expect(connectStub.firstCall.args[1]).to.equal('router.iofog.svc.cluster.local')
+      expect(connectStub.secondCall.args[1]).to.equal(defaultRouter.host)
+    })
+  })
+
+  describe('waitForSendable()', () => {
+    it('resolves immediately when sender is already sendable', async () => {
+      const sender = {
+        sendable: () => true,
+        once: sinon.stub(),
+        removeListener: sinon.stub()
+      }
+
+      await RouterConnectionManager.waitForSendable(sender, 100)
+      expect(sender.once).to.not.have.been.called
+    })
+
+    it('waits for sendable event when sender is not ready', async () => {
+      const sender = new (require('events').EventEmitter)()
+      sender.sendable = () => false
+
+      const pending = RouterConnectionManager.waitForSendable(sender, 500)
+      setImmediate(() => sender.emit('sendable'))
+      await pending
+    })
+
+    it('rejects on timeout when sender never becomes sendable', async () => {
+      const sender = new (require('events').EventEmitter)()
+      sender.sendable = () => false
+
+      await expect(RouterConnectionManager.waitForSendable(sender, 20))
+        .to.be.rejectedWith(/not sendable/)
+    })
+  })
+
+  describe('handleSendError()', () => {
+    it('marks slot unhealthy on circular buffer overflow', async () => {
+      const sessionId = 'overflow-session'
+      const slotId = RouterConnectionManager.slotIdForSession(sessionId)
+      const reconnectStub = $sandbox.stub(RouterConnectionManager, 'markSlotUnhealthy').resolves()
+
+      const handled = RouterConnectionManager.handleSendError(
+        sessionId,
+        new Error('circular buffer overflow')
+      )
+
+      expect(handled).to.equal(true)
+      expect(reconnectStub).to.have.been.calledOnceWith(slotId, 'circular buffer overflow')
     })
   })
 })

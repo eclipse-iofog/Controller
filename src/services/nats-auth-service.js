@@ -28,6 +28,17 @@ const leafSystemAccountUserName = (fog) => `admin-leaf-${slugifyName(fog.name)}`
 const accountSeedSecretName = (applicationName) => `nats-account-seed-${slugifyName(applicationName)}`
 const mqttBearerSecretName = (applicationName, userName) => `nats-mqtt-creds-${slugifyName(applicationName)}-${slugifyName(userName)}`
 const microserviceCredsSecretName = (applicationName, microserviceName) => `nats-creds-${slugifyName(applicationName)}-${slugifyName(microserviceName)}`
+const CONTROLLER_NATS_ACCOUNT_NAME = 'controller'
+const CONTROLLER_NATS_USER_NAME = 'controller'
+const controllerNatsCredsSecretName = () => `nats-creds-${slugifyName(CONTROLLER_NATS_ACCOUNT_NAME)}-${slugifyName(CONTROLLER_NATS_USER_NAME)}`
+
+function isPlatformControllerNatsAccount (account) {
+  return account &&
+    account.name === CONTROLLER_NATS_ACCOUNT_NAME &&
+    account.applicationId == null &&
+    !account.isSystem &&
+    !account.isLeafSystem
+}
 
 function _parseJsonText (value, fallback) {
   if (!value) {
@@ -174,6 +185,19 @@ async function _resolveNatsUserRule (ruleName, defaultRuleName, transaction) {
   return NatsUserRuleManager.findOne({ name: defaultRuleName }, transaction)
 }
 
+async function _resolveAccountRuleForAccount (account, app, transaction) {
+  if (account.isSystem) {
+    return NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
+  }
+  if (account.name === CONTROLLER_NATS_ACCOUNT_NAME && account.applicationId == null) {
+    return NatsAccountRuleManager.findOne({ name: NatsSystemRules.CONTROLLER_ACCOUNT_RULE_NAME }, transaction)
+  }
+  if (app && app.natsRuleId) {
+    return NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
+  }
+  return NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction)
+}
+
 async function _encodeAccountJwtWithRuleAndRevocations (accountName, accountKp, operatorKp, rule, existingAccountJwt) {
   const existingRevocations = _extractAccountRevocations(existingAccountJwt)
   return encodeAccount(
@@ -188,10 +212,16 @@ async function _encodeAccountJwtWithRuleAndRevocations (accountName, accountKp, 
 }
 
 function _normalizeSystemUserRuleForPersistence (rule) {
-  return {
-    ...rule,
-    allowedConnectionTypes: rule.allowedConnectionTypes ? JSON.stringify(rule.allowedConnectionTypes) : undefined
+  const out = { ...rule }
+  if (out.allowedConnectionTypes) {
+    out.allowedConnectionTypes = JSON.stringify(out.allowedConnectionTypes)
   }
+  for (const field of ['pubAllow', 'pubDeny', 'subAllow', 'subDeny', 'src', 'tags']) {
+    if (Array.isArray(out[field])) {
+      out[field] = JSON.stringify(out[field])
+    }
+  }
+  return out
 }
 
 /**
@@ -316,11 +346,7 @@ async function rotateOperator (transaction) {
     const accountSeed = await _loadSeedFromSecret(account.seedSecretName, transaction)
     const accountKp = fromSeed(new TextEncoder().encode(accountSeed))
     const app = account.applicationId ? await ApplicationManager.findOne({ id: account.applicationId }, transaction) : null
-    const accountRule = account.isSystem
-      ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
-      : (app && app.natsRuleId
-          ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-          : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+    const accountRule = await _resolveAccountRuleForAccount(account, app, transaction)
     const newAccountJwt = await _encodeAccountJwtWithRuleAndRevocations(
       account.name,
       accountKp,
@@ -505,6 +531,78 @@ async function deleteServerSysUserForFog (fog, isHub, transaction) {
   }
   await NatsUserManager.delete({ id: user.id }, transaction)
   _triggerResolverArtifactsReconcile({ fogUuids: [fog.uuid] })
+}
+
+async function ensureControllerNatsAccount (transaction, ...rest) {
+  const options = _triggerOptionsFromArgs(rest)
+  await ensureDefaultRules(transaction)
+
+  const existingAccount = await NatsAccountManager.findOne({
+    name: CONTROLLER_NATS_ACCOUNT_NAME,
+    applicationId: null,
+    isSystem: false,
+    isLeafSystem: false
+  }, transaction)
+  if (existingAccount) {
+    const existingUser = await NatsUserManager.findOne({
+      accountId: existingAccount.id,
+      name: CONTROLLER_NATS_USER_NAME
+    }, transaction)
+    if (existingUser) {
+      return { account: existingAccount, user: existingUser }
+    }
+    const result = await createUserForAccount(
+      existingAccount.id,
+      CONTROLLER_NATS_USER_NAME,
+      null,
+      NatsSystemRules.CONTROLLER_USER_RULE_NAME,
+      null,
+      transaction
+    )
+    _triggerResolverArtifactsReconcile(options)
+    return result
+  }
+
+  const operator = await ensureOperator(transaction, options)
+  const operatorSeed = await _loadSeedFromSecret(operator.seedSecretName, transaction)
+  const operatorKp = fromSeed(new TextEncoder().encode(operatorSeed))
+
+  const accountKp = createAccount()
+  const accountRule = await NatsAccountRuleManager.findOne({
+    name: NatsSystemRules.CONTROLLER_ACCOUNT_RULE_NAME
+  }, transaction)
+  const accountJwt = await encodeAccount(
+    CONTROLLER_NATS_ACCOUNT_NAME,
+    accountKp,
+    _buildAccountRuleClaims(accountRule),
+    { signer: operatorKp }
+  )
+  const accountSeed = new TextDecoder().decode(accountKp.getSeed())
+
+  const seedSecretName = accountSeedSecretName(CONTROLLER_NATS_ACCOUNT_NAME)
+  await _upsertOpaqueSecret(seedSecretName, { seed: accountSeed }, transaction)
+
+  const account = await NatsAccountManager.create({
+    name: CONTROLLER_NATS_ACCOUNT_NAME,
+    publicKey: accountKp.getPublicKey(),
+    jwt: accountJwt,
+    seedSecretName,
+    operatorId: operator.id,
+    applicationId: null,
+    isSystem: false,
+    isLeafSystem: false
+  }, transaction)
+
+  const result = await createUserForAccount(
+    account.id,
+    CONTROLLER_NATS_USER_NAME,
+    null,
+    NatsSystemRules.CONTROLLER_USER_RULE_NAME,
+    null,
+    transaction
+  )
+  _triggerResolverArtifactsReconcile(options)
+  return result
 }
 
 async function ensureAccountForApplication (applicationId, transaction) {
@@ -891,6 +989,7 @@ async function ensureLeafUserForAccount (accountId, fogName, transaction, natsIn
 }
 
 async function reissueForAccountRule (accountRuleId, transaction) {
+  const rule = await NatsAccountRuleManager.findOne({ id: accountRuleId }, transaction)
   const applications = await ApplicationManager.findAll({ natsRuleId: accountRuleId }, transaction)
   logger.info(`Reissuing account JWTs for rule ${accountRuleId}`)
   for (const app of applications) {
@@ -903,7 +1002,6 @@ async function reissueForAccountRule (accountRuleId, transaction) {
     const operatorKp = fromSeed(new TextEncoder().encode(operatorSeed))
     const accountSeed = await _loadSeedFromSecret(account.seedSecretName, transaction)
     const accountKp = fromSeed(new TextEncoder().encode(accountSeed))
-    const rule = await NatsAccountRuleManager.findOne({ id: accountRuleId }, transaction)
     const accountJwt = await _encodeAccountJwtWithRuleAndRevocations(
       app.name,
       accountKp,
@@ -912,6 +1010,29 @@ async function reissueForAccountRule (accountRuleId, transaction) {
       account.jwt
     )
     await NatsAccountManager.update({ id: account.id }, { jwt: accountJwt }, transaction)
+  }
+  if (rule && rule.name === NatsSystemRules.CONTROLLER_ACCOUNT_RULE_NAME) {
+    const relayAccount = await NatsAccountManager.findOne({
+      name: CONTROLLER_NATS_ACCOUNT_NAME,
+      applicationId: null,
+      isSystem: false,
+      isLeafSystem: false
+    }, transaction)
+    if (relayAccount) {
+      const operator = await ensureOperator(transaction)
+      const operatorSeed = await _loadSeedFromSecret(operator.seedSecretName, transaction)
+      const operatorKp = fromSeed(new TextEncoder().encode(operatorSeed))
+      const accountSeed = await _loadSeedFromSecret(relayAccount.seedSecretName, transaction)
+      const accountKp = fromSeed(new TextEncoder().encode(accountSeed))
+      const accountJwt = await _encodeAccountJwtWithRuleAndRevocations(
+        CONTROLLER_NATS_ACCOUNT_NAME,
+        accountKp,
+        operatorKp,
+        rule,
+        relayAccount.jwt
+      )
+      await NatsAccountManager.update({ id: relayAccount.id }, { jwt: accountJwt }, transaction)
+    }
   }
   _triggerResolverArtifactsReconcile({ reason: 'account-rule-updated', accountRuleId })
 }
@@ -926,11 +1047,7 @@ async function _addRevocationToAccount (account, publicKey, transaction) {
   const accountSeed = await _loadSeedFromSecret(account.seedSecretName, transaction)
   const accountKp = fromSeed(new TextEncoder().encode(accountSeed))
   const app = account.applicationId ? await ApplicationManager.findOne({ id: account.applicationId }, transaction) : null
-  const accountRule = account.isSystem
-    ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
-    : (app && app.natsRuleId
-        ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-        : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+  const accountRule = await _resolveAccountRuleForAccount(account, app, transaction)
   const revocations = _extractAccountRevocations(account.jwt)
   revocations[publicKey] = Math.floor(Date.now() / 1000)
   const accountJwt = await encodeAccount(
@@ -949,11 +1066,7 @@ async function _reissueOneUserForRule (user, userRuleId, operatorKp, transaction
   const accountSeed = await _loadSeedFromSecret(account.seedSecretName, transaction)
   const accountKp = fromSeed(new TextEncoder().encode(accountSeed))
   const app = account.applicationId ? await ApplicationManager.findOne({ id: account.applicationId }, transaction) : null
-  const accountRule = account.isSystem
-    ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
-    : (app && app.natsRuleId
-        ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-        : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+  const accountRule = await _resolveAccountRuleForAccount(account, app, transaction)
   const revocations = _extractAccountRevocations(account.jwt)
   revocations[user.publicKey] = Math.floor(Date.now() / 1000)
   const accountJwt = await encodeAccount(
@@ -1018,11 +1131,7 @@ async function revokeMicroserviceUser (microserviceUuid, transaction) {
   const accountKp = fromSeed(new TextEncoder().encode(accountSeed))
 
   const app = account.applicationId ? await ApplicationManager.findOne({ id: account.applicationId }, transaction) : null
-  const accountRule = account.isSystem
-    ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
-    : (app && app.natsRuleId
-        ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-        : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+  const accountRule = await _resolveAccountRuleForAccount(account, app, transaction)
   const revocations = _extractAccountRevocations(account.jwt)
   revocations[user.publicKey] = Math.floor(Date.now() / 1000)
   const accountJwt = await encodeAccount(
@@ -1104,11 +1213,7 @@ async function revokeUserByAccountAndName (accountId, userName, transaction) {
   const accountKp = fromSeed(new TextEncoder().encode(accountSeed))
 
   const app = account.applicationId ? await ApplicationManager.findOne({ id: account.applicationId }, transaction) : null
-  const accountRule = account.isSystem
-    ? await NatsAccountRuleManager.findOne({ name: NatsSystemRules.SYSTEM_ACCOUNT_RULE_NAME }, transaction)
-    : (app && app.natsRuleId
-        ? await NatsAccountRuleManager.findOne({ id: app.natsRuleId }, transaction)
-        : await NatsAccountRuleManager.findOne({ name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME }, transaction))
+  const accountRule = await _resolveAccountRuleForAccount(account, app, transaction)
   const revocations = _extractAccountRevocations(account.jwt)
   revocations[user.publicKey] = Math.floor(Date.now() / 1000)
   const accountJwt = await encodeAccount(
@@ -1177,12 +1282,17 @@ function scheduleReissueUsersForMicroservices (microserviceUuids = []) {
 
 module.exports = {
   SYSTEM_ACCOUNT_NAME,
+  CONTROLLER_NATS_ACCOUNT_NAME,
+  CONTROLLER_NATS_USER_NAME,
+  controllerNatsCredsSecretName,
+  isPlatformControllerNatsAccount,
   sysUserNameForServer,
   leafSystemAccountName,
   leafSystemAccountUserName,
   ensureOperator: TransactionDecorator.generateTransaction(ensureOperator),
   rotateOperator: TransactionDecorator.generateTransaction(rotateOperator),
   ensureSystemAccount: TransactionDecorator.generateTransaction(ensureSystemAccount),
+  ensureControllerNatsAccount: TransactionDecorator.generateTransaction(ensureControllerNatsAccount),
   ensureSysUserForServer: TransactionDecorator.generateTransaction(ensureSysUserForServer),
   ensureLeafSystemAccount: TransactionDecorator.generateTransaction(ensureLeafSystemAccount),
   ensureLeafSystemAccountUser: TransactionDecorator.generateTransaction(ensureLeafSystemAccountUser),

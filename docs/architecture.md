@@ -206,7 +206,37 @@ Full spec: [`.cursor/controllerv3.8/docs/15-fog-platform-reconcile.md`](../.curs
 
 ## WebSocket exec & log sessions
 
-Interactive **exec** and **log streaming** use paired WebSocket sessions between operators (Bearer JWT), Controller, and Edgelet agents (fog token). Plan 16 hardens log sessions and shared WS infra (HA, drain, OTEL). **Plan 17** redesigns **microservice exec** to log-style multi-session flow (3 concurrent per MS, agent poll + session-scoped WS) — **Edgelet agent wire change required** for exec (see [edgelet-invariants.md §10.1](../.cursor/controllerv3.8/docs/edgelet-invariants.md)).
+Interactive **exec** and **log streaming** use paired WebSocket sessions between operators (Bearer JWT), Controller, and Edgelet agents (fog token). Plan 16 hardens log sessions and shared WS infra (HA, drain, OTEL). **Plan 17** redesigns **microservice exec** to log-style multi-session flow (3 concurrent per MS, agent poll + session-scoped WS). **Plan 18** production-hardens cross-replica relay via **`WsRelayTransport`** — AMQP pool + recovery when `nats.enabled=false`, NATS Core when `nats.enabled=true` (R102–R113). **Edgelet agent wire change required** for exec only (see [edgelet-invariants.md §10.1](../.cursor/controllerv3.8/docs/edgelet-invariants.md)).
+
+```mermaid
+flowchart TB
+  subgraph ws [WebSocketServer]
+    U[User WS]
+    A[Agent WS]
+  end
+
+  subgraph factory [WsRelayTransportFactory]
+    SEL{nats.enabled?}
+  end
+
+  subgraph amqp [AmqpRelayTransport]
+    POOL[RouterConnectionManager pool x8]
+    Q[agent/user queues per sessionId]
+  end
+
+  subgraph nats [NatsRelayTransport]
+    NC[NatsRelayConnectionManager]
+    SUB[Core pub/sub per sessionId]
+  end
+
+  U --> ws
+  A --> ws
+  ws --> factory
+  SEL -->|false| amqp
+  SEL -->|true| nats
+  POOL --> Q
+  NC --> SUB
+```
 
 ```mermaid
 sequenceDiagram
@@ -214,7 +244,7 @@ sequenceDiagram
   participant C as Controller
   participant DB as MicroserviceExecSessions
   participant CT as Change tracking
-  participant Q as AMQP
+  participant R as WsRelayTransport
   participant A as Edgelet agent
 
   Note over U,A: MS exec (R92–R98) — log-style
@@ -228,11 +258,11 @@ sequenceDiagram
   A->>C: GET /agent/exec/sessions
   A->>C: WS /agent/exec/microservice/:uuid/:sessionId
   C->>DB: ACTIVE agentConnected
-  C->>Q: agent-{sessionId} user-{sessionId}
+  C->>R: enable bridge if cross-replica
   U->>C: STDIN
-  C->>Q->>A: relay
+  C->>R->>A: relay
   A->>C: STDOUT
-  C->>Q->>U: relay
+  C->>R->>U: relay
   U-->>C: close
   C->>DB: DELETE row
   C->>CT: execSessions if needed
@@ -242,12 +272,12 @@ sequenceDiagram
   C->>C: provision debug system MS
   U->>C: WS /microservices/system/exec/:debugMsUuid
 
-  Note over U,A: Logs (R82–R83, R84) — unchanged Plan 16
+  Note over U,A: Logs (R82–R83, R84/R112)
   U->>C: WS logs + tail params
   C->>DB: PENDING sessionId
   A->>C: WS agent/logs/:sessionId
   A->>C: LOG_LINE
-  C->>Q->>U: logs-user-{sessionId}
+  C->>R->>U: relay
 ```
 
 | Topic | Normative value |
@@ -263,7 +293,7 @@ sequenceDiagram
 | Log concurrency | **3** user log WS per microservice (or per fog for node logs) |
 | Log limits | Tail max **5,000** lines; **120s** pending; **2h** idle |
 | Log content | Live relay only — no log line persistence; audit connect/disconnect |
-| HA relay | Cross-replica sessions **require** AMQP (`WebSocketQueueService`); same-replica may use direct WS; **fail fast** when router down |
+| HA relay | Cross-replica sessions **require** a **relay backend** (R112): **AMQP** router queues when `nats.enabled=false`; **NATS Core** subjects on hub when `nats.enabled=true`. Same-replica may use direct WS; **fail fast** close **1013** when active backend unavailable |
 | Graceful drain | **30s** on SIGTERM / k8s `preStop` — CLOSE frames, queue cleanup, session row delete |
 | Security | Agent handlers validate fog token **before** message processing; **50** upgrades/min/IP; **100** active WS/IP; JWT in `?token=` (ingress log redaction required) |
 | Scale SLO | **500** concurrent WS per replica; **p99 pairing < 5s** |
@@ -271,13 +301,15 @@ sequenceDiagram
 
 **OTEL metric names (R87):** `ws_exec_sessions_active`, `ws_log_sessions_active`, `ws_pending_pairings`, `ws_pairing_duration_ms` (histogram), `ws_amqp_publish_errors`, `ws_router_connected` (gauge). Emitted when `ENABLE_TELEMETRY=true`; see `src/websocket/ws-metrics.js`.
 
-**HA config (`server.webSocket.ha`):** `crossReplicaRequiresAmqp` (default `true`), `failFastOnRouterUnavailable` (default `true`). Env: `WS_HA_CROSS_REPLICA_REQUIRES_AMQP`, `WS_HA_FAIL_FAST_ON_ROUTER_UNAVAILABLE`. Graceful drain timeout: `server.webSocket.session.drainTimeoutMs` (default **30s**, env `WS_DRAIN_TIMEOUT_MS`).
+**Relay transport (Plan 18, R102):** Selected once at startup from existing `nats.enabled` / `NATS_ENABLED` — **no new relay env var**. `false` → AMQP pool (8 connections, sticky by `sessionId`); `true` → NATS Core on hub with **`controller`** NATS account. Relay connect is **lazy** — does not block Controller startup.
 
-**Core modules:** `src/websocket/server.js`, `exec-session-manager.js` (Plan 17), `log-session-manager.js`, `src/services/websocket-queue-service.js`, `src/services/router-connection-service.js`.
+**HA config (`server.webSocket.ha`):** `crossReplicaRequiresAmqp` (default `true`; semantics: cross-replica requires **active relay backend** per R112), `failFastOnRouterUnavailable` (default `true`; applies to selected backend). Env: `WS_HA_CROSS_REPLICA_REQUIRES_AMQP`, `WS_HA_FAIL_FAST_ON_ROUTER_UNAVAILABLE`. Graceful drain timeout: `server.webSocket.session.drainTimeoutMs` (default **30s**, env `WS_DRAIN_TIMEOUT_MS`).
 
-**Operator guide:** [operations/ws-sessions.md](operations/ws-sessions.md) — ingress `?token=` log redaction, HTTPS/WSS, multi-replica AMQP requirement, k8s preStop drain, load SLO probe.
+**Core modules:** `src/websocket/server.js`, `exec-session-manager.js` (Plan 17), `log-session-manager.js`, `ws-relay-transport-factory.js` / `amqp-relay-transport.js` / `nats-relay-transport.js` (Plan 18), `src/services/websocket-queue-service.js`, `src/services/router-connection-manager.js` (Plan 18), `src/services/nats-relay-connection-manager.js` (Plan 18).
 
-Full spec: Plan 16 [logs + shared infra](../.cursor/controllerv3.8/docs/16-ws-exec-log-hardening.md) · Plan 17 [MS exec](../.cursor/controllerv3.8/docs/17-multi-exec-sessions.md) · RFC R80–R91, R92–R101 · Edgelet contract: [edgelet-invariants.md §10–§10.1](../.cursor/controllerv3.8/docs/edgelet-invariants.md).
+**Operator guide:** [operations/ws-sessions.md](operations/ws-sessions.md) — ingress `?token=` log redaction, HTTPS/WSS, multi-replica relay backend (`nats.enabled`), k8s preStop drain, load SLO probe.
+
+Full spec: Plan 16 [logs + shared infra](../.cursor/controllerv3.8/docs/16-ws-exec-log-hardening.md) · Plan 17 [MS exec](../.cursor/controllerv3.8/docs/17-multi-exec-sessions.md) · Plan 18 [WS relay production](../.cursor/controllerv3.8/docs/18-ws-relay-production.md) · RFC R80–R91, R92–R101, R102–R113 · Edgelet contract: [edgelet-invariants.md §10–§10.1](../.cursor/controllerv3.8/docs/edgelet-invariants.md).
 
 ---
 

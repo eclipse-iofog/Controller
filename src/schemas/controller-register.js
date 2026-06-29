@@ -1,3 +1,5 @@
+const { microserviceContainerSpecProperties } = require('./microservice-container-spec')
+
 const controllerRegister = {
   id: '/controllerRegister',
   type: 'object',
@@ -11,25 +13,11 @@ const controllerRegister = {
       items: { $ref: '/image' }
     },
     registryId: { type: 'integer' },
-    ports: {
-      type: 'array',
-      items: { $ref: '/ports' }
-    },
-    volumeMappings: {
-      type: 'array',
-      items: { $ref: '/volumeMappings' }
-    },
-    env: {
-      type: 'array',
-      items: { $ref: '/env' }
-    },
-    config: { type: 'string' },
-    hostNetworkMode: { type: 'boolean' },
-    runtime: { type: 'string' },
     schedule: {
       type: 'integer',
       enum: [0]
-    }
+    },
+    ...microserviceContainerSpecProperties
   },
   required: ['uuid', 'images', 'registryId'],
   additionalProperties: false

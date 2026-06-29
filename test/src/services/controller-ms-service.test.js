@@ -13,6 +13,7 @@ const VolumeMappingManager = require('../../../src/data/managers/volume-mapping-
 const MicroservicesService = require('../../../src/services/microservices-service')
 const MicroservicePortService = require('../../../src/services/microservice-ports/microservice-port')
 const ApplicationManager = require('../../../src/data/managers/application-manager')
+const WorkloadSpec = require('../../../src/services/microservice-workload-spec')
 const Errors = require('../../../src/helpers/errors')
 
 describe('Controller MS Service', () => {
@@ -97,6 +98,9 @@ describe('Controller MS Service', () => {
       $sandbox.stub(MicroservicesService, 'updateChangeTracking').resolves()
       $sandbox.stub(MicroservicesService, 'injectServiceAccountVolume').resolves()
       $sandbox.stub(MicroservicesService, 'createOrUpdateServiceAccountForMicroservice').resolves()
+      $sandbox.stub(WorkloadSpec, 'createWorkloadRelations').resolves()
+      $sandbox.stub(WorkloadSpec, 'updateWorkloadRelations').resolves()
+      $sandbox.stub(WorkloadSpec, 'validateExtraHosts').resolves([])
     })
 
     context('on non-system fog', () => {
@@ -160,6 +164,49 @@ describe('Controller MS Service', () => {
       await $subject
       expect(MicroservicesService.injectServiceAccountVolume).to.not.have.been.called
       expect(MicroservicesService.createOrUpdateServiceAccountForMicroservice).to.not.have.been.called
+    })
+
+    context('when container workload fields are sent on create', () => {
+      def('body', () => ({
+        ...registerData,
+        capAdd: ['NET_ADMIN'],
+        isPrivileged: true,
+        cmd: ['/bin/controller']
+      }))
+
+      it('persists container workload relations on create', async () => {
+        await $subject
+        expect(WorkloadSpec.createWorkloadRelations).to.have.been.calledWith(
+          sinon.match({ uuid: msUuid }),
+          sinon.match({
+            capAdd: ['NET_ADMIN'],
+            isPrivileged: true,
+            cmd: ['/bin/controller']
+          }),
+          sinon.match({ transaction })
+        )
+      })
+    })
+
+    context('when container scalar fields are sent on create', () => {
+      def('body', () => ({
+        ...registerData,
+        isPrivileged: true,
+        pidMode: 'host',
+        memoryLimit: 1073741824
+      }))
+
+      it('creates microservice with container scalar fields', async () => {
+        await $subject
+        expect(MicroserviceManager.create).to.have.been.calledWith(
+          sinon.match({
+            isPrivileged: true,
+            pidMode: 'host',
+            memoryLimit: 1073741824
+          }),
+          transaction
+        )
+      })
     })
 
     context('when microservice already exists', () => {
@@ -232,6 +279,26 @@ describe('Controller MS Service', () => {
       it('uses microserviceCommon change tracking on update', async () => {
         await $subject
         expect(MicroservicesService.updateChangeTracking).to.have.been.calledWith(true, fogUuid, transaction)
+      })
+
+      context('when container workload fields are sent on update', () => {
+        def('body', () => ({
+          ...registerData,
+          capAdd: ['NET_BIND_SERVICE'],
+          healthCheck: { test: ['CMD', 'true'] }
+        }))
+
+        it('updates container workload relations on upsert', async () => {
+          await $subject
+          expect(WorkloadSpec.updateWorkloadRelations).to.have.been.calledWith(
+            msUuid,
+            sinon.match({
+              capAdd: ['NET_BIND_SERVICE'],
+              healthCheck: { test: ['CMD', 'true'] }
+            }),
+            sinon.match({ transaction })
+          )
+        })
       })
 
       it('rejects uuid registered on a different fog', async () => {

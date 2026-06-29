@@ -9,7 +9,9 @@ let logSessionsActive = null
 let pendingPairings = null
 let pairingDurationMs = null
 let amqpPublishErrors = null
-let routerConnected = null
+let routerPoolConnections = null
+let routerPoolUnsettled = null
+let amqpSessionSaturated = null
 
 function getMeter () {
   if (!meter) {
@@ -18,7 +20,7 @@ function getMeter () {
   return meter
 }
 
-function initWsMetrics (routerConnectionService) {
+function initWsMetrics (routerConnectionManager) {
   const m = getMeter()
 
   execSessionsActive = m.createUpDownCounter('ws_exec_sessions_active', {
@@ -37,14 +39,29 @@ function initWsMetrics (routerConnectionService) {
   amqpPublishErrors = m.createCounter('ws_amqp_publish_errors', {
     description: 'AMQP publish failures for exec/log relay'
   })
+  amqpSessionSaturated = m.createCounter('ws_amqp_session_saturated', {
+    description: 'AMQP relay saturation events (overflow / publish backpressure)'
+  })
 
-  if (routerConnectionService) {
-    routerConnected = m.createObservableGauge('ws_router_connected', {
-      description: 'Router AMQP connection availability (1=connected, 0=disconnected)'
+  if (routerConnectionManager) {
+    routerPoolConnections = m.createObservableGauge('ws_router_pool_connections', {
+      description: 'Healthy router AMQP pool connections on this replica'
     })
-    routerConnected.addCallback((result) => {
-      const connected = routerConnectionService.isConnected() ? 1 : 0
-      result.observe(connected)
+    routerPoolConnections.addCallback((result) => {
+      const healthy = typeof routerConnectionManager.getHealthyPoolCount === 'function'
+        ? routerConnectionManager.getHealthyPoolCount()
+        : (routerConnectionManager.isConnected() ? 1 : 0)
+      result.observe(healthy)
+    })
+
+    routerPoolUnsettled = m.createObservableGauge('ws_router_pool_unsettled', {
+      description: 'Total unsettled AMQP deliveries across router pool slots'
+    })
+    routerPoolUnsettled.addCallback((result) => {
+      const unsettled = typeof routerConnectionManager.getTotalUnsettled === 'function'
+        ? routerConnectionManager.getTotalUnsettled()
+        : 0
+      result.observe(unsettled)
     })
   }
 }
@@ -71,11 +88,16 @@ function recordAmqpPublishError (attributes = {}) {
   amqpPublishErrors?.add(1, attributes)
 }
 
+function recordAmqpSessionSaturation () {
+  amqpSessionSaturated?.add(1)
+}
+
 module.exports = {
   initWsMetrics,
   recordExecSessionActive,
   recordLogSessionActive,
   recordPendingPairing,
   recordPairingDurationMs,
-  recordAmqpPublishError
+  recordAmqpPublishError,
+  recordAmqpSessionSaturation
 }

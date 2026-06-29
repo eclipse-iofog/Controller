@@ -67,6 +67,7 @@ module.exports = {
   ROUTER_BRIDGE_DNS_SAN: 'router.default.svc.bridge.local',
   NATS_BRIDGE_DNS_SAN: 'nats.default.svc.bridge.local',
   DEFAULT_ROUTER_K8S_SERVICE: 'router',
+  DEFAULT_NATS_K8S_SERVICE: 'nats-server',
 
   RESERVED_PORTS: [54321, 54322, 53],
 
