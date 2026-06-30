@@ -281,6 +281,17 @@ describe('Controller MS Service', () => {
         expect(MicroservicesService.updateChangeTracking).to.have.been.calledWith(true, fogUuid, transaction)
       })
 
+      it('validates ports after clearing existing mappings on update', async () => {
+        await $subject
+        expect(MicroservicePortService.deletePortMappings).to.have.been.calledBefore(
+          MicroservicePortService.validatePortMappings
+        )
+        expect(MicroservicePortService.validatePortMappings).to.have.been.calledWith(
+          { ports: registerData.ports, iofogUuid: fogUuid },
+          transaction
+        )
+      })
+
       context('when container workload fields are sent on update', () => {
         def('body', () => ({
           ...registerData,

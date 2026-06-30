@@ -521,7 +521,7 @@ describe('Microservices Service', () => {
       const result = await $subject
       expect(Validator.validate).to.have.been.calledWith(portMappingData, Validator.schemas.portsCreate)
       expect(MicroserviceManager.findMicroserviceOnGet).to.have.been.calledWith({ uuid: msvcUuid }, transaction)
-      expect(MicroservicePortService.validatePortMapping).to.have.been.calledWith(agent, portMappingData, {}, transaction)
+      expect(MicroservicePortService.validatePortMapping).to.have.been.calledWith(agent, portMappingData, transaction)
       expect(MicroservicePortService.createPortMapping).to.have.been.calledWith(microservice, portMappingData, transaction)
       expect(result).to.equal(createdMapping)
     })

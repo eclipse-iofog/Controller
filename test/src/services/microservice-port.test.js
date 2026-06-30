@@ -22,7 +22,7 @@ describe('Microservice Port Service', () => {
     const iofogUuid = 'fog-uuid'
     const agent = {
       uuid: iofogUuid,
-      getMicroservice: () => Promise.resolve([])
+      getMicroservice: sinon.stub().resolves([])
     }
 
     def('microserviceData', () => ({
@@ -39,6 +39,49 @@ describe('Microservice Port Service', () => {
       return expect($subject).to.be.rejectedWith(
         Errors.ValidationError,
         /Port '53' is reserved for internal use/
+      )
+    })
+  })
+
+  describe('.validatePortMappings() duplicate check', () => {
+    const transaction = { id: 'tx-1' }
+    const iofogUuid = 'fog-uuid'
+    const occupiedPort = 8080
+    let agent
+    let microserviceOnAgent
+
+    def('microserviceData', () => ({
+      iofogUuid,
+      ports: [{ internal: 80, external: occupiedPort }]
+    }))
+    def('subject', () => MicroservicePortService.validatePortMappings($microserviceData, transaction))
+
+    beforeEach(() => {
+      microserviceOnAgent = {
+        uuid: 'other-ms-uuid',
+        getPorts: sinon.stub().resolves([{ portExternal: occupiedPort }])
+      }
+      agent = {
+        uuid: iofogUuid,
+        getMicroservice: sinon.stub().resolves([microserviceOnAgent])
+      }
+      $sandbox.stub(ioFogManager, 'findOne').resolves(agent)
+    })
+
+    it('passes the caller transaction to association reads', async () => {
+      try {
+        await $subject
+      } catch (error) {
+        // expected when port is taken
+      }
+      expect(agent.getMicroservice).to.have.been.calledWith({ transaction })
+      expect(microserviceOnAgent.getPorts).to.have.been.calledWith({ transaction })
+    })
+
+    it('rejects when external port is already allocated on the agent', () => {
+      return expect($subject).to.be.rejectedWith(
+        Errors.ValidationError,
+        /Port '8080' is not available/
       )
     })
   })

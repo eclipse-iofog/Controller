@@ -340,6 +340,39 @@ describe('Router Service', () => {
         return expect(true).to.eql(false)
       })
     })
+
+    it('preserves existing bridges when regenerating router config', async () => {
+      const preservedBridges = {
+        tcpConnectors: {
+          'api-connector': {
+            name: 'api-connector',
+            host: '127.0.0.1',
+            port: '8080',
+            address: 'api'
+          }
+        },
+        tcpListeners: {
+          'api-listener': {
+            name: 'api-listener',
+            port: '9001',
+            address: 'api'
+          }
+        }
+      }
+      MicroserviceManager.findOne.resolves({
+        id: 1,
+        uuid: 'routerMsvcUuid',
+        iofogUuid: router.iofogUuid,
+        catalogItemId: routerCatalogItem.id,
+        config: JSON.stringify({ bridges: preservedBridges })
+      })
+
+      await RouterService.updateConfig(routerID, containerEngine, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.called
+      const updatedConfig = JSON.parse(MicroserviceManager.update.firstCall.args[1].config)
+      expect(updatedConfig.bridges).to.eql(preservedBridges)
+    })
   })
 
   describe('.updateRouter', () => {

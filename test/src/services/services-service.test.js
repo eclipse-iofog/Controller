@@ -5,11 +5,12 @@ const ServiceController = require('../../../src/controllers/service-controller')
 const YamlParserService = require('../../../src/services/yaml-parser-service')
 const ServicesService = require('../../../src/services/services-service')
 const ServiceManager = require('../../../src/data/managers/service-manager')
-const ServicePlatformReconcileTaskManager = require('../../../src/data/managers/service-platform-reconcile-task-manager')
+const ReconcileOutboxManager = require('../../../src/data/managers/reconcile-outbox-manager')
 const RouterManager = require('../../../src/data/managers/router-manager')
 const TagsManager = require('../../../src/data/managers/tags-manager')
 const Validator = require('../../../src/schemas')
 const Errors = require('../../../src/helpers/errors')
+const K8sClient = require('../../../src/utils/k8s-client')
 
 describe('services-service platform reconcile enqueue', () => {
   def('sandbox', () => sinon.createSandbox())
@@ -41,12 +42,28 @@ describe('services-service platform reconcile enqueue', () => {
     return service
   }
 
+  function buildSequelizeLikeService (fields = {}) {
+    const data = buildServiceModel(fields)
+    return Object.create({
+      get name () { return data.name },
+      get type () { return data.type },
+      get resource () { return data.resource },
+      get defaultBridge () { return data.defaultBridge },
+      get bridgePort () { return data.bridgePort },
+      get targetPort () { return data.targetPort },
+      get servicePort () { return data.servicePort },
+      get k8sType () { return data.k8sType },
+      get serviceEndpoint () { return data.serviceEndpoint },
+      get tags () { return data.tags }
+    })
+  }
+
   function stubCreateDeps () {
     delete process.env.CONTROL_PLANE
     $sandbox.stub(Validator, 'validate').resolves(true)
     $sandbox.stub(ServiceManager, 'findAll').resolves([])
     $sandbox.stub(ServiceManager, 'create').callsFake((data) => Promise.resolve(buildServiceModel(data)))
-    $sandbox.stub(ServicePlatformReconcileTaskManager, 'enqueueServicePlatformReconcileTask').resolves()
+    $sandbox.stub(ReconcileOutboxManager, 'enqueueServicePlatform').resolves()
     $sandbox.stub(RouterManager, 'findOne').resolves({
       isDefault: true,
       host: 'hub.example.com',
@@ -79,7 +96,7 @@ describe('services-service platform reconcile enqueue', () => {
       expect(createPayload.provisioningStatus).to.equal('pending')
       expect(createPayload.provisioningError).to.be.null
 
-      expect(ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueServicePlatform).to.have.been.calledWith({
         serviceName: 'api-gateway',
         reason: 'spec-changed',
         specSnapshot: {
@@ -104,14 +121,10 @@ describe('services-service platform reconcile enqueue', () => {
     })
 
     it('does not run hub provisioning on the synchronous path', async () => {
-      $sandbox.stub(ServicesService, '_addTcpConnector').resolves()
-      $sandbox.stub(ServicesService, '_addTcpListener').resolves()
       $sandbox.stub(ServicesService, '_createK8sService').resolves()
 
       await $subject
 
-      expect(ServicesService._addTcpConnector).to.not.have.been.called
-      expect(ServicesService._addTcpListener).to.not.have.been.called
       expect(ServicesService._createK8sService).to.not.have.been.called
     })
   })
@@ -135,7 +148,7 @@ describe('services-service platform reconcile enqueue', () => {
       $sandbox.stub(ServiceManager, 'update').callsFake((where, data) =>
         Promise.resolve(buildServiceModel({ ...existingService, ...data }))
       )
-      $sandbox.stub(ServicePlatformReconcileTaskManager, 'enqueueServicePlatformReconcileTask').resolves()
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueServicePlatform').resolves()
       $sandbox.stub(RouterManager, 'findOne').resolves({
         isDefault: true,
         host: 'hub.example.com',
@@ -148,7 +161,7 @@ describe('services-service platform reconcile enqueue', () => {
     it('enqueues reconcile with old and new tags in snapshot', async () => {
       await $subject
 
-      expect(ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueServicePlatform).to.have.been.calledWith({
         serviceName: 'api-gateway',
         reason: 'spec-changed',
         specSnapshot: {
@@ -183,19 +196,17 @@ describe('services-service platform reconcile enqueue', () => {
     beforeEach(() => {
       $sandbox.stub(ServiceManager, 'findOneWithTags').resolves(existingService)
       $sandbox.stub(ServiceManager, 'delete').resolves()
-      $sandbox.stub(ServicePlatformReconcileTaskManager, 'enqueueServicePlatformReconcileTask').resolves()
-      $sandbox.stub(ServicesService, '_deleteTcpConnector').resolves()
-      $sandbox.stub(ServicesService, '_deleteTcpListener').resolves()
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueServicePlatform').resolves()
       $sandbox.stub(ServicesService, '_deleteK8sService').resolves()
     })
 
     it('captures spec snapshot and enqueues delete reconcile before DB delete', async () => {
       await $subject
 
-      expect(ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask).to.have.been.calledBefore(
+      expect(ReconcileOutboxManager.enqueueServicePlatform).to.have.been.calledBefore(
         ServiceManager.delete
       )
-      expect(ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueServicePlatform).to.have.been.calledWith({
         serviceName: 'api-gateway',
         reason: 'delete',
         specSnapshot: {
@@ -217,9 +228,41 @@ describe('services-service platform reconcile enqueue', () => {
     it('does not run hub teardown on the synchronous path', async () => {
       await $subject
 
-      expect(ServicesService._deleteTcpConnector).to.not.have.been.called
-      expect(ServicesService._deleteTcpListener).to.not.have.been.called
       expect(ServicesService._deleteK8sService).to.not.have.been.called
+    })
+
+    it('captures full spec snapshot from Sequelize model instances', async () => {
+      ServiceManager.findOneWithTags.resolves(buildSequelizeLikeService({
+        name: 'snapshot-service',
+        type: 'agent',
+        resource: 'fog-uuid-1',
+        defaultBridge: 'fog-uuid-1',
+        bridgePort: 9200,
+        targetPort: 8090,
+        servicePort: 9200,
+        k8sType: null,
+        serviceEndpoint: 'edge.example.com',
+        tags: [{ value: 'site-a' }]
+      }))
+
+      await ServicesService.deleteServiceEndpoint('snapshot-service', $transaction)
+
+      expect(ReconcileOutboxManager.enqueueServicePlatform).to.have.been.calledWith({
+        serviceName: 'snapshot-service',
+        reason: 'delete',
+        specSnapshot: {
+          name: 'snapshot-service',
+          type: 'agent',
+          resource: 'fog-uuid-1',
+          defaultBridge: 'fog-uuid-1',
+          bridgePort: 9200,
+          targetPort: 8090,
+          servicePort: 9200,
+          k8sType: null,
+          serviceEndpoint: 'edge.example.com',
+          tags: ['site-a']
+        }
+      }, $transaction)
     })
   })
 
@@ -261,7 +304,7 @@ spec:
         await ServiceController.createServiceYAMLEndpoint(req)
 
         expect(YamlParserService.parseServiceFile).to.have.been.calledOnceWith(serviceYaml)
-        expect(ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask).to.have.been.calledWith({
+        expect(ReconcileOutboxManager.enqueueServicePlatform).to.have.been.calledWith({
           serviceName: 'api-gateway',
           reason: 'spec-changed',
           specSnapshot: sinon.match({
@@ -284,7 +327,7 @@ spec:
         $sandbox.stub(ServiceManager, 'update').callsFake((where, data) =>
           Promise.resolve(buildServiceModel({ ...existingService, ...data }))
         )
-        $sandbox.stub(ServicePlatformReconcileTaskManager, 'enqueueServicePlatformReconcileTask').resolves()
+        $sandbox.stub(ReconcileOutboxManager, 'enqueueServicePlatform').resolves()
         $sandbox.stub(RouterManager, 'findOne').resolves({
           isDefault: true,
           host: 'hub.example.com',
@@ -313,7 +356,7 @@ spec:
           isUpdate: true,
           serviceName: 'api-gateway'
         })
-        expect(ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask).to.have.been.calledWith({
+        expect(ReconcileOutboxManager.enqueueServicePlatform).to.have.been.calledWith({
           serviceName: 'api-gateway',
           reason: 'spec-changed',
           specSnapshot: sinon.match({
@@ -335,7 +378,7 @@ spec:
         tags: [{ value: 'site-a' }]
       }))
       $sandbox.stub(ServiceManager, 'update').resolves()
-      $sandbox.stub(ServicePlatformReconcileTaskManager, 'enqueueServicePlatformReconcileTask').resolves()
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueServicePlatform').resolves()
     })
 
     it('resets failed provisioning and enqueues manual retry', async () => {
@@ -346,16 +389,51 @@ spec:
         { provisioningStatus: 'pending', provisioningError: null },
         $transaction
       )
-      expect(ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueServicePlatform).to.have.been.calledWith({
         serviceName: 'api-gateway',
         reason: 'manual-retry',
-        specSnapshot: sinon.match({
+        specSnapshot: {
           name: 'api-gateway',
+          type: 'external',
+          resource: '10.0.0.8',
+          defaultBridge: 'default-router',
+          bridgePort: 9100,
+          targetPort: 8080,
+          servicePort: 9100,
+          k8sType: 'LoadBalancer',
+          serviceEndpoint: 'hub.example.com',
           tags: ['site-a']
-        })
+        }
       }, $transaction)
       expect(result.provisioningStatus).to.equal('pending')
       expect(result.provisioningError).to.be.null
+    })
+
+    it('captures full spec snapshot from Sequelize model instances', async () => {
+      ServiceManager.findOneWithTags.resolves(buildSequelizeLikeService({
+        provisioningStatus: 'failed',
+        provisioningError: 'hub lock timeout',
+        tags: [{ value: 'site-a' }]
+      }))
+
+      await ServicesService.reconcileServiceEndpoint('api-gateway', $transaction)
+
+      expect(ReconcileOutboxManager.enqueueServicePlatform).to.have.been.calledWith({
+        serviceName: 'api-gateway',
+        reason: 'manual-retry',
+        specSnapshot: {
+          name: 'api-gateway',
+          type: 'external',
+          resource: '10.0.0.8',
+          defaultBridge: 'default-router',
+          bridgePort: 9100,
+          targetPort: 8080,
+          servicePort: 9100,
+          k8sType: 'LoadBalancer',
+          serviceEndpoint: 'hub.example.com',
+          tags: ['site-a']
+        }
+      }, $transaction)
     })
 
     context('when service is missing', () => {
@@ -365,6 +443,39 @@ spec:
 
       it('rejects with NotFoundError', () =>
         expect($subject).to.be.rejectedWith(Errors.NotFoundError))
+    })
+  })
+
+  describe('._syncK8sServiceResource()', () => {
+    const serviceConfig = {
+      name: 'snapshot-service',
+      k8sType: 'ClusterIP',
+      bridgePort: 10024,
+      servicePort: 10024,
+      tags: ['site-a']
+    }
+
+    beforeEach(() => {
+      $sandbox.stub(K8sClient, 'getService').resolves(null)
+      $sandbox.stub(K8sClient, 'createService').resolves({ metadata: { name: 'snapshot-service' } })
+      $sandbox.stub(K8sClient, 'updateService').resolves({ metadata: { name: 'snapshot-service' } })
+    })
+
+    it('creates the K8s service when it does not exist', async () => {
+      await ServicesService._syncK8sServiceResource(serviceConfig)
+
+      expect(K8sClient.getService).to.have.been.calledWith('snapshot-service', { ignoreNotFound: true })
+      expect(K8sClient.createService).to.have.been.calledOnce
+      expect(K8sClient.updateService).to.not.have.been.called
+    })
+
+    it('updates the K8s service when it already exists', async () => {
+      K8sClient.getService.resolves({ metadata: { name: 'snapshot-service' } })
+
+      await ServicesService._syncK8sServiceResource(serviceConfig)
+
+      expect(K8sClient.createService).to.not.have.been.called
+      expect(K8sClient.updateService).to.have.been.calledOnceWith('snapshot-service', sinon.match.object)
     })
   })
 })

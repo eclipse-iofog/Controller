@@ -15,7 +15,7 @@ describe('Service bridge config', () => {
   afterEach(() => $sandbox.restore())
 
   describe('.stripServiceDerivedBridges()', () => {
-    it('removes service-derived listeners and connectors while preserving router bridges', () => {
+    it('removes service-derived listeners while preserving connectors and router bridges', () => {
       const baseConfig = {
         bridges: {
           tcpListeners: {
@@ -35,6 +35,7 @@ describe('Service bridge config', () => {
         'fog-amqp': { name: 'fog-amqp', port: '5672', address: 'amqp' }
       })
       expect(stripped.bridges.tcpConnectors).to.eql({
+        'api-connector': { name: 'api-connector', host: 'hub', port: '8080' },
         'upstream-router': { name: 'upstream-router', host: '10.0.0.2', port: '55671' }
       })
     })
@@ -105,6 +106,41 @@ describe('Service bridge config', () => {
 
       expect(result.bridges.tcpListeners).to.eql({})
       expect(MicroserviceManager.update).to.have.been.calledOnce
+    })
+
+    it('preserves hub-managed tcpConnectors while rebuilding listeners', async () => {
+      const baseConfig = {
+        bridges: {
+          tcpListeners: {
+            'stale-listener': { name: 'stale-listener', port: '8000', address: 'stale' }
+          },
+          tcpConnectors: {
+            'api-connector': {
+              name: 'api-connector',
+              host: '127.0.0.1',
+              port: '8080',
+              address: 'api',
+              processId: 'ms-uuid'
+            }
+          }
+        }
+      }
+
+      const result = await ServiceBridgeConfig.recomputeServiceBridgeConfig(fogUuid, baseConfig, transaction)
+
+      expect(result.bridges.tcpListeners).to.eql({
+        'api-listener': { name: 'api-listener', port: '9001', address: 'api' },
+        'mqtt-listener': { name: 'mqtt-listener', port: '9002', address: 'mqtt' }
+      })
+      expect(result.bridges.tcpConnectors).to.eql({
+        'api-connector': {
+          name: 'api-connector',
+          host: '127.0.0.1',
+          port: '8080',
+          address: 'api',
+          processId: 'ms-uuid'
+        }
+      })
     })
   })
 })

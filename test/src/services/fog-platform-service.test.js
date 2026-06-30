@@ -11,6 +11,7 @@ const NatsInstanceManager = require('../../../src/data/managers/nats-instance-ma
 const NatsConnectionManager = require('../../../src/data/managers/nats-connection-manager')
 const IofogService = require('../../../src/services/iofog-service')
 const NatsService = require('../../../src/services/nats-service')
+const ReconcileOutboxManager = require('../../../src/data/managers/reconcile-outbox-manager')
 const RouterService = require('../../../src/services/router-service')
 const ServiceBridgeConfig = require('../../../src/services/service-bridge-config')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
@@ -19,6 +20,7 @@ const MicroserviceService = require('../../../src/services/microservices-service
 const ApplicationManager = require('../../../src/data/managers/application-manager')
 const SecretManager = require('../../../src/data/managers/secret-manager')
 const FogPublicKeyManager = require('../../../src/data/managers/iofog-public-key-manager')
+const transactionRunner = require('../../../src/helpers/transaction-runner')
 
 describe('Fog platform service', () => {
   def('sandbox', () => sinon.createSandbox())
@@ -26,6 +28,17 @@ describe('Fog platform service', () => {
   const fogUuid = 'fog-abc'
 
   afterEach(() => $sandbox.restore())
+
+  function stubPhasedRunInTransaction (sandbox, options = {}) {
+    const labels = options.labels || null
+    sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn, runOptions = {}) => {
+      if (labels && runOptions.label) {
+        labels.push(runOptions.label)
+      }
+      return fn(transaction)
+    })
+    return labels
+  }
 
   describe('.validateSystemFogInvariants()', () => {
     it('rejects non-interior router mode for system fog', () => {
@@ -73,6 +86,7 @@ describe('Fog platform service', () => {
     }
 
     beforeEach(() => {
+      stubPhasedRunInTransaction($sandbox)
       $sandbox.stub(FogManager, 'findOneWithTags').resolves({ ...fog })
       $sandbox.stub(FogManager, 'findOne').resolves({ ...fog })
       $sandbox.stub(FogManager, 'update').resolves()
@@ -94,9 +108,9 @@ describe('Fog platform service', () => {
       $sandbox.stub(NatsInstanceManager, 'findByFog').resolves({ id: 5, isLeaf: true })
       $sandbox.stub(NatsConnectionManager, 'findAllWithNats').resolves([])
       $sandbox.stub(IofogService, '_handleRouterCertificates').resolves()
-      $sandbox.stub(NatsService, 'ensureNatsForFog').resolves()
-      $sandbox.stub(NatsService, 'cleanupNatsForFog').resolves()
-      $sandbox.stub(NatsService, 'enqueueReconcileTask').resolves()
+      $sandbox.stub(NatsService, 'ensureNatsForFogPhased').resolves({})
+      $sandbox.stub(NatsService, 'cleanupNatsForFogPhased').resolves()
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueNats').resolves()
       $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').resolves([])
       $sandbox.stub(RouterService, 'updateRouter').resolves(router)
       $sandbox.stub(IofogService, '_getRouterMicroserviceConfig').resolves({ bridges: { tcpListeners: {}, tcpConnectors: {} } })
@@ -108,7 +122,7 @@ describe('Fog platform service', () => {
     it('skips reconcile when platform phase is Deleting', async () => {
       FogPlatformStatusManager.getParsedStatus.resolves({ fogUuid, phase: 'Deleting', observedGeneration: 1 })
 
-      const result = await FogPlatformService.reconcileFog(fogUuid, transaction)
+      const result = await FogPlatformService.reconcileFog(fogUuid)
 
       expect(result).to.eql({ skipped: true, reason: 'deleting' })
       expect(FogPlatformStatusManager.setPhase).to.not.have.been.called
@@ -116,10 +130,10 @@ describe('Fog platform service', () => {
     })
 
     it('runs ordered reconcile steps and marks platform Ready', async () => {
-      const result = await FogPlatformService.reconcileFog(fogUuid, transaction)
+      const result = await FogPlatformService.reconcileFog(fogUuid)
 
       expect(IofogService._handleRouterCertificates).to.have.been.calledOnce
-      expect(NatsService.ensureNatsForFog).to.have.been.calledOnce
+      expect(NatsService.ensureNatsForFogPhased).to.have.been.calledOnce
       expect(RouterService.updateRouter).to.have.been.calledOnce
       expect(ServiceBridgeConfig.recomputeServiceBridgeConfig).to.have.been.calledOnce
       expect(FogPlatformStatusManager.setPhase).to.have.been.calledWith(
@@ -137,31 +151,51 @@ describe('Fog platform service', () => {
     })
 
     it('is safe to reconcile the same generation twice', async () => {
-      await FogPlatformService.reconcileFog(fogUuid, transaction)
-      await FogPlatformService.reconcileFog(fogUuid, transaction)
+      await FogPlatformService.reconcileFog(fogUuid)
+      await FogPlatformService.reconcileFog(fogUuid)
 
       expect(RouterService.updateRouter).to.have.been.calledTwice
       expect(ServiceBridgeConfig.recomputeServiceBridgeConfig).to.have.been.calledTwice
     })
 
-    it('accepts worker call shape (fogUuid only) with decorator fakeTransaction outside test mode', async () => {
-      const appHelperPath = require.resolve('../../../src/helpers/app-helper')
-      const decoratorPath = require.resolve('../../../src/decorators/transaction-decorator')
-      const fogPlatformServicePath = require.resolve('../../../src/services/fog-platform-service')
-
-      $sandbox.stub(require(appHelperPath), 'isTest').returns(false)
-      delete require.cache[decoratorPath]
-      delete require.cache[fogPlatformServicePath]
-      const FreshFogPlatformService = require('../../../src/services/fog-platform-service')
+    it('uses phased runInTransaction labels from worker call shape (fogUuid only)', async () => {
+      const labels = []
+      transactionRunner.runInTransaction.callsFake(async (fn, runOptions = {}) => {
+        if (runOptions.label) {
+          labels.push(runOptions.label)
+        }
+        return fn(transaction)
+      })
 
       FogPlatformStatusManager.getParsedStatus.resolves({ fogUuid, phase: 'Deleting', observedGeneration: 1 })
 
-      const result = await FreshFogPlatformService.reconcileFog(fogUuid)
+      const result = await FogPlatformService.reconcileFog(fogUuid)
 
       expect(result).to.eql({ skipped: true, reason: 'deleting' })
-      expect(FogManager.findOneWithTags).to.have.been.calledWith(
-        { uuid: fogUuid },
-        sinon.match({ fakeTransaction: true })
+      expect(labels).to.deep.equal(['fogPlatform.prepare'])
+    })
+
+    it('runs cert, nats, platform, and finalize in separate transaction phases', async () => {
+      const labels = []
+      transactionRunner.runInTransaction.callsFake(async (fn, runOptions = {}) => {
+        if (runOptions.label) {
+          labels.push(runOptions.label)
+        }
+        return fn(transaction)
+      })
+
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      expect(labels).to.deep.equal([
+        'fogPlatform.prepare',
+        'fogPlatform.certPrep',
+        'fogPlatform.platform',
+        'fogPlatform.finalize'
+      ])
+      expect(NatsService.ensureNatsForFogPhased).to.have.been.calledOnce
+      expect(NatsService.ensureNatsForFogPhased).to.have.been.calledWith(
+        sinon.match.any,
+        sinon.match.any
       )
     })
 
@@ -170,9 +204,9 @@ describe('Fog platform service', () => {
         .onCall(0).resolves(null)
         .onCall(1).resolves({ id: 5, isLeaf: true })
 
-      await FogPlatformService.reconcileFog(fogUuid, transaction)
+      await FogPlatformService.reconcileFog(fogUuid)
 
-      expect(NatsService.enqueueReconcileTask).to.have.been.calledWithMatch({
+      expect(ReconcileOutboxManager.enqueueNats).to.have.been.calledWithMatch({
         reason: 'cluster-routes-changed',
         fogUuids: [fogUuid]
       }, transaction)

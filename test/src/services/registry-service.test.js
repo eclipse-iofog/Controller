@@ -9,6 +9,7 @@ const FogManager = require('../../../src/data/managers/iofog-manager')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const SecretHelper = require('../../../src/helpers/secret-helper')
+const vaultManager = require('../../../src/vault/vault-manager')
 const ErrorMessages = require('../../../src/helpers/error-messages')
 const Errors = require('../../../src/helpers/errors')
 
@@ -54,12 +55,13 @@ describe('Registry Service', () => {
       $sandbox.stub(Validator, 'validate').resolves(true)
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((value) => value)
       $sandbox.stub(RegistryManager, 'create').resolves(created)
-      $sandbox.stub(SecretHelper, 'encryptSecret').resolves('encrypted-password')
+      $sandbox.stub(SecretHelper, 'encryptSecretInternal').resolves('encrypted-password')
+      $sandbox.stub(SecretHelper, 'encryptSecret').resolves('vault-ref')
       $sandbox.stub(RegistryManager, 'update').resolves()
       stubChangeTrackingDeps($sandbox)
     })
 
-    it('validates input, encrypts password, and returns registry id', async () => {
+    it('validates input, encrypts password internally in tx, and returns registry id', async () => {
       const result = await $subject
       expect(Validator.validate).to.have.been.calledWith(registryData, Validator.schemas.registryCreate)
       expect(RegistryManager.create).to.have.been.calledWithMatch({
@@ -67,11 +69,11 @@ describe('Registry Service', () => {
         username: registryData.username,
         userEmail: registryData.email
       }, transaction)
-      expect(SecretHelper.encryptSecret).to.have.been.calledWith(
+      expect(SecretHelper.encryptSecretInternal).to.have.been.calledWith(
         { value: registryData.password },
-        'registry-16',
-        'registry'
+        'registry-16'
       )
+      expect(SecretHelper.encryptSecret).to.not.have.been.called
       expect(ChangeTrackingService.update).to.have.been.calledWith(
         'fog-uuid',
         ChangeTrackingService.events.registries,
@@ -95,6 +97,7 @@ describe('Registry Service', () => {
 
       it('skips password encryption', async () => {
         await $subject
+        expect(SecretHelper.encryptSecretInternal).to.not.have.been.called
         expect(SecretHelper.encryptSecret).to.not.have.been.called
         expect(RegistryManager.update).to.not.have.been.called
       })
@@ -231,6 +234,7 @@ describe('Registry Service', () => {
 
     context('when password is cleared and vault reference exists', () => {
       beforeEach(() => {
+        $sandbox.stub(vaultManager, 'isEnabled').returns(true)
         RegistryManager.findOne.resolves({ ...existing, password: 'vault:ref' })
         $sandbox.stub(SecretHelper, 'isVaultReference').returns(true)
         $sandbox.stub(SecretHelper, 'deleteSecret').resolves()

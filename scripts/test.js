@@ -13,6 +13,9 @@ function test (useReporter, extraArgs) {
   }
 
   options.env = setDbEnvVars(options.env)
+  if (process.env.RUN_INTEGRATION) {
+    options.env.RUN_INTEGRATION = process.env.RUN_INTEGRATION
+  }
 
   const mochaBin = require.resolve('mocha/bin/mocha.js')
   const mochaReporterOptions = '--reporter mocha-junit-reporter --reporter-options mochaFile=./unit-results.xml'
