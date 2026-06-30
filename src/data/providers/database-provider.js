@@ -206,8 +206,8 @@ class DatabaseProvider {
             id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             migration_version VARCHAR(255) NOT NULL,
             seeder_version VARCHAR(255),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
           )
         `
         break
