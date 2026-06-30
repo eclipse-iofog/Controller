@@ -68,10 +68,9 @@ describe('grep gates', () => {
   })
 
   it('passes transaction to SecretService reads inside certificate-service.js', () => {
-    const hits = grepSrc('SecretService\\.getSecretEndpoint\\([^,\n]+\\)', [
-      '--include=certificate-service.js',
-      'src/services'
-    ])
+    const hits = grepSrc('SecretService\\.getSecretEndpoint\\([^,)]+\\)', [
+      '--include=certificate-service.js'
+    ], 'src/services')
     expect(hits).to.equal('')
   })
 
