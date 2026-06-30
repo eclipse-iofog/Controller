@@ -1,6 +1,5 @@
 const BaseManager = require('./base-manager')
 const models = require('../models')
-const databaseProvider = require('../providers/database-factory')
 const config = require('../../config')
 
 const LOCK_ROW_ID = 1
@@ -8,12 +7,6 @@ const LOCK_ROW_ID = 1
 class HubRouterConfigLockManager extends BaseManager {
   getEntity () {
     return models.HubRouterConfigLock
-  }
-
-  _getModelOptions (transaction) {
-    return transaction && transaction.fakeTransaction
-      ? {}
-      : { transaction }
   }
 
   _isUniqueConstraintError (error) {
@@ -41,12 +34,6 @@ class HubRouterConfigLockManager extends BaseManager {
   }
 
   async tryAcquire (controllerUuid, timeoutSeconds, transaction) {
-    if (transaction.fakeTransaction) {
-      return databaseProvider.sequelize.transaction((t) =>
-        this.tryAcquire(controllerUuid, timeoutSeconds, t)
-      )
-    }
-
     await this.initializeLock(transaction)
 
     const stalenessSeconds = this._getStalenessSeconds(timeoutSeconds)

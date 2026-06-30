@@ -62,14 +62,14 @@ class FogManager extends BaseManager {
     })
   }
 
-  // no transaction required here, used by agent-last-active decorator
-  updateLastActive (uuid, timestamp) {
+  updateLastActive (uuid, timestamp, transaction) {
     return Fog.update({
       lastActive: timestamp
     }, {
       where: {
         uuid
-      }
+      },
+      transaction
     })
   }
 }
