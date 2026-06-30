@@ -790,7 +790,7 @@ module.exports = {
   updateHalUsbInfo: TransactionDecorator.generateTransaction(updateHalUsbInfo),
   deleteNode: TransactionDecorator.generateTransaction(deleteNode),
   getAgentLinkedVolumeMounts: TransactionDecorator.generateTransaction(getAgentLinkedVolumeMounts),
-  getControllerCA: TransactionDecorator.generateTransaction(getControllerCA),
+  getControllerCA,
   getAgentLogSessions: TransactionDecorator.generateTransaction(getAgentLogSessions),
   getAgentExecSessions: TransactionDecorator.generateTransaction(getAgentExecSessions)
 }

@@ -7,6 +7,7 @@ const RouterManager = require('../data/managers/router-manager')
 const CertificateService = require('./certificate-service')
 const SecretService = require('./secret-service')
 const os = require('os')
+const { runInTransaction } = require('../helpers/transaction-runner')
 
 const CONTROLLER_CERT_PREFIX = 'controller-exec-session-client'
 const hostname = process.env.HOSTNAME || os.hostname()
@@ -59,7 +60,6 @@ class RouterConnectionManager {
     this.certificatePromise = null
     this.cachedCertificate = null
     this.cachedRouterRecord = null
-    this.fakeTransaction = { fakeTransaction: true }
     this.slots = Array.from({ length: this.poolSize }, (_, slotId) => new PoolSlot(this, slotId))
     this.recoveryListeners = []
     this.saturationCount = 0
@@ -502,7 +502,10 @@ class RouterConnectionManager {
     if (this.cachedRouterRecord) {
       return this.cachedRouterRecord
     }
-    const router = await RouterManager.findOne({ isDefault: true }, this.fakeTransaction)
+    const router = await runInTransaction(
+      (transaction) => RouterManager.findOne({ isDefault: true }, transaction),
+      { label: 'router-connection-default-router' }
+    )
     if (!router) {
       throw new Error('Default router not found. Please ensure default router is provisioned.')
     }
@@ -536,42 +539,46 @@ class RouterConnectionManager {
 
   async _createControllerCertificate () {
     logger.debug('[AMQP] Ensuring controller certificate secret exists', { name: CONTROLLER_CERT_NAME })
-    await CertificateService.ensureRouterLocalCA(this.fakeTransaction)
-    const existingSecret = await this._safeGetSecret(CONTROLLER_CERT_NAME)
     const caName = Constants.DEFAULT_ROUTER_LOCAL_CA
-    if (existingSecret) {
-      const caSecret = await this._safeGetSecret(caName)
-      const bundle = this._decodeCertificate(existingSecret, caSecret)
-      logger.debug({ msg: '[AMQP] Using existing controller-exec-session-client certificate', ca: caName })
-      return bundle
-    }
 
-    const hosts = this._buildControllerHosts()
-    logger.debug({ msg: '[AMQP] Generating controller-exec-session-client certificate', hosts, ca: caName })
+    return runInTransaction(async (transaction) => {
+      await CertificateService.ensureRouterLocalCA(transaction)
 
-    try {
-      await CertificateService.createCertificateEndpoint({
-        name: CONTROLLER_CERT_NAME,
-        subject: CONTROLLER_CERT_NAME,
-        hosts: hosts.join(','),
-        ca: {
-          type: 'direct',
-          secretName: caName
-        },
-        expiration: 36
-      })
-    } catch (error) {
-      logger.error({ err: error, ca: caName, msg: '[AMQP] Failed to create controller certificate' })
-      throw error
-    }
+      const existingSecret = await this._safeGetSecret(CONTROLLER_CERT_NAME, transaction)
+      if (existingSecret) {
+        const caSecret = await this._safeGetSecret(caName, transaction)
+        const bundle = this._decodeCertificate(existingSecret, caSecret)
+        logger.debug({ msg: '[AMQP] Using existing controller-exec-session-client certificate', ca: caName })
+        return bundle
+      }
 
-    const certSecret = await this._safeGetSecret(CONTROLLER_CERT_NAME)
-    const caSecret = await this._safeGetSecret(caName)
-    if (!certSecret || !caSecret) {
-      throw new Error('Controller certificate creation succeeded but secret not found')
-    }
-    logger.debug({ msg: '[AMQP] controller-exec-session-client certificate generated successfully', ca: caName })
-    return this._decodeCertificate(certSecret, caSecret)
+      const hosts = this._buildControllerHosts()
+      logger.debug({ msg: '[AMQP] Generating controller-exec-session-client certificate', hosts, ca: caName })
+
+      try {
+        await CertificateService.createCertificateEndpoint({
+          name: CONTROLLER_CERT_NAME,
+          subject: CONTROLLER_CERT_NAME,
+          hosts: hosts.join(','),
+          ca: {
+            type: 'direct',
+            secretName: caName
+          },
+          expiration: 36
+        }, transaction)
+      } catch (error) {
+        logger.error({ err: error, ca: caName, msg: '[AMQP] Failed to create controller certificate' })
+        throw error
+      }
+
+      const certSecret = await this._safeGetSecret(CONTROLLER_CERT_NAME, transaction)
+      const caSecret = await this._safeGetSecret(caName, transaction)
+      if (!certSecret || !caSecret) {
+        throw new Error('Controller certificate creation succeeded but secret not found')
+      }
+      logger.debug({ msg: '[AMQP] controller-exec-session-client certificate generated successfully', ca: caName })
+      return this._decodeCertificate(certSecret, caSecret)
+    }, { label: 'router-connection-controller-cert' })
   }
 
   _buildControllerHosts () {
@@ -604,9 +611,9 @@ class RouterConnectionManager {
     }
   }
 
-  async _safeGetSecret (name) {
+  async _safeGetSecret (name, transaction) {
     try {
-      return await SecretService.getSecretEndpoint(name)
+      return await SecretService.getSecretEndpoint(name, transaction)
     } catch (error) {
       if (error.name === 'NotFoundError') {
         logger.debug('[AMQP] Secret not found', { secret: name })

@@ -10,6 +10,7 @@ const AuthPasswordService = require('./auth-password-service')
 const AuthMfaService = require('./auth-mfa-service')
 const AuthUserService = require('./auth-user-service')
 const InteractionStateStore = require('./auth-interaction-state-store')
+const { runInTransaction, PRIORITY_INTERACTIVE } = require('../helpers/transaction-runner')
 
 function ensureEmbeddedMode () {
   if (getAuthMode() !== 'embedded') {
@@ -129,7 +130,7 @@ async function verifyLoginCredentials (credentials, transaction) {
   return authContext
 }
 
-async function getStatus (uid, transaction) {
+async function getStatus (uid) {
   ensureEmbeddedMode()
   await findInteraction(uid)
 
@@ -138,48 +139,36 @@ async function getStatus (uid, transaction) {
     return { step: 'login' }
   }
 
-  const authContext = await loadAuthContextByUserId(state.userId, transaction)
-  if (!authContext) {
-    await clearInteractionState(uid)
-    throw new Errors.AuthenticationError('Interaction session not found or expired')
-  }
+  return runInTransaction(async (transaction) => {
+    const authContext = await loadAuthContextByUserId(state.userId, transaction)
+    if (!authContext) {
+      await clearInteractionState(uid)
+      throw new Errors.AuthenticationError('Interaction session not found or expired')
+    }
 
-  return { step: resolveNextStep(authContext, state) }
+    return { step: resolveNextStep(authContext, state) }
+  }, { priority: PRIORITY_INTERACTIVE, label: 'auth.interaction.status' })
 }
 
-async function submitLogin (uid, credentials, transaction) {
+async function submitLogin (uid, credentials) {
   ensureEmbeddedMode()
   await findInteraction(uid)
 
-  const authContext = await verifyLoginCredentials(credentials, transaction)
-  const state = await setInteractionState(uid, {
-    userId: authContext.user.id,
-    mfaVerified: false,
-    enrollmentStarted: false,
-    enrollmentConfirmed: false,
-    passwordChanged: false
-  })
+  return runInTransaction(async (transaction) => {
+    const authContext = await verifyLoginCredentials(credentials, transaction)
+    const state = await setInteractionState(uid, {
+      userId: authContext.user.id,
+      mfaVerified: false,
+      enrollmentStarted: false,
+      enrollmentConfirmed: false,
+      passwordChanged: false
+    })
 
-  return { step: resolveNextStep(authContext, state) }
+    return { step: resolveNextStep(authContext, state) }
+  }, { priority: PRIORITY_INTERACTIVE, label: 'auth.interaction.login' })
 }
 
-async function submitMfa (uid, code, transaction) {
-  ensureEmbeddedMode()
-  await findInteraction(uid)
-
-  const state = await getInteractionState(uid)
-  if (!state || !state.userId) {
-    throw new Errors.InvalidCredentialsError()
-  }
-
-  await AuthMfaService.verifyMfaCode(state.userId, code, transaction)
-  const nextState = await setInteractionState(uid, { mfaVerified: true })
-  const authContext = await loadAuthContextByUserId(state.userId, transaction)
-
-  return { step: resolveNextStep(authContext, nextState) }
-}
-
-async function submitEnroll (uid, transaction) {
+async function submitMfa (uid, code) {
   ensureEmbeddedMode()
   await findInteraction(uid)
 
@@ -188,17 +177,16 @@ async function submitEnroll (uid, transaction) {
     throw new Errors.InvalidCredentialsError()
   }
 
-  const enrollment = await AuthMfaService.enrollMfa(state.userId, transaction)
-  const nextState = await setInteractionState(uid, { enrollmentStarted: true })
+  return runInTransaction(async (transaction) => {
+    await AuthMfaService.verifyMfaCode(state.userId, code, transaction)
+    const nextState = await setInteractionState(uid, { mfaVerified: true })
+    const authContext = await loadAuthContextByUserId(state.userId, transaction)
 
-  return {
-    step: resolveNextStep(await loadAuthContextByUserId(state.userId, transaction), nextState),
-    secret: enrollment.secret,
-    otpauthUrl: enrollment.otpauthUrl
-  }
+    return { step: resolveNextStep(authContext, nextState) }
+  }, { priority: PRIORITY_INTERACTIVE, label: 'auth.interaction.mfa' })
 }
 
-async function submitConfirmEnroll (uid, code, transaction) {
+async function submitEnroll (uid) {
   ensureEmbeddedMode()
   await findInteraction(uid)
 
@@ -207,20 +195,19 @@ async function submitConfirmEnroll (uid, code, transaction) {
     throw new Errors.InvalidCredentialsError()
   }
 
-  const result = await AuthMfaService.confirmMfa(state.userId, code, transaction)
-  const nextState = await setInteractionState(uid, {
-    enrollmentConfirmed: true,
-    mfaVerified: true
-  })
-  const authContext = await loadAuthContextByUserId(state.userId, transaction)
+  return runInTransaction(async (transaction) => {
+    const enrollment = await AuthMfaService.enrollMfa(state.userId, transaction)
+    const nextState = await setInteractionState(uid, { enrollmentStarted: true })
 
-  return {
-    step: resolveNextStep(authContext, nextState),
-    recoveryCodes: result.recoveryCodes
-  }
+    return {
+      step: resolveNextStep(await loadAuthContextByUserId(state.userId, transaction), nextState),
+      secret: enrollment.secret,
+      otpauthUrl: enrollment.otpauthUrl
+    }
+  }, { priority: PRIORITY_INTERACTIVE, label: 'auth.interaction.enroll' })
 }
 
-async function submitChangePassword (uid, credentials, transaction) {
+async function submitConfirmEnroll (uid, code) {
   ensureEmbeddedMode()
   await findInteraction(uid)
 
@@ -229,28 +216,54 @@ async function submitChangePassword (uid, credentials, transaction) {
     throw new Errors.InvalidCredentialsError()
   }
 
-  const authContext = await loadAuthContextByUserId(state.userId, transaction)
-  if (!authContext) {
-    await clearInteractionState(uid)
-    throw new Errors.AuthenticationError('Interaction session not found or expired')
+  return runInTransaction(async (transaction) => {
+    const result = await AuthMfaService.confirmMfa(state.userId, code, transaction)
+    const nextState = await setInteractionState(uid, {
+      enrollmentConfirmed: true,
+      mfaVerified: true
+    })
+    const authContext = await loadAuthContextByUserId(state.userId, transaction)
+
+    return {
+      step: resolveNextStep(authContext, nextState),
+      recoveryCodes: result.recoveryCodes
+    }
+  }, { priority: PRIORITY_INTERACTIVE, label: 'auth.interaction.confirmEnroll' })
+}
+
+async function submitChangePassword (uid, credentials) {
+  ensureEmbeddedMode()
+  await findInteraction(uid)
+
+  const state = await getInteractionState(uid)
+  if (!state || !state.userId) {
+    throw new Errors.InvalidCredentialsError()
   }
 
-  const step = resolveNextStep(authContext, state)
-  if (step !== 'change-password') {
-    throw new Errors.ValidationError(`Interaction step "${step}" is required before password change`)
-  }
+  return runInTransaction(async (transaction) => {
+    const authContext = await loadAuthContextByUserId(state.userId, transaction)
+    if (!authContext) {
+      await clearInteractionState(uid)
+      throw new Errors.AuthenticationError('Interaction session not found or expired')
+    }
 
-  await AuthUserService.changePasswordWithCurrent(
-    state.userId,
-    credentials.currentPassword,
-    credentials.newPassword,
-    transaction
-  )
+    const step = resolveNextStep(authContext, state)
+    if (step !== 'change-password') {
+      throw new Errors.ValidationError(`Interaction step "${step}" is required before password change`)
+    }
 
-  const nextState = await setInteractionState(uid, { passwordChanged: true })
-  const updatedContext = await loadAuthContextByUserId(state.userId, transaction)
+    await AuthUserService.changePasswordWithCurrent(
+      state.userId,
+      credentials.currentPassword,
+      credentials.newPassword,
+      transaction
+    )
 
-  return { step: resolveNextStep(updatedContext, nextState) }
+    const nextState = await setInteractionState(uid, { passwordChanged: true })
+    const updatedContext = await loadAuthContextByUserId(state.userId, transaction)
+
+    return { step: resolveNextStep(updatedContext, nextState) }
+  }, { priority: PRIORITY_INTERACTIVE, label: 'auth.interaction.changePassword' })
 }
 
 async function buildConsentGrant (provider, interaction, accountId) {
@@ -264,7 +277,7 @@ async function buildConsentGrant (provider, interaction, accountId) {
   return grantId
 }
 
-async function complete (uid, req, res, transaction) {
+async function complete (uid, req, res) {
   ensureEmbeddedMode()
 
   const interaction = await findInteraction(uid)
@@ -273,16 +286,20 @@ async function complete (uid, req, res, transaction) {
     throw new Errors.InvalidCredentialsError()
   }
 
-  const authContext = await loadAuthContextByUserId(state.userId, transaction)
-  if (!authContext) {
-    await clearInteractionState(uid)
-    throw new Errors.AuthenticationError('Interaction session not found or expired')
-  }
+  const authContext = await runInTransaction(async (transaction) => {
+    const context = await loadAuthContextByUserId(state.userId, transaction)
+    if (!context) {
+      await clearInteractionState(uid)
+      throw new Errors.AuthenticationError('Interaction session not found or expired')
+    }
 
-  const step = resolveNextStep(authContext, state)
-  if (step !== 'complete') {
-    throw new Errors.ValidationError(`Interaction step "${step}" is required before completion`)
-  }
+    const step = resolveNextStep(context, state)
+    if (step !== 'complete') {
+      throw new Errors.ValidationError(`Interaction step "${step}" is required before completion`)
+    }
+
+    return context
+  }, { priority: PRIORITY_INTERACTIVE, label: 'auth.interaction.complete.validate' })
 
   const provider = getProvider()
   const grantId = await buildConsentGrant(provider, interaction, state.userId)
@@ -291,7 +308,10 @@ async function complete (uid, req, res, transaction) {
     consent: { grantId }
   })
 
-  await AuthPolicyService.resetFailedLogin(authContext.user, transaction)
+  await runInTransaction(async (transaction) => {
+    await AuthPolicyService.resetFailedLogin(authContext.user, transaction)
+  }, { priority: PRIORITY_INTERACTIVE, label: 'auth.interaction.complete.reset-login' })
+
   await clearInteractionState(uid)
 
   return { redirectTo, step: 'complete' }

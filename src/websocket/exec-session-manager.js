@@ -1,5 +1,6 @@
 const WebSocket = require('ws')
 const logger = require('../logger')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 const MicroserviceExecSessionManager = require('../data/managers/microservice-exec-session-manager')
 const ChangeTrackingService = require('../services/change-tracking-service')
 const FogManager = require('../data/managers/iofog-manager')
@@ -166,16 +167,9 @@ class ExecSessionManager {
     const interval = this.config.session.cleanupInterval || 30000
     this.cleanupInterval = setInterval(async () => {
       try {
-        const models = require('../data/models')
-        const sequelize = models.sequelize
-        if (!sequelize) {
-          logger.warn('Sequelize not available, skipping exec session cleanup')
-          return
-        }
-
-        await sequelize.transaction(async (transaction) => {
+        await runInTransaction(async (transaction) => {
           await this.cleanupExpiredSessions(transaction)
-        })
+        }, { priority: PRIORITY_BACKGROUND, label: 'ws.execSessionCleanup' })
       } catch (error) {
         logger.error('Error during exec session cleanup:' + JSON.stringify({
           error: error.message,

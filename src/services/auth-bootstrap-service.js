@@ -8,6 +8,7 @@ const secretHelper = require('../helpers/secret-helper')
 const AuthPasswordService = require('./auth-password-service')
 const AuthPolicyService = require('./auth-policy-service')
 const AuthTokenService = require('./auth-token-service')
+const { runInTransaction } = require('../helpers/transaction-runner')
 const { ADMIN_GROUP } = require('./auth-mfa-service')
 
 const SYSTEM_GROUPS = ['admin', 'sre', 'developer', 'viewer']
@@ -111,102 +112,88 @@ async function createBootstrapUser (normalizedUsername, plainPassword, transacti
   return user
 }
 
-async function runBootstrap (outerTransaction) {
-  const transaction = outerTransaction || await db.sequelize.transaction()
-  const ownTransaction = !outerTransaction
+async function runBootstrapInternal (transaction) {
+  await ensureSystemGroups(transaction)
 
-  try {
-    await ensureSystemGroups(transaction)
-
-    let meta = await db.AuthBootstrapMeta.findByPk(1, {
-      transaction,
-      lock: transaction.LOCK.UPDATE
-    })
-    if (!meta) {
-      meta = await db.AuthBootstrapMeta.create({ id: 1 }, { transaction })
-    }
-
-    const existingBootstrap = await findBootstrapUser(transaction)
-    const { username, passwordRef, allowBootstrapLog } = getBootstrapConfig()
-
-    if (!username || !passwordRef) {
-      if (existingBootstrap) {
-        logger.warn('Embedded auth bootstrap env missing; keeping existing bootstrap admin')
-      } else {
-        logger.warn('Embedded auth bootstrap skipped: OIDC_BOOTSTRAP_ADMIN_USERNAME and OIDC_BOOTSTRAP_ADMIN_PASSWORD are required for first boot')
-      }
-      if (ownTransaction) {
-        await transaction.commit()
-      }
-      return { skipped: true, reason: existingBootstrap ? 'env_missing_keep_existing' : 'missing_credentials' }
-    }
-
-    const plainPassword = await resolveBootstrapPassword(passwordRef)
-    if (!plainPassword) {
-      if (existingBootstrap) {
-        logger.warn('Embedded auth bootstrap password could not be resolved; keeping existing bootstrap admin')
-      } else {
-        logger.warn('Embedded auth bootstrap skipped: bootstrap admin password could not be resolved')
-      }
-      if (ownTransaction) {
-        await transaction.commit()
-      }
-      return { skipped: true, reason: existingBootstrap ? 'env_missing_keep_existing' : 'missing_credentials' }
-    }
-
-    const policy = await AuthPolicyService.getPolicy(transaction)
-    AuthPasswordService.validatePasswordComplexity(plainPassword, policy)
-    const normalizedUsername = normalizeBootstrapUsername(username)
-
-    if (existingBootstrap) {
-      if (await bootstrapMatchesEnv(existingBootstrap, normalizedUsername, plainPassword)) {
-        await meta.update({
-          completedAt: new Date(),
-          bootstrapAdminUserId: existingBootstrap.id
-        }, { transaction })
-        if (ownTransaction) {
-          await transaction.commit()
-        }
-        return { skipped: true, reason: 'unchanged', userId: existingBootstrap.id, username: normalizedUsername }
-      }
-
-      logger.info(`Embedded auth bootstrap admin rotation: replacing ${existingBootstrap.email}`)
-      await hardDeleteBootstrapUser(existingBootstrap, transaction)
-    } else {
-      const conflictingUser = await db.AuthUser.findOne({
-        where: { email: normalizedUsername, deletedAt: null },
-        transaction
-      })
-      if (conflictingUser) {
-        logger.warn(`Embedded auth bootstrap skipped: user ${normalizedUsername} already exists and is not bootstrap`)
-        await meta.update({
-          completedAt: new Date(),
-          bootstrapAdminUserId: conflictingUser.id
-        }, { transaction })
-        if (ownTransaction) {
-          await transaction.commit()
-        }
-        return { skipped: true, reason: 'user_exists', userId: conflictingUser.id }
-      }
-    }
-
-    const user = await createBootstrapUser(normalizedUsername, plainPassword, transaction, allowBootstrapLog)
-
-    await meta.update({
-      completedAt: new Date(),
-      bootstrapAdminUserId: user.id
-    }, { transaction })
-
-    if (ownTransaction) {
-      await transaction.commit()
-    }
-    return { skipped: false, userId: user.id, username: normalizedUsername }
-  } catch (error) {
-    if (ownTransaction) {
-      await transaction.rollback()
-    }
-    throw error
+  let meta = await db.AuthBootstrapMeta.findByPk(1, {
+    transaction,
+    lock: transaction.LOCK.UPDATE
+  })
+  if (!meta) {
+    meta = await db.AuthBootstrapMeta.create({ id: 1 }, { transaction })
   }
+
+  const existingBootstrap = await findBootstrapUser(transaction)
+  const { username, passwordRef, allowBootstrapLog } = getBootstrapConfig()
+
+  if (!username || !passwordRef) {
+    if (existingBootstrap) {
+      logger.warn('Embedded auth bootstrap env missing; keeping existing bootstrap admin')
+    } else {
+      logger.warn('Embedded auth bootstrap skipped: OIDC_BOOTSTRAP_ADMIN_USERNAME and OIDC_BOOTSTRAP_ADMIN_PASSWORD are required for first boot')
+    }
+    return { skipped: true, reason: existingBootstrap ? 'env_missing_keep_existing' : 'missing_credentials' }
+  }
+
+  const plainPassword = await resolveBootstrapPassword(passwordRef)
+  if (!plainPassword) {
+    if (existingBootstrap) {
+      logger.warn('Embedded auth bootstrap password could not be resolved; keeping existing bootstrap admin')
+    } else {
+      logger.warn('Embedded auth bootstrap skipped: bootstrap admin password could not be resolved')
+    }
+    return { skipped: true, reason: existingBootstrap ? 'env_missing_keep_existing' : 'missing_credentials' }
+  }
+
+  const policy = await AuthPolicyService.getPolicy(transaction)
+  AuthPasswordService.validatePasswordComplexity(plainPassword, policy)
+  const normalizedUsername = normalizeBootstrapUsername(username)
+
+  if (existingBootstrap) {
+    if (await bootstrapMatchesEnv(existingBootstrap, normalizedUsername, plainPassword)) {
+      await meta.update({
+        completedAt: new Date(),
+        bootstrapAdminUserId: existingBootstrap.id
+      }, { transaction })
+      return { skipped: true, reason: 'unchanged', userId: existingBootstrap.id, username: normalizedUsername }
+    }
+
+    logger.info(`Embedded auth bootstrap admin rotation: replacing ${existingBootstrap.email}`)
+    await hardDeleteBootstrapUser(existingBootstrap, transaction)
+  } else {
+    const conflictingUser = await db.AuthUser.findOne({
+      where: { email: normalizedUsername, deletedAt: null },
+      transaction
+    })
+    if (conflictingUser) {
+      logger.warn(`Embedded auth bootstrap skipped: user ${normalizedUsername} already exists and is not bootstrap`)
+      await meta.update({
+        completedAt: new Date(),
+        bootstrapAdminUserId: conflictingUser.id
+      }, { transaction })
+      return { skipped: true, reason: 'user_exists', userId: conflictingUser.id }
+    }
+  }
+
+  const user = await createBootstrapUser(normalizedUsername, plainPassword, transaction, allowBootstrapLog)
+
+  await meta.update({
+    completedAt: new Date(),
+    bootstrapAdminUserId: user.id
+  }, { transaction })
+
+  return { skipped: false, userId: user.id, username: normalizedUsername }
+}
+
+async function runBootstrap (outerTransaction) {
+  if (outerTransaction) {
+    return runBootstrapInternal(outerTransaction)
+  }
+
+  return runInTransaction(
+    (transaction) => runBootstrapInternal(transaction),
+    { label: 'auth.bootstrap' }
+  )
 }
 
 module.exports = {

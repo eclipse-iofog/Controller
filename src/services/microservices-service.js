@@ -35,7 +35,6 @@ const SecretManager = require('../data/managers/secret-manager')
 const VolumeMountService = require('./volume-mount-service')
 const RbacServiceAccountManager = require('../data/managers/rbac-service-account-manager')
 const RbacRoleManager = require('../data/managers/rbac-role-manager')
-const RbacCacheVersionManager = require('../data/managers/rbac-cache-version-manager')
 const NatsAuthService = require('./nats-auth-service')
 const NatsUserRuleManager = require('../data/managers/nats-user-rule-manager')
 const NatsRuleJwtValidation = require('../helpers/nats-rule-jwt-validation')
@@ -67,28 +66,19 @@ async function _createOrUpdateServiceAccountForMicroservice (microserviceUuid, m
     throw new Errors.ValidationError(`Referenced role '${roleName}' does not exist`)
   }
 
-  const roleRef = {
-    kind: 'Role',
-    name: roleName
-  }
-
-  const existingServiceAccount = await RbacServiceAccountManager.findOneByMicroserviceUuid(microserviceUuid, transaction)
-
-  if (existingServiceAccount) {
-    await RbacServiceAccountManager.update({ id: existingServiceAccount.id }, { roleRef, name: microserviceName }, transaction)
-    await RbacCacheVersionManager.incrementVersion(transaction)
-    return RbacServiceAccountManager.findOne({ id: existingServiceAccount.id }, transaction)
-  }
-
   const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
   if (!microservice || microservice.applicationId == null) {
     throw new Errors.ValidationError('Microservice or application not found for service account creation')
   }
+
   return RbacServiceAccountManager.createServiceAccount({
     microserviceUuid,
     applicationId: microservice.applicationId,
     name: microserviceName,
-    roleRef
+    roleRef: {
+      kind: 'Role',
+      name: roleName
+    }
   }, transaction)
 }
 
@@ -1717,7 +1707,7 @@ async function createPortMappingEndPoint (microserviceUuid, portMappingData, isC
   if (!agent) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microservice.iofogUuid))
   }
-  await MicroservicePortService.validatePortMapping(agent, portMappingData, {}, transaction)
+  await MicroservicePortService.validatePortMapping(agent, portMappingData, transaction)
 
   return MicroservicePortService.createPortMapping(microservice, portMappingData, transaction)
 }
@@ -1738,7 +1728,7 @@ async function createSystemPortMappingEndPoint (microserviceUuid, portMappingDat
   if (!agent) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, microservice.iofogUuid))
   }
-  await MicroservicePortService.validatePortMapping(agent, portMappingData, {}, transaction)
+  await MicroservicePortService.validatePortMapping(agent, portMappingData, transaction)
 
   return MicroservicePortService.createPortMapping(microservice, portMappingData, transaction)
 }
@@ -2728,15 +2718,13 @@ async function reconcileNatsForApplication (applicationId, transaction) {
   }
 }
 
-const bypassOptions = { bypassQueue: true }
-
 module.exports = {
-  createMicroserviceEndPoint: TransactionDecorator.generateTransaction(createMicroserviceEndPoint, bypassOptions),
+  createMicroserviceEndPoint: TransactionDecorator.generateTransaction(createMicroserviceEndPoint),
   createPortMappingEndPoint: TransactionDecorator.generateTransaction(createPortMappingEndPoint),
   createSystemPortMappingEndPoint: TransactionDecorator.generateTransaction(createSystemPortMappingEndPoint),
   createVolumeMappingEndPoint: TransactionDecorator.generateTransaction(createVolumeMappingEndPoint),
   createSystemVolumeMappingEndPoint: TransactionDecorator.generateTransaction(createSystemVolumeMappingEndPoint),
-  deleteMicroserviceEndPoint: TransactionDecorator.generateTransaction(deleteMicroserviceEndPoint, bypassOptions),
+  deleteMicroserviceEndPoint: TransactionDecorator.generateTransaction(deleteMicroserviceEndPoint),
   deleteMicroserviceWithRoutesAndPortMappings,
   deleteNotRunningMicroservices,
   deletePortMappingEndPoint: TransactionDecorator.generateTransaction(deletePortMappingEndPoint),
@@ -2751,8 +2739,8 @@ module.exports = {
   listMicroservicesEndPoint: TransactionDecorator.generateTransaction(listMicroservicesEndPoint),
   listSystemMicroservicesEndPoint: TransactionDecorator.generateTransaction(listSystemMicroservicesEndPoint),
   listVolumeMappingsEndPoint: TransactionDecorator.generateTransaction(listVolumeMappingsEndPoint),
-  updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint, bypassOptions),
-  updateSystemMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateSystemMicroserviceEndPoint, bypassOptions),
+  updateMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceEndPoint),
+  updateSystemMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateSystemMicroserviceEndPoint),
   updateMicroserviceConfigEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceConfigEndPoint),
   getMicroserviceConfigEndPoint: TransactionDecorator.generateTransaction(getMicroserviceConfigEndPoint),
   getSystemMicroserviceConfigEndPoint: TransactionDecorator.generateTransaction(getSystemMicroserviceConfigEndPoint),
@@ -2765,7 +2753,7 @@ module.exports = {
   updateChangeTracking: _updateChangeTracking,
   startMicroserviceEndPoint: TransactionDecorator.generateTransaction(startMicroserviceEndPoint),
   stopMicroserviceEndPoint: TransactionDecorator.generateTransaction(stopMicroserviceEndPoint),
-  reconcileNatsForApplication: TransactionDecorator.generateTransaction(reconcileNatsForApplication, bypassOptions),
+  reconcileNatsForApplication: TransactionDecorator.generateTransaction(reconcileNatsForApplication),
   injectServiceAccountVolume: _injectServiceAccountVolume,
   stripUserServiceAccountVolumeMappings: _stripUserServiceAccountVolumeMappings,
   createOrUpdateServiceAccountForMicroservice: _createOrUpdateServiceAccountForMicroservice

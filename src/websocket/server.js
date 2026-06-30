@@ -174,9 +174,7 @@ class WebSocketServer {
       if (!session || !session.user || !session.agent) return
       session.activationSent = false
       try {
-        await TransactionDecorator.generateTransaction(async (tx) => {
-          await this.sendExecActivationToExecSession(session, sessionId, tx)
-        })()
+        await this.sendExecActivationToExecSession(session, sessionId)
       } catch (error) {
         logger.error('[RELAY] Failed to resend exec activation after relay recovery', {
           sessionId,
@@ -406,6 +404,31 @@ class WebSocketServer {
       return false
     }
     return true
+  }
+
+  _scheduleRelaySetupAfterCommit (label, setupFn) {
+    setImmediate(async () => {
+      try {
+        await setupFn()
+      } catch (error) {
+        logger.error(`Failed to ${label}:` + JSON.stringify({
+          error: error.message,
+          stack: error.stack
+        }))
+      }
+    })
+  }
+
+  async _cleanupLogSessionInTransaction (sessionId) {
+    await TransactionDecorator.generateTransaction(async (transaction) => {
+      await this.cleanupLogSession(sessionId, transaction)
+    }, { label: 'ws.log.cleanup' })()
+  }
+
+  async _cleanupExecSessionInTransaction (sessionId) {
+    await TransactionDecorator.generateTransaction(async (transaction) => {
+      await this.cleanupExecSession(sessionId, transaction)
+    }, { label: 'ws.exec.cleanup' })()
   }
 
   async countLogSessionsInDb (microserviceUuid, fogUuid, transaction) {
@@ -899,7 +922,10 @@ class WebSocketServer {
         }))
       }
 
-      await this.setupExecMessageForwarding(sessionId, transaction)
+      this._scheduleRelaySetupAfterCommit(
+        'setup exec message forwarding',
+        () => this.setupExecMessageForwarding(sessionId)
+      )
 
       const EXEC_PENDING_TIMEOUT = this.getExecPendingTimeoutMs()
       const pendingTimer = setTimeout(async () => {
@@ -1055,7 +1081,10 @@ class WebSocketServer {
         session.activationSent = false
       }
 
-      await this.setupExecMessageForwarding(sessionId, transaction)
+      this._scheduleRelaySetupAfterCommit(
+        'setup exec message forwarding',
+        () => this.setupExecMessageForwarding(sessionId)
+      )
 
       if (session.user && session.user.readyState === WebSocket.OPEN) {
         try {
@@ -1224,7 +1253,7 @@ class WebSocketServer {
   //   return noisePatterns.some(pattern => pattern.test(output))
   // }
 
-  async sendExecActivationToExecSession (session, sessionId, transaction) {
+  async sendExecActivationToExecSession (session, sessionId) {
     if (!session.user || !session.agent) {
       return false
     }
@@ -1261,7 +1290,7 @@ class WebSocketServer {
           microserviceUuid: session.microserviceUuid
         }))
         if (session.agent) {
-          await this.cleanupExecSession(sessionId, transaction)
+          await this._cleanupExecSessionInTransaction(sessionId)
         }
       }
       return success
@@ -1271,7 +1300,7 @@ class WebSocketServer {
         error: error.message
       }))
       if (session.agent) {
-        await this.cleanupExecSession(sessionId, transaction)
+        await this._cleanupExecSessionInTransaction(sessionId)
       }
       return false
     }
@@ -1926,8 +1955,11 @@ class WebSocketServer {
         }))
       }
 
-      // 9. Setup message forwarding (will be activated when agent connects)
-      await this.setupLogMessageForwarding(sessionId, transaction)
+      // 9. Relay setup after DB transaction commits (NATS hub lookup uses background writes).
+      this._scheduleRelaySetupAfterCommit(
+        'setup log message forwarding',
+        () => this.setupLogMessageForwarding(sessionId)
+      )
 
       // Pending timeout: close if agent does not connect within logPendingTimeoutMs
       const LOG_PENDING_TIMEOUT = this.getLogPendingTimeoutMs()
@@ -2176,12 +2208,12 @@ class WebSocketServer {
 
         if (msg.type === MESSAGE_TYPES.LOG_LINE) {
           // Forward to user (one-to-one, like exec sessions)
-          await this.forwardLogToUser(sessionId, buffer, transaction)
+          await this.forwardLogToUser(sessionId, buffer)
         } else if (msg.type === MESSAGE_TYPES.LOG_START ||
                  msg.type === MESSAGE_TYPES.LOG_STOP ||
                  msg.type === MESSAGE_TYPES.LOG_ERROR) {
           // Handle control messages
-          await this.forwardLogToUser(sessionId, buffer, transaction)
+          await this.forwardLogToUser(sessionId, buffer)
         }
       })
 
@@ -2230,8 +2262,11 @@ class WebSocketServer {
         }
       }
 
-      // 8. Setup message forwarding (unidirectional: agent → user, one-to-one)
-      await this.setupLogMessageForwarding(sessionId, transaction)
+      // 8. Relay setup after DB transaction commits (NATS hub lookup uses background writes).
+      this._scheduleRelaySetupAfterCommit(
+        'setup log message forwarding',
+        () => this.setupLogMessageForwarding(sessionId)
+      )
 
       // 9. Record WebSocket connection event (non-blocking)
       setImmediate(async () => {
@@ -2352,7 +2387,7 @@ class WebSocketServer {
     }
   }
 
-  async setupLogMessageForwarding (sessionId, transaction) {
+  async setupLogMessageForwarding (sessionId) {
     const session = this.logSessionManager.getLogSession(sessionId)
     if (!session) {
       logger.warn('setupLogMessageForwarding: Session not found:' + JSON.stringify({ sessionId }))
@@ -2360,8 +2395,8 @@ class WebSocketServer {
     }
 
     // Enable queue bridge for cross-replica support (one-to-one, like exec sessions)
-    await this.relayTransport.enableForLogSession(session, (sessionId) => {
-      this.cleanupLogSession(sessionId, transaction)
+    await this.relayTransport.enableForLogSession(session, (closedSessionId) => {
+      this._cleanupLogSessionInTransaction(closedSessionId)
     })
 
     // ONLY agent → user forwarding (unidirectional, one-to-one)
@@ -2407,12 +2442,12 @@ class WebSocketServer {
 
         if (msg.type === MESSAGE_TYPES.LOG_LINE) {
           // Forward to user (one-to-one, like exec sessions)
-          await this.forwardLogToUser(sessionId, buffer, transaction)
+          await this.forwardLogToUser(sessionId, buffer)
         } else if (msg.type === MESSAGE_TYPES.LOG_START ||
                  msg.type === MESSAGE_TYPES.LOG_STOP ||
                  msg.type === MESSAGE_TYPES.LOG_ERROR) {
           // Handle control messages
-          await this.forwardLogToUser(sessionId, buffer, transaction)
+          await this.forwardLogToUser(sessionId, buffer)
         }
       })
     } else {
@@ -2456,7 +2491,7 @@ class WebSocketServer {
     return true
   }
 
-  async forwardLogToUser (sessionId, buffer, transaction) {
+  async forwardLogToUser (sessionId, buffer) {
     const session = this.logSessionManager.getLogSession(sessionId)
     if (!session) {
       logger.warn('forwardLogToUser: Session not found:' + JSON.stringify({ sessionId }))
@@ -2523,7 +2558,7 @@ class WebSocketServer {
     await this.relayTransport.cleanupLogSession(sessionId)
   }
 
-  async setupExecMessageForwarding (sessionId, transaction) {
+  async setupExecMessageForwarding (sessionId) {
     const session = this.execSessionManager.getExecSession(sessionId)
     if (!session) {
       logger.warn('setupExecMessageForwarding: Session not found:' + JSON.stringify({ sessionId }))
@@ -2541,7 +2576,7 @@ class WebSocketServer {
           clearTimeout(timeout)
           this.pendingCloseTimeouts.delete(closeExecId)
         }
-        await this.cleanupExecSession(closeExecId, transaction)
+        await this._cleanupExecSessionInTransaction(closeExecId)
       })
       session.queueBridgeEnabled = true
       if (!wasQueueBridgeEnabled) {
@@ -2567,7 +2602,7 @@ class WebSocketServer {
         if (session.agent && session.agent.readyState === WebSocket.OPEN) {
           session.agent.close(RELAY_UNAVAILABLE_CLOSE_CODE, RELAY_UNAVAILABLE_CLOSE_REASON)
         }
-        await this.cleanupExecSession(sessionId, transaction)
+        await this._cleanupExecSessionInTransaction(sessionId)
         return
       }
       logger.warn('[RELAY] Failed to enable relay bridge for exec session', {
@@ -2578,7 +2613,7 @@ class WebSocketServer {
     }
 
     if (user && agent) {
-      const activated = await this.sendExecActivationToExecSession(session, sessionId, transaction)
+      const activated = await this.sendExecActivationToExecSession(session, sessionId)
       if (!activated) {
         logger.error('[RELAY] Exec session activation failed; aborting message forwarding setup', {
           sessionId,
@@ -2610,7 +2645,7 @@ class WebSocketServer {
           const sent = await this.sendMessageToAgent(session.agent, msg, execId, session.microserviceUuid)
           if (!sent && this.relayTransport.shouldUseRelay(execId)) {
             logger.error('[RELAY] Exec relay publish failed; closing session', { sessionId: execId })
-            await this.cleanupExecSession(execId, transaction)
+            await this._cleanupExecSessionInTransaction(execId)
           }
           return
         }
@@ -2633,7 +2668,7 @@ class WebSocketServer {
                 if (currentSession && currentSession.user && currentSession.user.readyState === WebSocket.OPEN) {
                   try {
                     currentSession.user.close(1000, 'Session closed (timeout)')
-                    await this.cleanupExecSession(execId, transaction)
+                    await this._cleanupExecSessionInTransaction(execId)
                   } catch (error) {
                     logger.error('[RELAY] Failed to close exec user socket on CLOSE timeout', {
                       sessionId: execId,
@@ -2650,7 +2685,7 @@ class WebSocketServer {
             if (user && user.readyState === WebSocket.OPEN) {
               user.close(1000, 'Session closed')
             }
-            await this.cleanupExecSession(execId, transaction)
+            await this._cleanupExecSessionInTransaction(execId)
             return
           }
 
@@ -2673,7 +2708,7 @@ class WebSocketServer {
           const sent = await this.sendMessageToAgent(session.agent, msg, execId, session.microserviceUuid)
           if (!sent && this.relayTransport.shouldUseRelay(execId)) {
             logger.error('[RELAY] Exec relay publish failed; closing session', { sessionId: execId })
-            await this.cleanupExecSession(execId, transaction)
+            await this._cleanupExecSessionInTransaction(execId)
           }
         } catch (error) {
           logger.error('[RELAY] Failed to process exec user message:' + JSON.stringify({
@@ -2709,7 +2744,7 @@ class WebSocketServer {
             } else if (session.user && session.user.readyState === WebSocket.OPEN) {
               session.user.close(1000, 'Agent closed connection')
             }
-            await this.cleanupExecSession(execId, transaction)
+            await this._cleanupExecSessionInTransaction(execId)
             return
           }
 
@@ -2722,7 +2757,7 @@ class WebSocketServer {
                 sessionId: execId,
                 error: error.message
               })
-              await this.cleanupExecSession(execId, transaction)
+              await this._cleanupExecSessionInTransaction(execId)
             }
           } else if (session.user && session.user.readyState === WebSocket.OPEN) {
             if (msg.type === MESSAGE_TYPES.STDOUT || msg.type === MESSAGE_TYPES.STDERR) {

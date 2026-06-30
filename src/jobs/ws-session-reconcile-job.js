@@ -10,6 +10,7 @@ const MicroserviceManager = require('../data/managers/microservice-manager')
 const ChangeTrackingService = require('../services/change-tracking-service')
 const FogManager = require('../data/managers/iofog-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const { PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 function getIntervalMs () {
   const seconds = process.env.WS_SESSION_RECONCILE_INTERVAL_SECONDS ||
@@ -31,7 +32,7 @@ async function run () {
   }
 }
 
-async function reconcileStaleSessions () {
+async function reconcileStaleSessionsInTransaction (transaction) {
   const wsServer = WebSocketServer.getInstance()
   const execSessionManager = wsServer.execSessionManager
   const logSessionManager = wsServer.logSessionManager
@@ -45,108 +46,115 @@ async function reconcileStaleSessions () {
   let execCleaned = 0
   let logCleaned = 0
 
-  await TransactionDecorator.generateTransaction(async (transaction) => {
-    const execRows = await MicroserviceExecSessionManager.findAll({
-      status: { [Op.in]: ['PENDING', 'ACTIVE'] }
-    }, transaction)
+  const execRows = await MicroserviceExecSessionManager.findAll({
+    status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+  }, transaction)
 
-    for (const row of execRows) {
-      const sessionId = row.sessionId
-      const microserviceUuid = row.microserviceUuid
-      if (!sessionId || !microserviceUuid) continue
+  for (const row of execRows) {
+    const sessionId = row.sessionId
+    const microserviceUuid = row.microserviceUuid
+    if (!sessionId || !microserviceUuid) continue
 
-      if (execSessionManager.getExecSession(sessionId)) continue
+    if (execSessionManager.getExecSession(sessionId)) continue
 
-      const age = now - new Date(row.updatedAt).getTime()
-      const threshold = row.status === 'PENDING' ? execPendingTimeout : execMaxDuration
-      if (age < threshold) continue
+    const age = now - new Date(row.updatedAt).getTime()
+    const threshold = row.status === 'PENDING' ? execPendingTimeout : execMaxDuration
+    if (age < threshold) continue
 
-      await MicroserviceExecSessionManager.deleteBySessionId(sessionId, transaction)
+    await MicroserviceExecSessionManager.deleteBySessionId(sessionId, transaction)
 
-      const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
-      if (microservice) {
-        await ChangeTrackingService.update(
-          microservice.iofogUuid,
-          ChangeTrackingService.events.microserviceExecSessions,
-          transaction
-        )
-      }
-
-      execCleaned++
-      logger.info('Reconciled stale exec session row:' + JSON.stringify({
-        sessionId,
-        microserviceUuid,
-        status: row.status,
-        ageMs: age
-      }))
+    const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
+    if (microservice) {
+      await ChangeTrackingService.update(
+        microservice.iofogUuid,
+        ChangeTrackingService.events.microserviceExecSessions,
+        transaction
+      )
     }
 
-    const msLogRows = await MicroserviceLogStatusManager.findAll({
-      status: { [Op.in]: ['PENDING', 'ACTIVE'] }
-    }, transaction)
+    execCleaned++
+    logger.info('Reconciled stale exec session row:' + JSON.stringify({
+      sessionId,
+      microserviceUuid,
+      status: row.status,
+      ageMs: age
+    }))
+  }
 
-    for (const row of msLogRows) {
-      if (logSessionManager.getLogSession(row.sessionId)) continue
+  const msLogRows = await MicroserviceLogStatusManager.findAll({
+    status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+  }, transaction)
 
-      const age = now - new Date(row.updatedAt).getTime()
-      const threshold = row.status === 'PENDING' ? logPendingTimeout : logIdleTimeout
-      if (age < threshold) continue
+  for (const row of msLogRows) {
+    if (logSessionManager.getLogSession(row.sessionId)) continue
 
-      await MicroserviceLogStatusManager.delete({ sessionId: row.sessionId }, transaction)
-      logCleaned++
+    const age = now - new Date(row.updatedAt).getTime()
+    const threshold = row.status === 'PENDING' ? logPendingTimeout : logIdleTimeout
+    if (age < threshold) continue
 
-      const microservice = await MicroserviceManager.findOne({ uuid: row.microserviceUuid }, transaction)
-      if (microservice) {
-        await ChangeTrackingService.update(
-          microservice.iofogUuid,
-          ChangeTrackingService.events.microserviceLogs,
-          transaction
-        )
-      }
+    await MicroserviceLogStatusManager.delete({ sessionId: row.sessionId }, transaction)
+    logCleaned++
 
-      logger.info('Reconciled stale microservice log row:' + JSON.stringify({
-        sessionId: row.sessionId,
-        microserviceUuid: row.microserviceUuid,
-        status: row.status,
-        ageMs: age
-      }))
+    const microservice = await MicroserviceManager.findOne({ uuid: row.microserviceUuid }, transaction)
+    if (microservice) {
+      await ChangeTrackingService.update(
+        microservice.iofogUuid,
+        ChangeTrackingService.events.microserviceLogs,
+        transaction
+      )
     }
 
-    const fogLogRows = await FogLogStatusManager.findAll({
-      status: { [Op.in]: ['PENDING', 'ACTIVE'] }
-    }, transaction)
+    logger.info('Reconciled stale microservice log row:' + JSON.stringify({
+      sessionId: row.sessionId,
+      microserviceUuid: row.microserviceUuid,
+      status: row.status,
+      ageMs: age
+    }))
+  }
 
-    for (const row of fogLogRows) {
-      if (logSessionManager.getLogSession(row.sessionId)) continue
+  const fogLogRows = await FogLogStatusManager.findAll({
+    status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+  }, transaction)
 
-      const age = now - new Date(row.updatedAt).getTime()
-      const threshold = row.status === 'PENDING' ? logPendingTimeout : logIdleTimeout
-      if (age < threshold) continue
+  for (const row of fogLogRows) {
+    if (logSessionManager.getLogSession(row.sessionId)) continue
 
-      await FogLogStatusManager.delete({ sessionId: row.sessionId }, transaction)
-      logCleaned++
+    const age = now - new Date(row.updatedAt).getTime()
+    const threshold = row.status === 'PENDING' ? logPendingTimeout : logIdleTimeout
+    if (age < threshold) continue
 
-      const fog = await FogManager.findOne({ uuid: row.iofogUuid }, transaction)
-      if (fog) {
-        await ChangeTrackingService.update(
-          fog.uuid,
-          ChangeTrackingService.events.fogLogs,
-          transaction
-        )
-      }
+    await FogLogStatusManager.delete({ sessionId: row.sessionId }, transaction)
+    logCleaned++
 
-      logger.info('Reconciled stale fog log row:' + JSON.stringify({
-        sessionId: row.sessionId,
-        iofogUuid: row.iofogUuid,
-        status: row.status,
-        ageMs: age
-      }))
+    const fog = await FogManager.findOne({ uuid: row.iofogUuid }, transaction)
+    if (fog) {
+      await ChangeTrackingService.update(
+        fog.uuid,
+        ChangeTrackingService.events.fogLogs,
+        transaction
+      )
     }
-  })()
+
+    logger.info('Reconciled stale fog log row:' + JSON.stringify({
+      sessionId: row.sessionId,
+      iofogUuid: row.iofogUuid,
+      status: row.status,
+      ageMs: age
+    }))
+  }
 
   if (execCleaned > 0 || logCleaned > 0) {
     logger.info(`WS session reconcile completed: ${execCleaned} exec, ${logCleaned} log rows cleaned`)
   }
+}
+
+const _reconcileStaleSessions = TransactionDecorator.generateTransaction(
+  reconcileStaleSessionsInTransaction,
+  { priority: PRIORITY_BACKGROUND, label: 'ws.sessionReconcile' }
+)
+
+async function reconcileStaleSessions () {
+  await _reconcileStaleSessions()
 }
 
 module.exports = {

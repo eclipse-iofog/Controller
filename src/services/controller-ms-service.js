@@ -227,8 +227,11 @@ async function _updateImages (images, microserviceUuid, transaction) {
   await _createMicroserviceImages(microserviceUuid, images, transaction)
 }
 
-async function _updatePorts (ports, microservice, transaction) {
+async function _updatePorts (ports, microservice, fog, transaction) {
   await MicroservicePortService.deletePortMappings(microservice, transaction)
+  if (ports && ports.length) {
+    await MicroservicePortService.validatePortMappings({ ports, iofogUuid: fog.uuid }, transaction)
+  }
   for (const mapping of ports) {
     await MicroservicePortService.createPortMapping(microservice, mapping, transaction)
   }
@@ -321,8 +324,7 @@ async function _updateControllerMicroservice (existing, registerData, fog, valid
   )
 
   if (registerData.ports) {
-    await MicroservicePortService.validatePortMappings({ ports: registerData.ports, iofogUuid: fog.uuid }, transaction)
-    await _updatePorts(registerData.ports, updatedMicroservice, transaction)
+    await _updatePorts(registerData.ports, updatedMicroservice, fog, transaction)
   }
 
   if (registerData.volumeMappings) {
@@ -382,8 +384,6 @@ async function registerControllerMicroservice (registerData, fog, transaction) {
   return { uuid: registerData.uuid }
 }
 
-const bypassOptions = { bypassQueue: true }
-
 module.exports = {
-  registerControllerMicroservice: TransactionDecorator.generateTransaction(registerControllerMicroservice, bypassOptions)
+  registerControllerMicroservice: TransactionDecorator.generateTransaction(registerControllerMicroservice)
 }

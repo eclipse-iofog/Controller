@@ -1,5 +1,6 @@
 const WebSocket = require('ws')
 const logger = require('../logger')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 const MicroserviceLogStatusManager = require('../data/managers/microservice-log-status-manager')
 const FogLogStatusManager = require('../data/managers/fog-log-status-manager')
 const ChangeTrackingService = require('../services/change-tracking-service')
@@ -190,16 +191,9 @@ class LogSessionManager {
     const interval = this.config.session.cleanupInterval || 30000 // Default 30 seconds
     this.cleanupInterval = setInterval(async () => {
       try {
-        const models = require('../data/models')
-        const sequelize = models.sequelize
-        if (!sequelize) {
-          logger.warn('Sequelize not available, skipping log session cleanup')
-          return
-        }
-
-        await sequelize.transaction(async (transaction) => {
+        await runInTransaction(async (transaction) => {
           await this.cleanupExpiredSessions(transaction)
-        })
+        }, { priority: PRIORITY_BACKGROUND, label: 'ws.logSessionCleanup' })
       } catch (error) {
         logger.error('Error during log session cleanup:' + JSON.stringify({
           error: error.message,

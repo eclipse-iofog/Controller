@@ -446,14 +446,12 @@ async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (cond
   }
 }
 
-const bypassOptions = { bypassQueue: true }
-
 module.exports = {
-  createApplicationEndPoint: TransactionDecorator.generateTransaction(createApplicationEndPoint, bypassOptions),
-  deleteApplicationEndPoint: TransactionDecorator.generateTransaction(deleteApplicationEndPoint, bypassOptions),
-  deleteSystemApplicationEndPoint: TransactionDecorator.generateTransaction(deleteSystemApplicationEndPoint, bypassOptions),
-  updateApplicationEndPoint: TransactionDecorator.generateTransaction(updateApplicationEndPoint, bypassOptions),
-  patchApplicationEndPoint: TransactionDecorator.generateTransaction(patchApplicationEndPoint, bypassOptions),
+  createApplicationEndPoint: TransactionDecorator.generateTransaction(createApplicationEndPoint),
+  deleteApplicationEndPoint: TransactionDecorator.generateTransaction(deleteApplicationEndPoint),
+  deleteSystemApplicationEndPoint: TransactionDecorator.generateTransaction(deleteSystemApplicationEndPoint),
+  updateApplicationEndPoint: TransactionDecorator.generateTransaction(updateApplicationEndPoint),
+  patchApplicationEndPoint: TransactionDecorator.generateTransaction(patchApplicationEndPoint),
   getUserApplicationsEndPoint: TransactionDecorator.generateTransaction(getUserApplicationsEndPoint),
   getSystemApplicationsEndPoint: TransactionDecorator.generateTransaction(getSystemApplicationsEndPoint),
   getAllApplicationsEndPoint: TransactionDecorator.generateTransaction(getAllApplicationsEndPoint),

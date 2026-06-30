@@ -18,7 +18,7 @@ async function findVolumeMountedFogNodes (volumeMountName, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.VOLUME_MOUNT_NOT_FOUND, volumeMountName))
   }
 
-  const fogs = await volumeMount.getFogs({}, transaction)
+  const fogs = await volumeMount.getFogs({ transaction })
   return fogs.map(fog => fog.uuid)
 }
 
@@ -158,7 +158,7 @@ async function linkVolumeMountEndpoint (name, fogUuids, transaction) {
     if (!agent) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_AGENT_NAME, fogUuid))
     }
-    await agent.addVolumeMount(volumeMount.uuid, transaction)
+    await agent.addVolumeMount(volumeMount, { transaction })
   }
 
   const newlyLinked = fogUuids.filter((uuid) => !alreadyLinked.has(uuid))
@@ -179,7 +179,7 @@ async function unlinkVolumeMountEndpoint (name, fogUuids, transaction) {
     if (!agent) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.NOT_FOUND_AGENT_NAME, fogUuid))
     }
-    await agent.removeVolumeMount(volumeMount.uuid, transaction)
+    await agent.removeVolumeMount(volumeMount, { transaction })
   }
 
   // Update change tracking for all unlinked fog nodes
