@@ -251,6 +251,11 @@ async function updateConfig (routerID, containerEngine, transaction) {
     newConfig.connectors[connectorConfig.name] = connectorConfig
   }
 
+  // Service platform owns bridges.tcpConnectors/tcpListeners; fog recompute rebuilds listeners.
+  if (currentConfig.bridges) {
+    newConfig.bridges = JSON.parse(JSON.stringify(currentConfig.bridges))
+  }
+
   await _ensureRouterTlsVolumeMountsAndMappings(router.iofogUuid, routerMicroservice.uuid, transaction, true)
   await ChangeTrackingService.update(router.iofogUuid, ChangeTrackingService.events.microserviceConfig, transaction)
 

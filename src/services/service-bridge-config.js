@@ -11,7 +11,7 @@ const ErrorMessages = require('../helpers/error-messages')
 const AppHelper = require('../helpers/app-helper')
 
 function isServiceDerivedBridgeKey (name) {
-  return typeof name === 'string' && (name.endsWith('-listener') || name.endsWith('-connector'))
+  return typeof name === 'string' && name.endsWith('-listener')
 }
 
 function stripServiceDerivedBridges (config) {
@@ -24,13 +24,6 @@ function stripServiceDerivedBridges (config) {
     for (const key of Object.keys(result.bridges.tcpListeners)) {
       if (isServiceDerivedBridgeKey(key)) {
         delete result.bridges.tcpListeners[key]
-      }
-    }
-  }
-  if (result.bridges.tcpConnectors) {
-    for (const key of Object.keys(result.bridges.tcpConnectors)) {
-      if (isServiceDerivedBridgeKey(key)) {
-        delete result.bridges.tcpConnectors[key]
       }
     }
   }

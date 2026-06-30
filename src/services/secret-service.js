@@ -11,8 +11,7 @@ const Validator = require('../schemas/index')
 const VolumeMountService = require('./volume-mount-service')
 const VolumeMountingManager = require('../data/managers/volume-mounting-manager')
 const CertificateManager = require('../data/managers/certificate-manager')
-const SecretHelper = require('../helpers/secret-helper')
-const vaultManager = require('../vault/vault-manager')
+const { scheduleVaultDeleteAfterCommit } = require('../helpers/vault-transaction-helper')
 
 function validateBase64 (value) {
   try {
@@ -186,37 +185,22 @@ async function deleteSecretEndpoint (secretName, transaction) {
         }
         await CertificateManager.deleteCertificate(certificate.name, transaction)
         await SecretManager.deleteSecret(secretName, transaction)
-        // Remove secret from external vault if configured
-        if (vaultManager.isEnabled()) {
-          await SecretHelper.deleteSecret(secretName, existingSecret.type)
-        }
         await _deleteVolumeMountsUsingSecret(secretName, transaction)
       } else {
         await CertificateManager.deleteCertificate(certificate.name, transaction)
         await _deleteVolumeMountsUsingSecret(secretName, transaction)
         await SecretManager.deleteSecret(secretName, transaction)
-        // Remove secret from external vault if configured
-        if (vaultManager.isEnabled()) {
-          await SecretHelper.deleteSecret(secretName, existingSecret.type)
-        }
       }
     } else {
-      // Delete secret from database and external vault
       await SecretManager.deleteSecret(secretName, transaction)
       await _deleteVolumeMountsUsingSecret(secretName, transaction)
-      // Remove secret from external vault if configured
-      if (vaultManager.isEnabled()) {
-        await SecretHelper.deleteSecret(secretName, existingSecret.type)
-      }
     }
   } else {
     await SecretManager.deleteSecret(secretName, transaction)
     await _deleteVolumeMountsUsingSecret(secretName, transaction)
-    // Remove secret from external vault if configured
-    if (vaultManager.isEnabled()) {
-      await SecretHelper.deleteSecret(secretName, existingSecret.type)
-    }
   }
+
+  scheduleVaultDeleteAfterCommit(transaction, secretName, existingSecret.type)
   return {}
 }
 

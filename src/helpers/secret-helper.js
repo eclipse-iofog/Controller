@@ -21,39 +21,22 @@ class SecretHelper {
    * @param {boolean} useVault - For ConfigMaps: whether to use vault (optional, defaults to true if vault enabled)
    * @returns {Promise<string>} - Returns encrypted data or vault reference
    */
-  async encryptSecret (secretData, secretName, secretType = null, useVault = null) {
+  _shouldUseVault (secretType, useVault) {
     const isConfigMap = secretType === 'configmap'
 
-    // Determine if vault should be used
-    let shouldUseVault = false
-
     if (isConfigMap) {
-      // For ConfigMaps, check the useVault parameter
       if (useVault === false) {
-        // Explicitly disabled - use internal encryption
-        shouldUseVault = false
-      } else if (useVault === true || useVault === null) {
-        // Explicitly enabled or default (null) - use vault if enabled
-        shouldUseVault = vaultManager.isEnabled()
+        return false
       }
-    } else {
-      // For non-ConfigMaps (Secrets, Agent Auth Keys), always use vault if enabled
-      shouldUseVault = vaultManager.isEnabled()
-    }
-
-    // If vault should be used, store in vault
-    if (shouldUseVault) {
-      try {
-        const vaultPath = await vaultManager.store(secretName, secretType, secretData)
-        // Return vault reference that will be stored in database
-        return `${this.VAULT_REF_PREFIX}${vaultPath}`
-      } catch (error) {
-        logger.error(`Failed to store secret in vault: ${error.message}`)
-        throw error
+      if (useVault === true || useVault === null) {
+        return vaultManager.isEnabled()
       }
     }
 
-    // Fallback to internal encryption
+    return vaultManager.isEnabled()
+  }
+
+  async encryptSecretInternal (secretData, secretName) {
     const salt = crypto.randomBytes(this.SALT_LENGTH)
     const key = await this._deriveKey(secretName, salt)
     const iv = crypto.randomBytes(this.IV_LENGTH)
@@ -64,6 +47,28 @@ class SecretHelper {
     ])
     const tag = cipher.getAuthTag()
     return Buffer.concat([salt, iv, tag, encrypted]).toString('base64')
+  }
+
+  async storeInVaultAndGetReference (secretData, secretName, secretType = null, useVault = null) {
+    if (!this._shouldUseVault(secretType, useVault)) {
+      throw new Error('Vault storage requested but vault is not configured for this resource')
+    }
+
+    try {
+      const vaultPath = await vaultManager.store(secretName, secretType, secretData)
+      return `${this.VAULT_REF_PREFIX}${vaultPath}`
+    } catch (error) {
+      logger.error(`Failed to store secret in vault: ${error.message}`)
+      throw error
+    }
+  }
+
+  async encryptSecret (secretData, secretName, secretType = null, useVault = null) {
+    if (this._shouldUseVault(secretType, useVault)) {
+      return this.storeInVaultAndGetReference(secretData, secretName, secretType, useVault)
+    }
+
+    return this.encryptSecretInternal(secretData, secretName)
   }
 
   /**

@@ -12,6 +12,8 @@ const NatsAccountRuleManager = require('../data/managers/nats-account-rule-manag
 const NatsUserRuleManager = require('../data/managers/nats-user-rule-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const ReconcileOutboxManager = require('../data/managers/reconcile-outbox-manager')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 const logger = require('../logger')
 const NatsSystemRules = require('../config/nats-system-rules')
 const { slugifyName } = require('../helpers/system-naming')
@@ -225,28 +227,22 @@ function _normalizeSystemUserRuleForPersistence (rule) {
 }
 
 /**
- * NATS reconciliation is triggered in two ways:
- * (A) From this module: _triggerResolverArtifactsReconcile calls NatsService.enqueueReconcileTask (fire-and-forget).
- *     Call sites: ensureOperator, rotateOperator, ensureSystemAccount, createUserForAccount, ensureAccountForApplication,
- *     createAccountForApplication, ensureUserForMicroservice, createMqttBearerUser, ensureLeafSystemAccount,
- *     reissueAccountForApplication, reissueUserForMicroservice, deleteAccountForApplication, revokeMicroserviceUser,
- *     reissueForAccountRule, reissueForUserRule, revokeUserByAccountAndName, deleteLeafSystemArtifactsForFog, etc.
- * (B) From nats-service: enqueueReconcileTask(..., transaction) inside ensureNatsForFog (cluster-routes-changed) and
- *     cleanupNatsForFog (server-deleted).
- * All API endpoints that trigger reconciliation use the transaction-queue bypass (bypassQueue: true) so requests
- * do not wait behind long-running reconcile jobs.
+ * NATS reconciliation is scheduled via ReconcileOutbox in the same transaction as auth mutations.
+ * The outbox drainer upserts NatsReconcileTask rows. Cluster-route changes in nats-service also
+ * enqueue outbox rows in the same transaction.
  */
-function _triggerResolverArtifactsReconcile (triggerOptions = {}) {
+async function _enqueueNatsReconcileOutbox (triggerOptions = {}, transaction) {
   if (triggerOptions.triggerReconcile === false) {
-    return
+    return null
   }
-  const NatsService = require('./nats-service')
-  if (NatsService && typeof NatsService.enqueueReconcileTask === 'function') {
-    const options = { reason: 'auth-mutation', ...triggerOptions }
-    NatsService.enqueueReconcileTask(options).catch((err) => {
-      logger.error(`NATS reconcile enqueue failed: ${err.message}`)
-    })
+  const payload = { reason: 'auth-mutation', ...triggerOptions }
+  if (transaction) {
+    return ReconcileOutboxManager.enqueueNats(payload, transaction)
   }
+  return runInTransaction(
+    (tx) => ReconcileOutboxManager.enqueueNats(payload, tx),
+    { priority: PRIORITY_BACKGROUND, label: 'natsAuth.outboxEnqueue' }
+  )
 }
 
 function _runBackgroundTask (label, task) {
@@ -289,9 +285,14 @@ async function _upsertOpaqueSecret (name, data, transaction) {
   }
 }
 
+const Transaction = require('sequelize/lib/transaction')
+
 function _triggerOptionsFromArgs (args) {
   const second = args[0]
-  return (second && typeof second === 'object' && !second.fakeTransaction) ? second : {}
+  if (second instanceof Transaction) {
+    return {}
+  }
+  return (second && typeof second === 'object') ? second : {}
 }
 
 async function ensureOperator (transaction, ...rest) {
@@ -314,7 +315,7 @@ async function ensureOperator (transaction, ...rest) {
     jwt: operatorJwt,
     seedSecretName: OPERATOR_SEED_SECRET
   }, transaction)
-  _triggerResolverArtifactsReconcile(options)
+  await _enqueueNatsReconcileOutbox(options, transaction)
   return created
 }
 
@@ -357,7 +358,7 @@ async function rotateOperator (transaction) {
     await NatsAccountManager.update({ id: account.id }, { jwt: newAccountJwt }, transaction)
   }
 
-  _triggerResolverArtifactsReconcile()
+  await _enqueueNatsReconcileOutbox({}, transaction)
 
   return NatsOperatorManager.findOne({ id: existing.id }, transaction)
 }
@@ -391,7 +392,7 @@ async function ensureSystemAccount (transaction, ...rest) {
     isLeafSystem: false,
     applicationId: null
   }, transaction)
-  _triggerResolverArtifactsReconcile({ ...options, reason: 'system-account-created' })
+  await _enqueueNatsReconcileOutbox({ ...options, reason: 'system-account-created' }, transaction)
   return created
 }
 
@@ -425,7 +426,7 @@ async function ensureLeafSystemAccount (fog, transaction) {
     isLeafSystem: true,
     applicationId: null
   }, transaction)
-  _triggerResolverArtifactsReconcile({ fogUuids: [fog.uuid] })
+  await _enqueueNatsReconcileOutbox({ fogUuids: [fog.uuid] }, transaction)
   return created
 }
 
@@ -439,7 +440,7 @@ async function ensureSysUserForServer (options = {}, transaction) {
     ? { user: existingUser }
     : await createUserForAccount(account.id, sysUserName, null, null, null, transaction)
   if (created && fog && fog.uuid) {
-    _triggerResolverArtifactsReconcile({ fogUuids: [fog.uuid] })
+    await _enqueueNatsReconcileOutbox({ fogUuids: [fog.uuid] }, transaction)
   }
   return { account, user }
 }
@@ -452,7 +453,7 @@ async function ensureLeafSystemAccountUser (fog, transaction) {
     return { account, user: existing }
   }
   const result = await createUserForAccount(account.id, userName, null, null, null, transaction)
-  _triggerResolverArtifactsReconcile({ fogUuids: [fog.uuid] })
+  await _enqueueNatsReconcileOutbox({ fogUuids: [fog.uuid] }, transaction)
   return result
 }
 
@@ -506,7 +507,7 @@ async function deleteLeafSystemArtifactsForFog (fog, transaction) {
     }
   }
   await NatsAccountManager.delete({ id: account.id }, transaction)
-  _triggerResolverArtifactsReconcile({ fogUuids: [fog.uuid] })
+  await _enqueueNatsReconcileOutbox({ fogUuids: [fog.uuid] }, transaction)
 }
 
 /**
@@ -530,7 +531,7 @@ async function deleteServerSysUserForFog (fog, isHub, transaction) {
     }
   }
   await NatsUserManager.delete({ id: user.id }, transaction)
-  _triggerResolverArtifactsReconcile({ fogUuids: [fog.uuid] })
+  await _enqueueNatsReconcileOutbox({ fogUuids: [fog.uuid] }, transaction)
 }
 
 async function ensureControllerNatsAccount (transaction, ...rest) {
@@ -559,7 +560,7 @@ async function ensureControllerNatsAccount (transaction, ...rest) {
       null,
       transaction
     )
-    _triggerResolverArtifactsReconcile(options)
+    await _enqueueNatsReconcileOutbox(options, transaction)
     return result
   }
 
@@ -601,7 +602,7 @@ async function ensureControllerNatsAccount (transaction, ...rest) {
     null,
     transaction
   )
-  _triggerResolverArtifactsReconcile(options)
+  await _enqueueNatsReconcileOutbox(options, transaction)
   return result
 }
 
@@ -642,7 +643,7 @@ async function ensureAccountForApplication (applicationId, transaction) {
     isSystem: false,
     isLeafSystem: false
   }, transaction)
-  _triggerResolverArtifactsReconcile({ reason: 'account-created', applicationId: application.id })
+  await _enqueueNatsReconcileOutbox({ reason: 'account-created', applicationId: application.id }, transaction)
   return created
 }
 
@@ -692,7 +693,7 @@ async function ensureUserForMicroservice (microservice, transaction) {
     natsUserRuleId: userRule ? userRule.id : null
   }, transaction)
 
-  _triggerResolverArtifactsReconcile({ fogUuids: [microservice.iofogUuid] })
+  await _enqueueNatsReconcileOutbox({ fogUuids: [microservice.iofogUuid] }, transaction)
   return { account, user: natsUser }
 }
 
@@ -869,7 +870,7 @@ async function reissueAccountForApplication (applicationId, transaction) {
     account.jwt
   )
   await NatsAccountManager.update({ id: account.id }, { jwt: accountJwt }, transaction)
-  _triggerResolverArtifactsReconcile({ reason: 'account-created', applicationId })
+  await _enqueueNatsReconcileOutbox({ reason: 'account-created', applicationId }, transaction)
   return NatsAccountManager.findOne({ id: account.id }, transaction)
 }
 
@@ -913,7 +914,7 @@ async function reissueUserForMicroservice (microserviceUuid, transaction, ...res
       microserviceUuid: microservice.uuid,
       natsUserRuleId: currentRuleId
     }, transaction)
-    _triggerResolverArtifactsReconcile({ reason: 'account-created', applicationId: microservice.applicationId, ...options })
+    await _enqueueNatsReconcileOutbox({ reason: 'account-created', applicationId: microservice.applicationId, ...options }, transaction)
     return NatsUserManager.findOne({ microserviceUuid: microservice.uuid }, transaction)
   }
 
@@ -922,7 +923,7 @@ async function reissueUserForMicroservice (microserviceUuid, transaction, ...res
     if (oldAccount) {
       await _addRevocationToAccount(oldAccount, existingUser.publicKey, transaction)
       if (options.triggerReconcile !== false && oldAccount.applicationId != null) {
-        _triggerResolverArtifactsReconcile({ reason: 'account-created', applicationId: oldAccount.applicationId, ...options })
+        await _enqueueNatsReconcileOutbox({ reason: 'account-created', applicationId: oldAccount.applicationId, ...options }, transaction)
       }
     }
     const accountSeed = await _loadSeedFromSecret(account.seedSecretName, transaction)
@@ -944,7 +945,7 @@ async function reissueUserForMicroservice (microserviceUuid, transaction, ...res
       accountId: account.id,
       natsUserRuleId: currentRuleId
     }, transaction)
-    _triggerResolverArtifactsReconcile({ reason: 'account-created', applicationId: microservice.applicationId, ...options })
+    await _enqueueNatsReconcileOutbox({ reason: 'account-created', applicationId: microservice.applicationId, ...options }, transaction)
     return NatsUserManager.findOne({ microserviceUuid: microservice.uuid }, transaction)
   }
 
@@ -954,11 +955,11 @@ async function reissueUserForMicroservice (microserviceUuid, transaction, ...res
     const operatorSeed = await _loadSeedFromSecret(operator.seedSecretName, transaction)
     const operatorKp = fromSeed(new TextEncoder().encode(operatorSeed))
     await _reissueOneUserForRule(existingUser, userRule.id, operatorKp, transaction)
-    _triggerResolverArtifactsReconcile({ reason: 'account-created', applicationId: microservice.applicationId, ...options })
+    await _enqueueNatsReconcileOutbox({ reason: 'account-created', applicationId: microservice.applicationId, ...options }, transaction)
     return NatsUserManager.findOne({ microserviceUuid: microservice.uuid }, transaction)
   }
 
-  _triggerResolverArtifactsReconcile({ reason: 'account-created', applicationId: microservice.applicationId, ...options })
+  await _enqueueNatsReconcileOutbox({ reason: 'account-created', applicationId: microservice.applicationId, ...options }, transaction)
   return NatsUserManager.findOne({ microserviceUuid: microservice.uuid }, transaction)
 }
 
@@ -1034,7 +1035,7 @@ async function reissueForAccountRule (accountRuleId, transaction) {
       await NatsAccountManager.update({ id: relayAccount.id }, { jwt: accountJwt }, transaction)
     }
   }
-  _triggerResolverArtifactsReconcile({ reason: 'account-rule-updated', accountRuleId })
+  await _enqueueNatsReconcileOutbox({ reason: 'account-rule-updated', accountRuleId }, transaction)
 }
 
 /**
@@ -1110,7 +1111,7 @@ async function reissueForUserRule (userRuleId, transaction) {
     await _reissueOneUserForRule(user, userRuleId, operatorKp, transaction)
     processedUserIds.add(user.id)
   }
-  _triggerResolverArtifactsReconcile({ reason: 'user-rule-updated', userRuleId })
+  await _enqueueNatsReconcileOutbox({ reason: 'user-rule-updated', userRuleId }, transaction)
 }
 
 async function revokeMicroserviceUser (microserviceUuid, transaction) {
@@ -1151,7 +1152,7 @@ async function revokeMicroserviceUser (microserviceUuid, transaction) {
     // best-effort secret cleanup
   }
   await NatsUserManager.delete({ id: user.id }, transaction)
-  _triggerResolverArtifactsReconcile({ reason: 'account-created', applicationId: account.applicationId })
+  await _enqueueNatsReconcileOutbox({ reason: 'account-created', applicationId: account.applicationId }, transaction)
 }
 
 async function deleteAccountForApplication (applicationId, transaction) {
@@ -1176,7 +1177,7 @@ async function deleteAccountForApplication (applicationId, transaction) {
     // best-effort cleanup
   }
   await NatsAccountManager.delete({ id: account.id }, transaction)
-  _triggerResolverArtifactsReconcile({ reason: 'account-deleted', applicationId })
+  await _enqueueNatsReconcileOutbox({ reason: 'account-deleted', applicationId }, transaction)
 }
 
 async function revokeUserByAccountAndName (accountId, userName, transaction) {
@@ -1233,8 +1234,9 @@ async function revokeUserByAccountAndName (accountId, userName, transaction) {
     // best-effort secret cleanup
   }
   await NatsUserManager.delete({ id: user.id }, transaction)
-  _triggerResolverArtifactsReconcile(
-    account.applicationId != null ? { reason: 'account-created', applicationId: account.applicationId } : {}
+  await _enqueueNatsReconcileOutbox(
+    account.applicationId != null ? { reason: 'account-created', applicationId: account.applicationId } : {},
+    transaction
   )
 }
 
@@ -1249,7 +1251,9 @@ function scheduleReissueForAccountRule (accountRuleId) {
   _runBackgroundTask(`reissue-account-rule-${accountRuleId}`, async () => {
     await module.exports.reissueForAccountRule(accountRuleId)
   })
-  _triggerResolverArtifactsReconcile({ reason: 'account-rule-updated', accountRuleId })
+  _enqueueNatsReconcileOutbox({ reason: 'account-rule-updated', accountRuleId }).catch((err) => {
+    logger.error(`NATS reconcile outbox enqueue failed: ${err.message}`)
+  })
   return { scheduled: true }
 }
 
@@ -1257,7 +1261,9 @@ function scheduleReissueForUserRule (userRuleId) {
   _runBackgroundTask(`reissue-user-rule-${userRuleId}`, async () => {
     await module.exports.reissueForUserRule(userRuleId)
   })
-  _triggerResolverArtifactsReconcile({ reason: 'user-rule-updated', userRuleId })
+  _enqueueNatsReconcileOutbox({ reason: 'user-rule-updated', userRuleId }).catch((err) => {
+    logger.error(`NATS reconcile outbox enqueue failed: ${err.message}`)
+  })
   return { scheduled: true }
 }
 

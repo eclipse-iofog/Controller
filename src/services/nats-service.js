@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
 const AppHelper = require('../helpers/app-helper')
+const { isTest } = AppHelper
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const ConfigMapManager = require('../data/managers/config-map-manager')
@@ -22,17 +23,24 @@ const NatsInstanceManager = require('../data/managers/nats-instance-manager')
 const NatsConnectionManager = require('../data/managers/nats-connection-manager')
 const NatsAccountManager = require('../data/managers/nats-account-manager')
 const NatsReconcileTaskManager = require('../data/managers/nats-reconcile-task-manager')
+const ReconcileOutboxManager = require('../data/managers/reconcile-outbox-manager')
 const NatsUserManager = require('../data/managers/nats-user-manager')
 const ApplicationManager = require('../data/managers/application-manager')
 const NatsAuthService = require('./nats-auth-service')
 const ChangeTrackingService = require('./change-tracking-service')
 const MicroservicesService = require('./microservices-service')
 const FogManager = require('../data/managers/iofog-manager')
-const databaseProvider = require('../data/providers/database-factory')
 const config = require('../config')
 const Constants = require('../helpers/constants')
 const { ensureSystemApplication, getSystemMicroserviceName, slugifyName } = require('../helpers/system-naming')
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const { isSequelizeTransaction } = require('../helpers/sequelize-transaction')
+const {
+  runInTransaction,
+  PRIORITY_INTERACTIVE,
+  PRIORITY_BACKGROUND,
+  getActiveTransaction
+} = require('../helpers/transaction-runner')
 const {
   buildNatsServerCertificateHostList,
   buildNatsMqttCertificateHostList
@@ -584,7 +592,7 @@ async function _computeClusterRoutesForInstance (natsInstance, transaction) {
   return routes
 }
 
-async function _patchK8sHubConfigMapClusterRoutes (desiredControllerRoutes, transaction) {
+async function _patchK8sHubConfigMapClusterRoutesExternal (desiredControllerRoutes) {
   const configMap = await K8sClient.getConfigMap(K8S_NATS_SERVER_CONFIG_MAP, { ignoreNotFound: true })
   if (!configMap || !configMap.data) {
     logger.debug(`Hub ConfigMap ${K8S_NATS_SERVER_CONFIG_MAP} not found or empty (expected before operator creates it)`)
@@ -612,6 +620,89 @@ async function _patchK8sHubConfigMapClusterRoutes (desiredControllerRoutes, tran
   const newRoutesJson = JSON.stringify(newRoutes)
   const newContent = content.replace(/routes:\s*\[[^\]]*\]/m, `routes: ${newRoutesJson}`)
   await K8sClient.patchConfigMap(K8S_NATS_SERVER_CONFIG_MAP, { data: { [configKey]: newContent } }, { ignoreNotFound: true })
+}
+
+async function _patchK8sJwtBundleExternal (fullServerJwtBundle) {
+  const existing = await K8sClient.getConfigMap(K8S_NATS_JWT_BUNDLE_CONFIG_MAP, { ignoreNotFound: true })
+  const existingData = existing && existing.data ? existing.data : null
+  const newHash = _configMapDataHash(fullServerJwtBundle)
+  const unchanged = existingData && _configMapDataHash(existingData) === newHash
+  if (!unchanged) {
+    await K8sClient.patchConfigMap(K8S_NATS_JWT_BUNDLE_CONFIG_MAP, { data: fullServerJwtBundle }, { ignoreNotFound: true })
+  }
+}
+
+async function _rolloutNatsStatefulSetExternal () {
+  await K8sClient.rolloutStatefulSet('nats')
+}
+
+function _resolveParentTransaction (maybeTransaction, explicitlyPassed) {
+  if (explicitlyPassed && isSequelizeTransaction(maybeTransaction)) {
+    return maybeTransaction
+  }
+  const active = getActiveTransaction()
+  if (active) {
+    return active
+  }
+  if (isTest() && explicitlyPassed && maybeTransaction != null && typeof maybeTransaction === 'object') {
+    return maybeTransaction
+  }
+  return null
+}
+
+function _scheduleK8sAfterCommit (transaction, fn) {
+  const run = () => Promise.resolve(fn()).catch((err) => {
+    logger.warn(`Deferred NATS K8s work failed: ${err.message}`)
+  })
+
+  if (transaction && typeof transaction.afterCommit === 'function') {
+    transaction.afterCommit(run)
+    return
+  }
+
+  if (isTest()) {
+    return run()
+  }
+}
+
+async function _applyEnsureNatsK8sExternal (k8sHubPatch) {
+  if (!k8sHubPatch) {
+    return
+  }
+  try {
+    await _patchK8sHubConfigMapClusterRoutesExternal(k8sHubPatch)
+  } catch (err) {
+    logger.warn(`Failed to patch Kubernetes NATS hub ConfigMap cluster routes: ${err.message}`)
+  }
+}
+
+async function _applyCleanupNatsK8sExternal (k8sCleanup) {
+  if (!k8sCleanup) {
+    return
+  }
+  try {
+    await _patchK8sHubConfigMapClusterRoutesExternal(k8sCleanup.desiredControllerRoutes)
+    if (k8sCleanup.rollout) {
+      try {
+        await _rolloutNatsStatefulSetExternal()
+      } catch (rolloutErr) {
+        logger.warn(`Failed to rollout NATS StatefulSet after hub ConfigMap patch: ${rolloutErr.message}`)
+      }
+    }
+  } catch (err) {
+    logger.warn(`Failed to patch Kubernetes NATS hub ConfigMap cluster routes after cleanup: ${err.message}`)
+  }
+}
+
+async function _applyK8sJwtBundleExternal (fullServerJwtBundle) {
+  if (!fullServerJwtBundle) {
+    return
+  }
+  try {
+    await _patchK8sJwtBundleExternal(fullServerJwtBundle)
+  } catch (err) {
+    logger.warn(`Failed to patch Kubernetes NATS hub JWT bundle ConfigMap: ${err.message}`)
+  }
 }
 
 function _clusterConfigRequiresRebuild (oldRoutes, newRoutes) {
@@ -889,7 +980,17 @@ async function _removeLeafOnlyArtifactsForFog (fog, microservice, transaction) {
   await NatsAuthService.deleteLeafSystemArtifactsForFog(fog, transaction)
 }
 
-async function ensureNatsForFog (fog, natsConfig, transaction) {
+async function ensureNatsForFogCertPrepDb (fog, natsConfig, transaction) {
+  const mode = (natsConfig && natsConfig.mode) || 'leaf'
+  if (mode === 'none') {
+    return null
+  }
+  const { serverCertName, mqttCertName } = await _ensureNatsCertificates(fog, transaction)
+  const jetstreamKey = await _ensureJetstreamKey(fog, transaction)
+  return { serverCertName, mqttCertName, jetstreamKey }
+}
+
+async function _resolveNatsEnsureContext (fog, natsConfig, transaction) {
   const mode = (natsConfig && natsConfig.mode) || 'leaf'
   if (mode === 'none') {
     return null
@@ -912,13 +1013,33 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
   const mqttPort = (natsConfig && natsConfig.mqttPort) || DEFAULT_MQTT_PORT
   const httpPort = (natsConfig && natsConfig.httpPort) || DEFAULT_HTTP_PORT
 
-  const { serverCertName, mqttCertName } = await _ensureNatsCertificates(fog, transaction)
-  const configMapName = natsConfigMapName(fog)
-  const configKey = NATS_CONFIG_KEY
-  const template = !isLeaf ? readTemplate('server.conf') : readTemplate('leaf.conf')
-  const certName = serverCertName
+  return {
+    mode,
+    isHub,
+    isLeaf,
+    serverPort,
+    leafPort,
+    clusterPort,
+    mqttPort,
+    httpPort,
+    configMapName: natsConfigMapName(fog),
+    configKey: NATS_CONFIG_KEY,
+    template: !isLeaf ? readTemplate('server.conf') : readTemplate('leaf.conf'),
+    jwtBundleConfigMapName: isLeaf ? natsJwtBundleConfigMap(fog) : K8S_NATS_JWT_BUNDLE_CONFIG_MAP
+  }
+}
 
-  const jwtBundleConfigMapName = isLeaf ? natsJwtBundleConfigMap(fog) : K8S_NATS_JWT_BUNDLE_CONFIG_MAP
+async function ensureNatsForFogAuthPrepDb (fog, natsConfig, prep, transaction) {
+  if (!prep) {
+    return null
+  }
+  const ctx = await _resolveNatsEnsureContext(fog, natsConfig, transaction)
+  if (!ctx) {
+    return null
+  }
+
+  const { isHub, isLeaf, jwtBundleConfigMapName } = ctx
+
   if (isLeaf) {
     const jwtBundle = await _buildJwtBundle(fog, true, transaction)
     await _ensureConfigMap(natsJwtBundleConfigMap(fog), jwtBundle, transaction)
@@ -927,11 +1048,44 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
     await _ensureConfigMap(K8S_NATS_JWT_BUNDLE_CONFIG_MAP, fullJwtBundle, transaction)
   }
 
+  let sysCredsSecretName = null
+  if (isHub) {
+    const { user: hubSysUser } = await NatsAuthService.ensureSysUserForServer({ isHub: true }, transaction)
+    sysCredsSecretName = hubSysUser.credsSecretName
+  } else if (!isLeaf) {
+    const { user: serverSysUser } = await NatsAuthService.ensureSysUserForServer({ isHub: false, fog }, transaction)
+    sysCredsSecretName = serverSysUser.credsSecretName
+  }
+
+  return { ...ctx, sysCredsSecretName, jwtBundleConfigMapName }
+}
+
+async function ensureNatsForFogTopologyDb (fog, natsConfig, prep, authCtx, transaction) {
+  if (!prep || !authCtx) {
+    return null
+  }
+
+  const { serverCertName, mqttCertName, jetstreamKey } = prep
+  const {
+    mode,
+    isHub,
+    isLeaf,
+    serverPort,
+    leafPort,
+    clusterPort,
+    mqttPort,
+    httpPort,
+    configMapName,
+    configKey,
+    template,
+    jwtBundleConfigMapName,
+    sysCredsSecretName
+  } = authCtx
+  const certName = serverCertName
+
   const microserviceResult = await _ensureNatsMicroservice(fog, mode, transaction)
   const microservice = microserviceResult
   let anyVolumeMappingCreated = !!(microservice && microservice._volumeMappingCreated)
-
-  const jetstreamKey = await _ensureJetstreamKey(fog, transaction)
   const sysAccountName = isLeaf ? NatsAuthService.leafSystemAccountName(fog) : NatsAuthService.SYSTEM_ACCOUNT_NAME
   const sysUserName = isLeaf ? NatsAuthService.leafSystemAccountUserName(fog) : NatsAuthService.sysUserNameForServer(isHub, fog)
   const sysCredPath = `${NATS_CREDS_DIR}/${slugifyName(sysAccountName)}/${slugifyName(sysUserName)}.creds`
@@ -1050,13 +1204,9 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
     transaction
   )
 
+  let k8sHubPatch = null
   if (_isKubernetesControlPlane() && !savedInstance.isLeaf && savedInstance.host) {
-    try {
-      const desiredControllerRoutes = await _getControllerManagedClusterRoutes(transaction)
-      await _patchK8sHubConfigMapClusterRoutes(desiredControllerRoutes, transaction)
-    } catch (err) {
-      logger.warn(`Failed to patch Kubernetes NATS hub ConfigMap cluster routes: ${err.message}`)
-    }
+    k8sHubPatch = await _getControllerManagedClusterRoutes(transaction)
   }
 
   if (!savedInstance.isLeaf) {
@@ -1072,7 +1222,7 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
     const otherInstances = (allServerInstancesNow || []).filter(i => i.id !== savedInstance.id)
     if (otherInstances.length > 0) {
       const otherFogUuids = otherInstances.map((i) => i.iofogUuid).filter(Boolean)
-      await enqueueReconcileTask({ reason: 'cluster-routes-changed', fogUuids: otherFogUuids }, transaction)
+      await ReconcileOutboxManager.enqueueNats({ reason: 'cluster-routes-changed', fogUuids: otherFogUuids }, transaction)
     }
   }
 
@@ -1091,28 +1241,20 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
   anyVolumeMappingCreated = (await _ensureVolumeMapping(microservice.uuid, certName, `${NATS_CERTS_DIR}/${certName}`, 'ro', 'volumeMount', transaction)) || anyVolumeMappingCreated
   anyVolumeMappingCreated = (await _ensureVolumeMapping(microservice.uuid, mqttCertName, `${NATS_CERTS_DIR}/${mqttCertName}`, 'ro', 'volumeMount', transaction)) || anyVolumeMappingCreated
 
-  if (isHub) {
-    const { user: hubSysUser } = await NatsAuthService.ensureSysUserForServer({ isHub: true }, transaction)
-    const credsSecretName = hubSysUser.credsSecretName
-    await _ensureVolumeMount(credsSecretName, { secretName: credsSecretName }, transaction)
-    await VolumeMountService.linkVolumeMountEndpoint(credsSecretName, [fog.uuid], transaction)
-    anyVolumeMappingCreated = (await _ensureVolumeMapping(microservice.uuid, credsSecretName, NATS_CREDS_DIR, 'ro', 'volumeMount', transaction)) || anyVolumeMappingCreated
-  } else if (!savedInstance.isLeaf) {
-    const { user: serverSysUser } = await NatsAuthService.ensureSysUserForServer({ isHub: false, fog }, transaction)
-    const credsSecretName = serverSysUser.credsSecretName
-    await _ensureVolumeMount(credsSecretName, { secretName: credsSecretName }, transaction)
-    await VolumeMountService.linkVolumeMountEndpoint(credsSecretName, [fog.uuid], transaction)
-    anyVolumeMappingCreated = (await _ensureVolumeMapping(microservice.uuid, credsSecretName, NATS_CREDS_DIR, 'ro', 'volumeMount', transaction)) || anyVolumeMappingCreated
-  } else {
-    const sysCredsSecretName = await _getSysUserCredsSecretNameForFog(fog, false, transaction)
-    if (sysCredsSecretName) {
+  if (sysCredsSecretName) {
+    await _ensureVolumeMount(sysCredsSecretName, { secretName: sysCredsSecretName }, transaction)
+    await VolumeMountService.linkVolumeMountEndpoint(sysCredsSecretName, [fog.uuid], transaction)
+    anyVolumeMappingCreated = (await _ensureVolumeMapping(microservice.uuid, sysCredsSecretName, NATS_CREDS_DIR, 'ro', 'volumeMount', transaction)) || anyVolumeMappingCreated
+  } else if (isLeaf) {
+    const leafSysCredsSecretName = await _getSysUserCredsSecretNameForFog(fog, false, transaction)
+    if (leafSysCredsSecretName) {
       await VolumeMappingManager.delete({
         microserviceUuid: microservice.uuid,
-        hostDestination: sysCredsSecretName,
+        hostDestination: leafSysCredsSecretName,
         type: 'volumeMount'
       }, transaction)
       try {
-        await VolumeMountService.unlinkVolumeMountEndpoint(sysCredsSecretName, [fog.uuid], transaction)
+        await VolumeMountService.unlinkVolumeMountEndpoint(leafSysCredsSecretName, [fog.uuid], transaction)
       } catch (err) {
         if (err.name !== 'NotFoundError') {
           throw err
@@ -1130,10 +1272,69 @@ async function ensureNatsForFog (fog, natsConfig, transaction) {
   }
   await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.microserviceList, transaction)
 
-  return microservice
+  return { microservice, k8sHubPatch }
 }
 
-async function cleanupNatsForFog (fog, transaction) {
+/** @deprecated Use phased ensure; kept for grep gates and direct unit tests */
+async function ensureNatsForFogDbMutation (fog, natsConfig, prep, transaction) {
+  const authCtx = await ensureNatsForFogAuthPrepDb(fog, natsConfig, prep, transaction)
+  if (!authCtx) {
+    return null
+  }
+  return ensureNatsForFogTopologyDb(fog, natsConfig, prep, authCtx, transaction)
+}
+
+/** @deprecated Use phased ensure; kept for grep gates and direct unit tests */
+async function ensureNatsForFogDb (fog, natsConfig, transaction) {
+  const prep = await ensureNatsForFogCertPrepDb(fog, natsConfig, transaction)
+  if (!prep) {
+    return null
+  }
+  return ensureNatsForFogDbMutation(fog, natsConfig, prep, transaction)
+}
+
+async function _ensureNatsForFogPhased (fog, natsConfig, { priority = PRIORITY_INTERACTIVE } = {}) {
+  const mode = (natsConfig && natsConfig.mode) || 'leaf'
+  if (mode === 'none') {
+    return null
+  }
+  logger.info(`NATS ensure certPrep starting for fog ${fog.uuid}`)
+  const prep = await runInTransaction(
+    (transaction) => ensureNatsForFogCertPrepDb(fog, natsConfig, transaction),
+    { priority, label: 'nats.ensure.certPrep' }
+  )
+  if (!prep) {
+    return null
+  }
+  logger.info(`NATS ensure authPrep starting for fog ${fog.uuid}`)
+  const authCtx = await runInTransaction(
+    (transaction) => ensureNatsForFogAuthPrepDb(fog, natsConfig, prep, transaction),
+    { priority, label: 'nats.ensure.authPrep' }
+  )
+  if (!authCtx) {
+    return null
+  }
+  logger.info(`NATS ensure topology starting for fog ${fog.uuid}`)
+  const result = await runInTransaction(
+    (transaction) => ensureNatsForFogTopologyDb(fog, natsConfig, prep, authCtx, transaction),
+    { priority, label: 'nats.ensure.topology' }
+  )
+  await _applyEnsureNatsK8sExternal(result && result.k8sHubPatch)
+  return result && result.microservice
+}
+
+async function ensureNatsForFogPhased (fog, natsConfig) {
+  return _ensureNatsForFogPhased(fog, natsConfig, { priority: PRIORITY_BACKGROUND })
+}
+
+async function ensureNatsForFog (...args) {
+  const fog = args[0]
+  const natsConfig = args[1]
+  // Parent transaction arg ignored — phased short txs (Plan 19-I-B / R131)
+  return _ensureNatsForFogPhased(fog, natsConfig, { priority: PRIORITY_INTERACTIVE })
+}
+
+async function cleanupNatsForFogDb (fog, transaction) {
   const natsInstance = await NatsInstanceManager.findByFog(fog.uuid, transaction)
   const mountNames = [
     natsConfigMapName(fog),
@@ -1181,28 +1382,22 @@ async function cleanupNatsForFog (fog, transaction) {
   const wasLeaf = !!(natsInstance && natsInstance.isLeaf)
   const wasServer = !!(natsInstance && !natsInstance.isLeaf)
   const wasHub = !!(natsInstance && natsInstance.isHub)
+  let k8sCleanup = null
   if (natsInstance) {
     await NatsConnectionManager.delete({ sourceNats: natsInstance.id }, transaction)
     await NatsConnectionManager.delete({ destNats: natsInstance.id }, transaction)
     await NatsInstanceManager.delete({ id: natsInstance.id }, transaction)
     if (_isKubernetesControlPlane() && !natsInstance.isLeaf) {
-      try {
-        const desiredControllerRoutes = await _getControllerManagedClusterRoutes(transaction)
-        await _patchK8sHubConfigMapClusterRoutes(desiredControllerRoutes, transaction)
-        try {
-          await K8sClient.rolloutStatefulSet('nats')
-        } catch (rolloutErr) {
-          logger.warn(`Failed to rollout NATS StatefulSet after hub ConfigMap patch: ${rolloutErr.message}`)
-        }
-      } catch (err) {
-        logger.warn(`Failed to patch Kubernetes NATS hub ConfigMap cluster routes after cleanup: ${err.message}`)
+      k8sCleanup = {
+        desiredControllerRoutes: await _getControllerManagedClusterRoutes(transaction),
+        rollout: true
       }
     }
     if (!natsInstance.isLeaf) {
       const remainingServers = await NatsInstanceManager.findAll({ isLeaf: false }, transaction)
       if (remainingServers && remainingServers.length > 0) {
         const remainingFogUuids = remainingServers.map((s) => s.iofogUuid).filter(Boolean)
-        await enqueueReconcileTask({ reason: 'server-deleted', fogUuids: remainingFogUuids }, transaction)
+        await ReconcileOutboxManager.enqueueNats({ reason: 'server-deleted', fogUuids: remainingFogUuids }, transaction)
       }
     }
   }
@@ -1265,6 +1460,32 @@ async function cleanupNatsForFog (fog, transaction) {
   if (wasServer) {
     await NatsAuthService.deleteServerSysUserForFog(fog, wasHub, transaction)
   }
+
+  return { k8sCleanup }
+}
+
+async function _cleanupNatsForFogPhased (fog, { priority = PRIORITY_INTERACTIVE } = {}) {
+  const result = await runInTransaction(
+    (transaction) => cleanupNatsForFogDb(fog, transaction),
+    { priority, label: 'nats.cleanupForFog' }
+  )
+  await _applyCleanupNatsK8sExternal(result.k8sCleanup)
+}
+
+async function cleanupNatsForFogPhased (fog) {
+  return _cleanupNatsForFogPhased(fog, { priority: PRIORITY_BACKGROUND })
+}
+
+async function cleanupNatsForFog (...args) {
+  const fog = args[0]
+  const parentTx = _resolveParentTransaction(args[1], args.length > 1)
+  if (parentTx) {
+    const result = await cleanupNatsForFogDb(fog, parentTx)
+    _scheduleK8sAfterCommit(parentTx, () => _applyCleanupNatsK8sExternal(result && result.k8sCleanup))
+    return result
+  }
+  // No parent transaction — short tx + post-tx K8s (Plan 19-I-B / R131)
+  return _cleanupNatsForFogPhased(fog, { priority: PRIORITY_INTERACTIVE })
 }
 
 function _getAffectedFogUuidsForApplication (applicationId, natsInstanceByFog, microservicesByFog) {
@@ -1315,7 +1536,7 @@ async function _getAffectedFogUuidsForUserRule (userRuleId, natsInstanceByFog, t
   return out
 }
 
-async function _reconcileResolverArtifactsOnce (options = {}, transaction) {
+async function _reconcileResolverArtifactsOnceDb (options = {}, transaction) {
   const NatsAuthServiceRuntime = require('./nats-auth-service')
 
   const fogs = await FogManager.findAll({}, transaction)
@@ -1474,18 +1695,8 @@ async function _reconcileResolverArtifactsOnce (options = {}, transaction) {
     }
   }
 
-  if (_isKubernetesControlPlane()) {
-    try {
-      const existing = await K8sClient.getConfigMap(K8S_NATS_JWT_BUNDLE_CONFIG_MAP, { ignoreNotFound: true })
-      const existingData = existing && existing.data ? existing.data : null
-      const newHash = _configMapDataHash(fullServerJwtBundle)
-      const unchanged = existingData && _configMapDataHash(existingData) === newHash
-      if (!unchanged) {
-        await K8sClient.patchConfigMap(K8S_NATS_JWT_BUNDLE_CONFIG_MAP, { data: fullServerJwtBundle }, { ignoreNotFound: true })
-      }
-    } catch (err) {
-      logger.warn(`Failed to patch Kubernetes NATS hub JWT bundle ConfigMap: ${err.message}`)
-    }
+  return {
+    fullServerJwtBundle: _isKubernetesControlPlane() ? fullServerJwtBundle : null
   }
 }
 
@@ -1550,9 +1761,6 @@ function _chunkFogUuids (fogUuids, chunkSize) {
 }
 
 async function enqueueReconcileTask (options = {}, transaction) {
-  if (transaction.fakeTransaction) {
-    return databaseProvider.sequelize.transaction((t) => enqueueReconcileTask(options, t))
-  }
   const reason = REASON_VALUES.includes(options.reason) ? options.reason : 'auth-mutation'
   const applicationId = options.applicationId != null ? options.applicationId : null
   const accountRuleId = options.accountRuleId != null ? options.accountRuleId : null
@@ -1596,18 +1804,43 @@ async function claimNextTask (controllerUuid, stalenessSeconds) {
   return NatsReconcileTaskManager.claimNext(controllerUuid, stalenessSeconds)
 }
 
-async function reconcileResolverArtifacts (options = {}, transaction) {
+async function _reconcileResolverArtifactsDbLoop (options, transaction) {
+  let fullServerJwtBundle = null
+  do {
+    natsReconcilePending = false
+    const result = await _reconcileResolverArtifactsOnceDb(options, transaction)
+    if (result && result.fullServerJwtBundle) {
+      fullServerJwtBundle = result.fullServerJwtBundle
+    }
+  } while (natsReconcilePending)
+  return { fullServerJwtBundle }
+}
+
+async function reconcileResolverArtifacts (...args) {
   if (natsReconcileRunning) {
     natsReconcilePending = true
     return { scheduled: true }
   }
 
+  const options = args[0] || {}
+  const maybeTransaction = args.length > 1 ? args[args.length - 1] : undefined
+  const parentTx = _resolveParentTransaction(maybeTransaction, args.length > 1)
+
   natsReconcileRunning = true
   try {
-    do {
-      natsReconcilePending = false
-      await _reconcileResolverArtifactsOnce(options, transaction)
-    } while (natsReconcilePending)
+    if (parentTx) {
+      const result = await _reconcileResolverArtifactsDbLoop(options, parentTx)
+      if (result.fullServerJwtBundle) {
+        _scheduleK8sAfterCommit(parentTx, () => _applyK8sJwtBundleExternal(result.fullServerJwtBundle))
+      }
+      return { scheduled: false }
+    }
+
+    const result = await runInTransaction(
+      (transaction) => _reconcileResolverArtifactsDbLoop(options, transaction),
+      { priority: PRIORITY_BACKGROUND, label: 'nats.reconcileResolverArtifacts' }
+    )
+    await _applyK8sJwtBundleExternal(result.fullServerJwtBundle)
     return { scheduled: false }
   } finally {
     natsReconcileRunning = false
@@ -1643,17 +1876,30 @@ function scheduleResolverArtifactsReconcile (options = {}) {
   return { scheduled: true }
 }
 
+function scheduleEnsureNatsK8sAfterCommit (transaction, k8sHubPatch) {
+  _scheduleK8sAfterCommit(transaction, () => _applyEnsureNatsK8sExternal(k8sHubPatch))
+}
+
 function normalizeJetstreamSize (value, defaultValue) {
   return _normalizeJetstreamSize(value, defaultValue)
 }
 
 module.exports = {
-  ensureNatsForFog: TransactionDecorator.generateTransaction(ensureNatsForFog),
-  reconcileResolverArtifacts: TransactionDecorator.generateTransaction(reconcileResolverArtifacts),
+  ensureNatsForFog,
+  ensureNatsForFogPhased,
+  ensureNatsForFogDb,
+  ensureNatsForFogCertPrepDb,
+  ensureNatsForFogAuthPrepDb,
+  ensureNatsForFogTopologyDb,
+  ensureNatsForFogDbMutation,
+  scheduleEnsureNatsK8sAfterCommit,
+  reconcileResolverArtifacts,
   scheduleResolverArtifactsReconcile,
   enqueueReconcileTask: TransactionDecorator.generateTransaction(enqueueReconcileTask),
   claimNextTask,
-  cleanupNatsForFog: TransactionDecorator.generateTransaction(cleanupNatsForFog),
+  cleanupNatsForFog,
+  cleanupNatsForFogPhased,
+  cleanupNatsForFogDb,
   ensureLeafCredsForFog: TransactionDecorator.generateTransaction(ensureLeafCredsForFog),
   isReconcileRunning,
   setReconcilePending,
