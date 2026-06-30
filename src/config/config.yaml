@@ -88,6 +88,7 @@ settings:
   natsReconcileWorkerIntervalSeconds: 3 # NATS reconcile worker poll interval in seconds (default: 3)
   fogPlatformReconcileWorkerIntervalSeconds: 3   # Platform reconcile worker poll interval in seconds (default: 3)
   fogPlatformReconcileTaskStalenessSeconds: 300  # Stale fog platform task reclaim in seconds (default: 300 = 5 minutes)
+  fogPlatformDeleteReconcileTaskStalenessSeconds: 60  # Stale delete task reclaim in seconds (default: 60)
   fogPlatformReconcileMaxAttempts: 10            # Permanent fail threshold for fog platform tasks (default: 10)
   fogPlatformReconcileBackoffBaseSeconds: 5      # Exponential backoff base for fog platform tasks (default: 5)
   fogPlatformSweepIntervalSeconds: 900           # Platform drift sweep interval in seconds (default: 900 = 15 minutes)
@@ -95,12 +96,22 @@ settings:
   hubRouterConfigLockTimeoutSeconds: 120         # Hub router ConfigMap lock wait in seconds (default: 120)
   serviceLoadBalancerWatchTimeoutSeconds: 300    # LoadBalancer IP watch timeout in service reconcile (default: 300)
   jobStartupDelaySeconds: 3                      # Delay before reconcile-heavy background jobs start (default: 3)
+  reconcileOutboxDrainerIntervalSeconds: 1       # Outbox drainer poll interval in seconds (default: 1)
+  reconcileOutboxDrainerBatchSize: 32            # Max outbox rows per drainer batch (default: 32)
   wsSessionReconcileIntervalSeconds: 60          # WS exec/log stale DB row reconcile interval (R89)
+  sqliteEnterpriseFogWarningThreshold: 50        # Log + metric when sqlite fog count exceeds (R124)
+  dbWriteQueueMaxDepth: 256                      # SQLite write queue depth before error log (R123)
+  dbBusyRetryMaxAttempts: 8                      # SQLITE_BUSY retry attempts per transaction (Plan 19)
+  dbBusyRetryBaseMs: 25                          # Exponential backoff base for busy retry (Plan 19)
 
 # Database Configuration
 database:
   provider: sqlite     # Database provider (sqlite/mysql/postgres)
-  # mysql:
+  mysql:
+    pool:
+      max: 10
+      min: 0
+      idle: 20000
   #   host: ""    # MySQL host
   #   port: 3306          # MySQL port
   #   username: ""        # MySQL username
@@ -108,7 +119,11 @@ database:
   #   databaseName: ""   # MySQL database name
   #   useSSL: false       # Use SSL for MySQL connection
   #   sslCA: ""           # MySQL SSL CA in base64 encoded string
-  # postgres:
+  postgres:
+    pool:
+      max: 10
+      min: 0
+      idle: 20000
   #   host: ""   # PostgreSQL host
   #   port: 5432         # PostgreSQL port
   #   username: ""       # PostgreSQL username
@@ -165,7 +180,7 @@ flavor:
   distribution: datasance
   rbacApiVersion: datasance.com/v3
   serviceAnnotationTag: service.iofog.org/tag
-  componentLabelDomain: iofog.org/component
+  # componentLabelDomain: derived from distribution (datasance.com/component | iofog.org/component)
 
 # Bridge Ports Configuration for Services
 bridgePorts:

@@ -68,6 +68,7 @@ module.exports = {
   CONTROLLER_CLEANUP_INTERVAL: 'settings.controllerCleanupInterval',
   FOG_PLATFORM_RECONCILE_WORKER_INTERVAL_SECONDS: 'settings.fogPlatformReconcileWorkerIntervalSeconds',
   FOG_PLATFORM_RECONCILE_TASK_STALENESS_SECONDS: 'settings.fogPlatformReconcileTaskStalenessSeconds',
+  FOG_PLATFORM_DELETE_RECONCILE_TASK_STALENESS_SECONDS: 'settings.fogPlatformDeleteReconcileTaskStalenessSeconds',
   FOG_PLATFORM_RECONCILE_MAX_ATTEMPTS: 'settings.fogPlatformReconcileMaxAttempts',
   FOG_PLATFORM_RECONCILE_BACKOFF_BASE_SECONDS: 'settings.fogPlatformReconcileBackoffBaseSeconds',
   FOG_PLATFORM_SWEEP_INTERVAL_SECONDS: 'settings.fogPlatformSweepIntervalSeconds',
@@ -75,6 +76,12 @@ module.exports = {
   HUB_ROUTER_CONFIG_LOCK_TIMEOUT_SECONDS: 'settings.hubRouterConfigLockTimeoutSeconds',
   SERVICE_LOAD_BALANCER_WATCH_TIMEOUT_SECONDS: 'settings.serviceLoadBalancerWatchTimeoutSeconds',
   JOB_STARTUP_DELAY_SECONDS: 'settings.jobStartupDelaySeconds',
+  RECONCILE_OUTBOX_DRAINER_INTERVAL_SECONDS: 'settings.reconcileOutboxDrainerIntervalSeconds',
+  RECONCILE_OUTBOX_DRAINER_BATCH_SIZE: 'settings.reconcileOutboxDrainerBatchSize',
+  SQLITE_ENTERPRISE_FOG_WARNING_THRESHOLD: 'settings.sqliteEnterpriseFogWarningThreshold',
+  DB_WRITE_QUEUE_MAX_DEPTH: 'settings.dbWriteQueueMaxDepth',
+  DB_BUSY_RETRY_MAX_ATTEMPTS: 'settings.dbBusyRetryMaxAttempts',
+  DB_BUSY_RETRY_BASE_MS: 'settings.dbBusyRetryBaseMs',
 
   // Database Configuration
   DB_PROVIDER: 'database.provider',
