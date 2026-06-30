@@ -36,6 +36,7 @@ class PostgresDatabaseProvider extends DatabaseProvider {
     }
 
     // Sequelize configuration
+    const poolConfig = postgresConfig.pool || {}
     const sequelizeConfig = {
       dialect: 'postgres',
       host: connectionOptions.host,
@@ -46,6 +47,12 @@ class PostgresDatabaseProvider extends DatabaseProvider {
       dialectOptions: {
         connectTimeout: connectionOptions.connectTimeout
       },
+      pool: {
+        max: poolConfig.max != null ? poolConfig.max : 10,
+        min: poolConfig.min != null ? poolConfig.min : 0,
+        idle: poolConfig.idle != null ? poolConfig.idle : 20000
+      },
+      timezone: '+00:00',
       logging: false
     }
     // Add SSL configuration to Sequelize if enabled

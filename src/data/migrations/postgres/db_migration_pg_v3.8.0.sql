@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS "Applications" (
     description VARCHAR(255) DEFAULT '',
     is_activated BOOLEAN DEFAULT false,
     is_system BOOLEAN DEFAULT false,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     nats_access BOOLEAN DEFAULT false,
     nats_rule_id INTEGER
 );
@@ -111,14 +111,14 @@ CREATE TABLE IF NOT EXISTS "Fogs" (
     is_system BOOLEAN DEFAULT FALSE,
     router_id INT DEFAULT 0,
     time_zone VARCHAR(36) DEFAULT 'Etc/UTC',
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     arch_id INT DEFAULT 0,
     container_engine VARCHAR(36),
     deployment_type VARCHAR(36),
     active_volume_mounts BIGINT DEFAULT 0,
     volume_mount_last_update BIGINT DEFAULT 0,
-    warning_message TEXT DEFAULT 'HEALTHY',
+    warning_message TEXT,
     gps_device VARCHAR(36),
     gps_scan_frequency INT DEFAULT 60,
     edge_guard_frequency INT DEFAULT 0,
@@ -176,8 +176,8 @@ CREATE INDEX idx_fog_version_commands_iofogUuid ON "FogVersionCommands" (iofog_u
 CREATE TABLE IF NOT EXISTS "HWInfos" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     info TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     iofog_uuid VARCHAR(36),
     FOREIGN KEY (iofog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
@@ -187,8 +187,8 @@ CREATE INDEX idx_hw_infos_iofogUuid ON "HWInfos" (iofog_uuid);
 CREATE TABLE IF NOT EXISTS "USBInfos" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     info TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     iofog_uuid VARCHAR(36),
     FOREIGN KEY (iofog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
@@ -219,8 +219,8 @@ CREATE TABLE IF NOT EXISTS "Microservices" (
     log_size BIGINT DEFAULT 0,
     delete BOOLEAN DEFAULT false,
     delete_with_cleanup BOOLEAN DEFAULT false,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     catalog_item_id INT,
     registry_id INT DEFAULT 1,
     iofog_uuid VARCHAR(36),
@@ -298,8 +298,8 @@ CREATE TABLE IF NOT EXISTS "MicroservicePorts" (
     port_internal INT,
     port_external INT,
     is_udp BOOLEAN,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     microservice_uuid VARCHAR(36),
     FOREIGN KEY (microservice_uuid) REFERENCES "Microservices" (uuid) ON DELETE CASCADE
 );
@@ -317,8 +317,8 @@ CREATE TABLE IF NOT EXISTS "MicroserviceStatuses" (
     percentage DOUBLE PRECISION DEFAULT 0.00,
     error_message TEXT,
     microservice_uuid VARCHAR(36),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     ip_address TEXT,
     exec_session_ids TEXT,
     health_status TEXT,
@@ -383,8 +383,8 @@ CREATE TABLE IF NOT EXISTS "Routers" (
     host TEXT,
     is_default BOOLEAN DEFAULT false,
     iofog_uuid VARCHAR(36),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (iofog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
 
@@ -394,8 +394,8 @@ CREATE TABLE "RouterConnections" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     source_router INT,
     dest_router INT,
-    created_at TIMESTAMP(0) NOT NULL,
-    updated_at TIMESTAMP(0) NOT NULL,
+    created_at TIMESTAMPTZ(0) NOT NULL,
+    updated_at TIMESTAMPTZ(0) NOT NULL,
     FOREIGN KEY (source_router) REFERENCES "Routers"(id) ON DELETE CASCADE,
     FOREIGN KEY (dest_router) REFERENCES "Routers"(id) ON DELETE CASCADE
 );
@@ -407,8 +407,8 @@ CREATE TABLE IF NOT EXISTS "Config" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     key VARCHAR(255) NOT NULL UNIQUE,
     value VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE INDEX idx_config_key ON "Config" (key);
@@ -435,8 +435,8 @@ CREATE TABLE IF NOT EXISTS "ApplicationTemplates" (
     description VARCHAR(255) DEFAULT '',
     schema_version VARCHAR(255) DEFAULT '',
     application_json TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE TABLE IF NOT EXISTS "ApplicationTemplateVariables" (
@@ -445,8 +445,8 @@ CREATE TABLE IF NOT EXISTS "ApplicationTemplateVariables" (
     key TEXT,
     description VARCHAR(255) DEFAULT '',
     default_value VARCHAR(255),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (application_template_id) REFERENCES "ApplicationTemplates" (id) ON DELETE CASCADE
 );
 
@@ -504,8 +504,8 @@ CREATE TABLE IF NOT EXISTS "FogPublicKeys" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     public_key TEXT,
     iofog_uuid VARCHAR(36),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (iofog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
 
@@ -516,8 +516,8 @@ CREATE TABLE IF NOT EXISTS "FogUsedTokens" (
     jti VARCHAR(255) NOT NULL,
     iofog_uuid VARCHAR(36),
     expiry_time BIGINT NOT NULL,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (iofog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
 
@@ -528,8 +528,8 @@ CREATE TABLE IF NOT EXISTS "Secrets" (
     name VARCHAR(255) UNIQUE NOT NULL,
     type VARCHAR(50) NOT NULL CHECK (type IN ('Opaque', 'tls')),
     data TEXT NOT NULL,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE INDEX idx_secrets_name ON "Secrets" (name);
@@ -541,12 +541,12 @@ CREATE TABLE IF NOT EXISTS "Certificates" (
     is_ca BOOLEAN DEFAULT false,
     signed_by_id INT,
     hosts TEXT,
-    valid_from TIMESTAMP(0) NOT NULL,
-    valid_to TIMESTAMP(0) NOT NULL,
+    valid_from TIMESTAMPTZ(0) NOT NULL,
+    valid_to TIMESTAMPTZ(0) NOT NULL,
     serial_number TEXT NOT NULL,
     secret_id INT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (signed_by_id) REFERENCES "Certificates" (id) ON DELETE SET NULL,
     FOREIGN KEY (secret_id) REFERENCES "Secrets" (id) ON DELETE CASCADE
 );
@@ -568,8 +568,8 @@ CREATE TABLE IF NOT EXISTS "Services" (
     bridge_port INTEGER,
     default_bridge TEXT,
     service_endpoint TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     provisioning_status VARCHAR(36) DEFAULT 'pending',
     provisioning_error TEXT
 );
@@ -581,8 +581,8 @@ CREATE TABLE IF NOT EXISTS "ServiceTags" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     service_id INTEGER NOT NULL,
     tag_id INTEGER NOT NULL,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (service_id) REFERENCES "Services" (id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES "Tags" (id) ON DELETE CASCADE
 );
@@ -595,8 +595,8 @@ CREATE TABLE IF NOT EXISTS "ConfigMaps" (
     name VARCHAR(255) UNIQUE NOT NULL,
     immutable BOOLEAN DEFAULT false,
     data TEXT NOT NULL,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     use_vault BOOLEAN DEFAULT true
 );
 
@@ -608,8 +608,8 @@ CREATE TABLE IF NOT EXISTS "VolumeMounts" (
     config_map_name VARCHAR(255),
     secret_name VARCHAR(255),
     version INT DEFAULT 1,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (config_map_name) REFERENCES "ConfigMaps" (name) ON DELETE CASCADE,
     FOREIGN KEY (secret_name) REFERENCES "Secrets" (name) ON DELETE CASCADE    
 );
@@ -634,8 +634,8 @@ CREATE TABLE IF NOT EXISTS "MicroserviceExecStatuses" (
     status VARCHAR(255) DEFAULT 'INACTIVE',
     exec_session_id VARCHAR(255),
     microservice_uuid VARCHAR(36),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (microservice_uuid) REFERENCES "Microservices" (uuid) ON DELETE CASCADE
 );
 
@@ -650,8 +650,8 @@ CREATE TABLE IF NOT EXISTS "MicroserviceHealthChecks" (
     start_interval DOUBLE PRECISION,
     retries INT,
     microservice_uuid VARCHAR(36),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (microservice_uuid) REFERENCES "Microservices" (uuid) ON DELETE CASCADE
 );
 
@@ -672,8 +672,8 @@ CREATE TABLE IF NOT EXISTS "Events" (
     status_code INT,
     status_message TEXT,
     request_id VARCHAR(255),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE INDEX idx_events_timestamp ON "Events" (timestamp);
@@ -694,8 +694,8 @@ CREATE TABLE IF NOT EXISTS "MicroserviceLogStatuses" (
     tail_config TEXT,
     agent_connected BOOLEAN DEFAULT false,
     user_connected BOOLEAN DEFAULT false,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (microservice_uuid) REFERENCES "Microservices" (uuid) ON DELETE CASCADE
 );
 
@@ -709,8 +709,8 @@ CREATE TABLE IF NOT EXISTS "MicroserviceExecSessions" (
     status TEXT,
     user_connected BOOLEAN DEFAULT false,
     agent_connected BOOLEAN DEFAULT false,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (microservice_uuid) REFERENCES "Microservices" (uuid) ON DELETE CASCADE
 );
 
@@ -726,8 +726,8 @@ CREATE TABLE IF NOT EXISTS "FogLogStatuses" (
     tail_config TEXT,
     agent_connected BOOLEAN DEFAULT false,
     user_connected BOOLEAN DEFAULT false,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (iofog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
 
@@ -737,9 +737,9 @@ CREATE INDEX idx_fog_log_status_session_id ON "FogLogStatuses" (session_id);
 CREATE TABLE IF NOT EXISTS "RbacRoles" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
-    kind TEXT DEFAULT 'Role',
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    kind TEXT,
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE TABLE IF NOT EXISTS "RbacRoleRules" (
@@ -749,19 +749,19 @@ CREATE TABLE IF NOT EXISTS "RbacRoleRules" (
     resources TEXT NOT NULL,
     verbs TEXT NOT NULL,
     resource_names TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (role_id) REFERENCES "RbacRoles" (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS "RbacRoleBindings" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
-    kind TEXT DEFAULT 'RoleBinding',
+    kind TEXT,
     role_ref TEXT NOT NULL,
     subjects TEXT NOT NULL,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     role_id INTEGER
 );
 
@@ -772,8 +772,8 @@ CREATE TABLE IF NOT EXISTS "RbacServiceAccounts" (
     role_id INT REFERENCES "RbacRoles" (id),
     microservice_uuid VARCHAR(36) REFERENCES "Microservices" (uuid) ON DELETE CASCADE,
     application_id INT REFERENCES "Applications" (id) ON DELETE SET NULL,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE INDEX idx_rbac_role_rules_role_id ON "RbacRoleRules" (role_id);
@@ -784,8 +784,8 @@ CREATE INDEX idx_rbac_service_accounts_name ON "RbacServiceAccounts" (name);
 CREATE TABLE IF NOT EXISTS "RbacCacheVersion" (
     id INT PRIMARY KEY DEFAULT 1,
     version BIGINT NOT NULL DEFAULT 1,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     CONSTRAINT single_row CHECK (id = 1)
 );
 
@@ -799,10 +799,10 @@ CREATE TABLE IF NOT EXISTS "ClusterControllers" (
     uuid VARCHAR(36) PRIMARY KEY NOT NULL,
     host VARCHAR(255),
     process_id INT,
-    last_heartbeat TIMESTAMP(0),
+    last_heartbeat TIMESTAMPTZ(0),
     is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE INDEX idx_cluster_controllers_uuid ON "ClusterControllers" (uuid);
@@ -815,8 +815,8 @@ CREATE TABLE IF NOT EXISTS "NatsOperators" (
     public_key TEXT NOT NULL,
     jwt TEXT NOT NULL,
     seed_secret_name TEXT NOT NULL,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE TABLE IF NOT EXISTS "NatsAccounts" (
@@ -829,8 +829,8 @@ CREATE TABLE IF NOT EXISTS "NatsAccounts" (
     is_leaf_system BOOLEAN DEFAULT false,
     operator_id INT NOT NULL,
     application_id INT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (operator_id) REFERENCES "NatsOperators" (id) ON DELETE CASCADE,
     FOREIGN KEY (application_id) REFERENCES "Applications" (id) ON DELETE CASCADE
 );
@@ -844,8 +844,8 @@ CREATE TABLE IF NOT EXISTS "NatsUsers" (
     is_bearer BOOLEAN DEFAULT false,
     account_id INT NOT NULL,
     microservice_uuid VARCHAR(36),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     nats_user_rule_id INTEGER,
     FOREIGN KEY (account_id) REFERENCES "NatsAccounts" (id) ON DELETE CASCADE,
     FOREIGN KEY (microservice_uuid) REFERENCES "Microservices" (uuid) ON DELETE SET NULL
@@ -867,8 +867,8 @@ CREATE TABLE IF NOT EXISTS "NatsInstances" (
     cert_secret_name TEXT,
     js_storage_size TEXT,
     js_memory_store_size TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (iofog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
 
@@ -876,8 +876,8 @@ CREATE TABLE IF NOT EXISTS "NatsConnections" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     source_nats INT NOT NULL,
     dest_nats INT NOT NULL,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (source_nats) REFERENCES "NatsInstances" (id) ON DELETE CASCADE,
     FOREIGN KEY (dest_nats) REFERENCES "NatsInstances" (id) ON DELETE CASCADE
 );
@@ -891,9 +891,9 @@ CREATE TABLE IF NOT EXISTS "NatsReconcileTasks" (
     fog_uuids TEXT,
     status VARCHAR(32) NOT NULL DEFAULT 'pending',
     leader_uuid VARCHAR(36),
-    claimed_at TIMESTAMP(0),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    claimed_at TIMESTAMPTZ(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE TABLE IF NOT EXISTS "NatsAccountRules" (
@@ -928,8 +928,8 @@ CREATE TABLE IF NOT EXISTS "NatsAccountRules" (
     pub_deny TEXT,
     sub_allow TEXT,
     sub_deny TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE TABLE IF NOT EXISTS "NatsUserRules" (
@@ -952,8 +952,8 @@ CREATE TABLE IF NOT EXISTS "NatsUserRules" (
     sub_allow TEXT,
     sub_deny TEXT,
     tags TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE UNIQUE INDEX idx_nats_accounts_application_id_unique ON "NatsAccounts" (application_id) WHERE application_id IS NOT NULL;
@@ -984,10 +984,10 @@ CREATE TABLE IF NOT EXISTS "AuthUsers" (
     must_change_password BOOLEAN DEFAULT false,
     is_bootstrap BOOLEAN DEFAULT false,
     failed_attempts INT DEFAULT 0,
-    locked_until TIMESTAMP(0),
-    deleted_at TIMESTAMP(0),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    locked_until TIMESTAMPTZ(0),
+    deleted_at TIMESTAMPTZ(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE INDEX idx_auth_users_email ON "AuthUsers" (email);
@@ -998,15 +998,15 @@ CREATE TABLE IF NOT EXISTS "AuthGroups" (
     name VARCHAR(255) NOT NULL UNIQUE,
     is_system BOOLEAN DEFAULT false,
     mfa_required BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE TABLE IF NOT EXISTS "AuthUserGroups" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
     user_id VARCHAR(36) NOT NULL,
     group_id INT NOT NULL,
-    created_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
     FOREIGN KEY (user_id) REFERENCES "AuthUsers" (id) ON DELETE CASCADE,
     FOREIGN KEY (group_id) REFERENCES "AuthGroups" (id) ON DELETE CASCADE,
     UNIQUE (user_id, group_id)
@@ -1021,8 +1021,8 @@ CREATE TABLE IF NOT EXISTS "AuthMfa" (
     totp_secret_encrypted TEXT,
     enabled BOOLEAN DEFAULT false,
     recovery_codes_hash TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (user_id) REFERENCES "AuthUsers" (id) ON DELETE CASCADE
 );
 
@@ -1031,8 +1031,8 @@ CREATE INDEX idx_auth_mfa_user_id ON "AuthMfa" (user_id);
 CREATE TABLE IF NOT EXISTS "AuthPasswordResetSessions" (
     id VARCHAR(36) PRIMARY KEY NOT NULL,
     user_id VARCHAR(36) NOT NULL,
-    expires_at TIMESTAMP(0) NOT NULL,
-    created_at TIMESTAMP(0),
+    expires_at TIMESTAMPTZ(0) NOT NULL,
+    created_at TIMESTAMPTZ(0),
     FOREIGN KEY (user_id) REFERENCES "AuthUsers" (id) ON DELETE CASCADE
 );
 
@@ -1044,10 +1044,10 @@ CREATE TABLE IF NOT EXISTS "AuthRefreshTokens" (
     token_hash VARCHAR(255) NOT NULL,
     user_id VARCHAR(36) NOT NULL,
     family_id VARCHAR(36) NOT NULL,
-    expires_at TIMESTAMP(0) NOT NULL,
+    expires_at TIMESTAMPTZ(0) NOT NULL,
     revoked BOOLEAN DEFAULT false,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (user_id) REFERENCES "AuthUsers" (id) ON DELETE CASCADE
 );
 
@@ -1062,8 +1062,8 @@ CREATE TABLE IF NOT EXISTS "AuthOidcKeys" (
     key_material_encrypted TEXT,
     vault_ref TEXT,
     active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE INDEX idx_auth_oidc_keys_active ON "AuthOidcKeys" (active);
@@ -1073,8 +1073,8 @@ CREATE TABLE IF NOT EXISTS "AuthOidcClients" (
     client_id VARCHAR(255) NOT NULL UNIQUE,
     secret_ref TEXT,
     client_type VARCHAR(32) NOT NULL DEFAULT 'confidential',
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE TABLE IF NOT EXISTS "AuthOidcProviderStates" (
@@ -1082,14 +1082,14 @@ CREATE TABLE IF NOT EXISTS "AuthOidcProviderStates" (
     model VARCHAR(64) NOT NULL,
     record_id VARCHAR(255) NOT NULL,
     payload TEXT NOT NULL,
-    expires_at TIMESTAMP(0),
+    expires_at TIMESTAMPTZ(0),
     grant_id VARCHAR(255),
     uid VARCHAR(255),
     user_code VARCHAR(255),
     consumed BOOLEAN DEFAULT false,
-    consumed_at TIMESTAMP(0),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    consumed_at TIMESTAMPTZ(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     UNIQUE (model, record_id)
 );
 
@@ -1101,9 +1101,9 @@ CREATE INDEX idx_auth_oidc_provider_states_expires_at ON "AuthOidcProviderStates
 CREATE TABLE IF NOT EXISTS "AuthBffSessions" (
     sid VARCHAR(255) PRIMARY KEY NOT NULL,
     data TEXT NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
 );
 
 CREATE INDEX idx_auth_bff_sessions_expires_at ON "AuthBffSessions" (expires_at);
@@ -1111,20 +1111,20 @@ CREATE INDEX idx_auth_bff_sessions_expires_at ON "AuthBffSessions" (expires_at);
 CREATE TABLE IF NOT EXISTS "AuthInteractionStates" (
     uid VARCHAR(255) PRIMARY KEY NOT NULL,
     payload TEXT NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
 );
 
 CREATE INDEX idx_auth_interaction_states_expires_at ON "AuthInteractionStates" (expires_at);
 
 CREATE TABLE IF NOT EXISTS "AuthBootstrapMeta" (
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
-    completed_at TIMESTAMP(0),
+    completed_at TIMESTAMPTZ(0),
     bootstrap_admin_user_id VARCHAR(36),
     session_secret_ref TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (bootstrap_admin_user_id) REFERENCES "AuthUsers" (id) ON DELETE SET NULL
 );
 
@@ -1142,16 +1142,16 @@ CREATE TABLE IF NOT EXISTS "AuthPolicy" (
     refresh_token_ttl_seconds INT DEFAULT 3600,
     refresh_rotation BOOLEAN DEFAULT true,
     max_concurrent_sessions INT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE TABLE IF NOT EXISTS "FogPlatformSpecs" (
     fog_uuid VARCHAR(36) PRIMARY KEY NOT NULL,
     spec_json TEXT NOT NULL,
     generation INT NOT NULL DEFAULT 1,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (fog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
 
@@ -1160,10 +1160,10 @@ CREATE TABLE IF NOT EXISTS "FogPlatformStatuses" (
     observed_generation INT NOT NULL DEFAULT 0,
     phase VARCHAR(32) NOT NULL DEFAULT 'Pending',
     last_error TEXT,
-    last_transition_at TIMESTAMP(0),
+    last_transition_at TIMESTAMPTZ(0),
     conditions_json TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (fog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
 
@@ -1174,12 +1174,12 @@ CREATE TABLE IF NOT EXISTS "FogPlatformReconcileTasks" (
     spec_generation INT,
     status VARCHAR(32) NOT NULL DEFAULT 'pending',
     leader_uuid VARCHAR(36),
-    claimed_at TIMESTAMP(0),
-    next_attempt_at TIMESTAMP(0),
+    claimed_at TIMESTAMPTZ(0),
+    next_attempt_at TIMESTAMPTZ(0),
     attempts INT NOT NULL DEFAULT 0,
     last_error TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0),
     FOREIGN KEY (fog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE
 );
 
@@ -1194,22 +1194,34 @@ CREATE TABLE IF NOT EXISTS "ServicePlatformReconcileTasks" (
     spec_snapshot TEXT,
     status VARCHAR(32) NOT NULL DEFAULT 'pending',
     leader_uuid VARCHAR(36),
-    claimed_at TIMESTAMP(0),
-    next_attempt_at TIMESTAMP(0),
+    claimed_at TIMESTAMPTZ(0),
+    next_attempt_at TIMESTAMPTZ(0),
     attempts INT NOT NULL DEFAULT 0,
     last_error TEXT,
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );
 
 CREATE UNIQUE INDEX idx_service_platform_reconcile_tasks_active_service_name ON "ServicePlatformReconcileTasks" (service_name) WHERE status IN ('pending', 'in_progress');
 CREATE INDEX idx_service_platform_reconcile_tasks_status_claimed ON "ServicePlatformReconcileTasks" (status, claimed_at);
 CREATE INDEX idx_service_platform_reconcile_tasks_next_attempt ON "ServicePlatformReconcileTasks" (next_attempt_at);
 
+CREATE TABLE IF NOT EXISTS "ReconcileOutbox" (
+    id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY NOT NULL,
+    kind VARCHAR(32) NOT NULL,
+    payload TEXT NOT NULL,
+    idempotency_key VARCHAR(255) NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ(0),
+    processed_at TIMESTAMPTZ(0),
+    last_error TEXT
+);
+
+CREATE INDEX idx_reconcile_outbox_unprocessed ON "ReconcileOutbox" (processed_at, id);
+
 CREATE TABLE IF NOT EXISTS "HubRouterConfigLocks" (
     id INT PRIMARY KEY NOT NULL CHECK (id = 1),
     leader_uuid VARCHAR(36),
-    claimed_at TIMESTAMP(0),
-    created_at TIMESTAMP(0),
-    updated_at TIMESTAMP(0)
+    claimed_at TIMESTAMPTZ(0),
+    created_at TIMESTAMPTZ(0),
+    updated_at TIMESTAMPTZ(0)
 );

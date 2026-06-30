@@ -1,6 +1,11 @@
 'use strict'
 
 const SecretHelper = require('../../helpers/secret-helper')
+const {
+  scheduleVaultPromoteAfterCommit,
+  shouldDeferVaultStore
+} = require('../../helpers/vault-transaction-helper')
+const models = require('../models')
 
 module.exports = (sequelize, DataTypes) => {
   const ConfigMap = sequelize.define('ConfigMap', {
@@ -59,21 +64,35 @@ module.exports = (sequelize, DataTypes) => {
       }
     ],
     hooks: {
-      beforeSave: async (configMap) => {
+      beforeSave: async (configMap, options) => {
         if (configMap.changed('data')) {
-          // Get useVault value - prioritize getDataValue (for updates), then property, default to true
           let useVault = configMap.getDataValue('useVault')
-          // If getDataValue returns undefined/null, try the property (for new instances)
           if (useVault === undefined || useVault === null) {
             useVault = configMap.useVault !== undefined && configMap.useVault !== null
               ? configMap.useVault
               : true
           }
-          // Ensure boolean type
           useVault = Boolean(useVault)
 
+          const plainData = configMap.data
+          const transaction = options.transaction
+
+          if (transaction && shouldDeferVaultStore('configmap', useVault)) {
+            configMap.data = await SecretHelper.encryptSecretInternal(plainData, configMap.name)
+            scheduleVaultPromoteAfterCommit(transaction, {
+              secretData: plainData,
+              secretName: configMap.name,
+              secretType: 'configmap',
+              useVault,
+              model: () => models.ConfigMap,
+              where: { name: configMap.name },
+              field: 'data'
+            })
+            return
+          }
+
           const encryptedData = await SecretHelper.encryptSecret(
-            configMap.data,
+            plainData,
             configMap.name,
             'configmap',
             useVault

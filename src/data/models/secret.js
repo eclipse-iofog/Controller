@@ -1,6 +1,11 @@
 'use strict'
 
 const SecretHelper = require('../../helpers/secret-helper')
+const {
+  scheduleVaultPromoteAfterCommit,
+  shouldDeferVaultStore
+} = require('../../helpers/vault-transaction-helper')
+const models = require('../models')
 
 module.exports = (sequelize, DataTypes) => {
   const Secret = sequelize.define('Secret', {
@@ -57,10 +62,26 @@ module.exports = (sequelize, DataTypes) => {
       }
     ],
     hooks: {
-      beforeSave: async (secret) => {
+      beforeSave: async (secret, options) => {
         if (secret.changed('data')) {
+          const plainData = secret.data
+          const transaction = options.transaction
+
+          if (transaction && shouldDeferVaultStore(secret.type)) {
+            secret.data = await SecretHelper.encryptSecretInternal(plainData, secret.name)
+            scheduleVaultPromoteAfterCommit(transaction, {
+              secretData: plainData,
+              secretName: secret.name,
+              secretType: secret.type,
+              model: () => models.Secret,
+              where: { name: secret.name },
+              field: 'data'
+            })
+            return
+          }
+
           const encryptedData = await SecretHelper.encryptSecret(
-            secret.data,
+            plainData,
             secret.name,
             secret.type
           )

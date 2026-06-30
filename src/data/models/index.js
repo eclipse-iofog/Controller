@@ -78,8 +78,11 @@ db.initDB = async (isStart) => {
     // Initialize RBAC cache version if it doesn't exist
     try {
       const RbacCacheVersionManager = require('../managers/rbac-cache-version-manager')
-      const fakeTransaction = { fakeTransaction: true }
-      await RbacCacheVersionManager.initializeVersion(fakeTransaction)
+      const { runInTransaction } = require('../../helpers/transaction-runner')
+      await runInTransaction(
+        (transaction) => RbacCacheVersionManager.initializeVersion(transaction),
+        { label: 'init-rbac-cache-version' }
+      )
       logger.info('RBAC cache version initialized')
     } catch (error) {
       logger.warn(`Failed to initialize RBAC cache version: ${error.message}. Continuing...`)
@@ -94,11 +97,25 @@ db.initDB = async (isStart) => {
     // Initialize controller UUID
     try {
       const ClusterControllerService = require('../../services/cluster-controller-service')
-      const fakeTransaction = { fakeTransaction: true }
-      await ClusterControllerService.initializeControllerUuid(fakeTransaction)
+      const { runInTransaction } = require('../../helpers/transaction-runner')
+      await runInTransaction(
+        (transaction) => ClusterControllerService.initializeControllerUuid(transaction),
+        { label: 'init-controller-uuid' }
+      )
       logger.info('Controller UUID initialized')
     } catch (error) {
       logger.warn(`Failed to initialize controller UUID: ${error.message}. Continuing...`)
+    }
+
+    const { initDbMetrics } = require('../../helpers/db-metrics')
+    const { getProviderName, getWriteQueueDepth } = require('../../helpers/transaction-runner')
+    initDbMetrics(databaseProvider.sequelize, getProviderName(), { getWriteQueueDepth })
+
+    try {
+      const { checkSqliteFogCountWarning } = require('../../helpers/sqlite-fog-warning')
+      await checkSqliteFogCountWarning()
+    } catch (error) {
+      logger.warn(`Failed sqlite fog count warning check: ${error.message}. Continuing...`)
     }
   }
 }

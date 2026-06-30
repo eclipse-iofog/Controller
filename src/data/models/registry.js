@@ -1,6 +1,11 @@
 'use strict'
 
 const SecretHelper = require('../../helpers/secret-helper')
+const {
+  scheduleVaultPromoteAfterCommit,
+  shouldDeferVaultStore
+} = require('../../helpers/vault-transaction-helper')
+const models = require('../models')
 
 // Minimum length for internal encryption format: base64(salt(16) + iv(12) + tag(16) + encrypted)
 const INTERNAL_ENCRYPTED_MIN_LENGTH = 60
@@ -63,7 +68,7 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: false,
     underscored: true,
     hooks: {
-      beforeSave: async (registry) => {
+      beforeSave: async (registry, options) => {
         if (!registry.changed('password')) return
         const password = registry.password
         if (isPasswordEmpty(password)) {
@@ -76,9 +81,27 @@ module.exports = (sequelize, DataTypes) => {
         if (SecretHelper.isVaultReference(password) || looksLikeInternalEncrypted(password)) {
           return
         }
+
+        const transaction = options.transaction
+        const secretName = 'registry-' + registry.id
+        const secretData = { value: password }
+
+        if (transaction && shouldDeferVaultStore('registry')) {
+          registry.password = await SecretHelper.encryptSecretInternal(secretData, secretName)
+          scheduleVaultPromoteAfterCommit(transaction, {
+            secretData,
+            secretName,
+            secretType: 'registry',
+            model: () => models.Registry,
+            where: { id: registry.id },
+            field: 'password'
+          })
+          return
+        }
+
         const encrypted = await SecretHelper.encryptSecret(
-          { value: password },
-          'registry-' + registry.id,
+          secretData,
+          secretName,
           'registry'
         )
         registry.password = encrypted
