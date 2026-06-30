@@ -235,7 +235,7 @@ describe('grep gates', () => {
     )
     expect(adapterSource).to.include('runInTransaction')
     expect(adapterSource).to.match(/label: 'oidc\.adapter\.upsert'/)
-    expect(adapterSource).to.match(/\}, \{ transaction \}\)/)
+    expect(adapterSource).to.match(/\{\s*transaction,/)
   })
 
   it('passes transaction inside Sequelize options in volume-mounting-manager.js', () => {

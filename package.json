@@ -5,6 +5,8 @@
   "main": "./src/main.js",
   "author": "Eclipse ioFog Project",
   "contributors": [
+    "Emirhan Durmus  <emirhan.durmus@datasance.com>",
+    "Alpaslan Doğan <alpaslan.dogan@datasance.com>",
     "Kilton Hopkins <kilton@edgeworx.io>",
     "Saeid Rezaei Baghbidi",
     "Alexandre de Wergifosse",
@@ -20,9 +22,7 @@
     "Eugene Pankov",
     "Maksim Chepelev",
     "Tetiana Yatsiuk",
-    "Sergey Valevich",
-    "Emirhan Durmus  <emirhan.durmus@datasance.com>",
-    "Alpaslan Doğan <alpaslan.dogan@datasance.com>"
+    "Sergey Valevich"
   ],
   "license": "EPL-2.0",
   "engines": {

@@ -2774,7 +2774,7 @@ paths:
         `{ sessionId, microserviceUuid }` in the `data` field and top-level `sessionId`,
         followed by STDERR "waiting for agent…". Relay frames use `execId` equal to `sessionId`.
 
-        **HA (R112):** Multi-replica deployments require a **relay backend** selected at startup by **`nats.enabled`**: AMQP router queues when `false` (default), NATS Core pub/sub on the platform hub when `true`. Cross-replica sessions fail fast with close code **1013** when the active relay backend is unavailable. See `docs/operations/ws-sessions.md`.
+        **HA:** Multi-replica deployments require a **relay backend** selected at startup by **`nats.enabled`**: AMQP router queues when `false` (default), NATS Core pub/sub on the platform hub when `true`. Cross-replica sessions fail fast with close code **1013** when the active relay backend is unavailable. See `docs/operations/ws-sessions.md`.
 
         See `#/components/schemas/WsExecMessageTypes` and `#/components/schemas/WsCloseCodes`.
       operationId: userMicroserviceExecWebSocket
