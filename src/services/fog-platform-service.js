@@ -262,8 +262,16 @@ async function reconcileFogPlatform (fogUuid, prep, transaction) {
     const upstreamConnections = router
       ? await RouterConnectionManager.findAllWithRouters({ sourceRouter: router.id }, transaction)
       : []
-    const upstreamRoutersIofogUuid = spec.upstreamRouters || (upstreamConnections || [])
-      .map((connection) => connection.dest.iofogUuid)
+    let upstreamRoutersIofogUuid
+    if (spec.upstreamRouters !== undefined) {
+      upstreamRoutersIofogUuid = spec.upstreamRouters
+    } else if (upstreamConnections && upstreamConnections.length > 0) {
+      upstreamRoutersIofogUuid = upstreamConnections.map(
+        (connection) => _getRouterUuid(connection.dest, defaultRouter)
+      )
+    } else {
+      upstreamRoutersIofogUuid = undefined
+    }
     const upstreamRouters = await RouterService.validateAndReturnUpstreamRouters(
       upstreamRoutersIofogUuid,
       fog.isSystem,

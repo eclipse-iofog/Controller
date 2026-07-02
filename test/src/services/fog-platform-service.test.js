@@ -2,6 +2,7 @@ const { expect } = require('chai')
 const sinon = require('sinon')
 
 const FogPlatformService = require('../../../src/services/fog-platform-service')
+const Constants = require('../../../src/helpers/constants')
 const FogManager = require('../../../src/data/managers/iofog-manager')
 const FogPlatformSpecManager = require('../../../src/data/managers/fog-platform-spec-manager')
 const FogPlatformStatusManager = require('../../../src/data/managers/fog-platform-status-manager')
@@ -210,6 +211,73 @@ describe('Fog platform service', () => {
         reason: 'cluster-routes-changed',
         fogUuids: [fogUuid]
       }, transaction)
+    })
+
+    context('when upstreamRouters is omitted from spec', () => {
+      it('passes undefined to validateAndReturnUpstreamRouters on first create', async () => {
+        RouterManager.findOne.callsFake((query) => {
+          if (query && query.isDefault) {
+            return Promise.resolve({ id: 1, iofogUuid: 'default', isDefault: true })
+          }
+          if (query && query.iofogUuid === fogUuid) {
+            return Promise.resolve(null)
+          }
+          return Promise.resolve(null)
+        })
+        RouterConnectionManager.findAllWithRouters.resolves([])
+        RouterService.validateAndReturnUpstreamRouters.resolves([{ id: 1, iofogUuid: 'default' }])
+        $sandbox.stub(RouterService, 'createRouterForFog').resolves({
+          id: 99,
+          iofogUuid: fogUuid,
+          isEdge: true
+        })
+
+        await FogPlatformService.reconcileFog(fogUuid)
+
+        expect(RouterService.validateAndReturnUpstreamRouters).to.have.been.calledWith(
+          undefined,
+          false,
+          sinon.match({ id: 1, isDefault: true }),
+          transaction
+        )
+        expect(RouterService.createRouterForFog).to.have.been.calledOnce
+        expect(RouterService.updateRouter).to.not.have.been.called
+      })
+
+      it('preserves existing upstream connections when spec omits upstreamRouters', async () => {
+        const upstreamConnection = {
+          dest: { id: 1, iofogUuid: 'default', isDefault: true }
+        }
+        RouterConnectionManager.findAllWithRouters.resolves([upstreamConnection])
+        RouterService.validateAndReturnUpstreamRouters.resolves([{ id: 1, iofogUuid: 'default' }])
+
+        await FogPlatformService.reconcileFog(fogUuid)
+
+        expect(RouterService.validateAndReturnUpstreamRouters).to.have.been.calledWith(
+          [Constants.DEFAULT_ROUTER_NAME],
+          false,
+          sinon.match({ id: 1, isDefault: true }),
+          transaction
+        )
+      })
+
+      it('passes explicit empty upstreamRouters without applying defaults', async () => {
+        FogPlatformSpecManager.getParsedSpec.resolves({
+          fogUuid,
+          generation: 2,
+          spec: { ...spec, upstreamRouters: [] }
+        })
+        RouterConnectionManager.findAllWithRouters.resolves([])
+
+        await FogPlatformService.reconcileFog(fogUuid)
+
+        expect(RouterService.validateAndReturnUpstreamRouters).to.have.been.calledWith(
+          [],
+          false,
+          sinon.match({ id: 1, isDefault: true }),
+          transaction
+        )
+      })
     })
   })
 
