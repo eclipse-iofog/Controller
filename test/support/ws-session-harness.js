@@ -85,6 +85,37 @@ function buildExecFrame (type, execId, microserviceUuid, data) {
   })
 }
 
+function mergeExecBridgeSession (existing, incoming) {
+  if (!existing) {
+    return incoming
+  }
+  return {
+    ...existing,
+    ...incoming,
+    execId: incoming.execId || existing.execId,
+    sessionId: incoming.sessionId || existing.sessionId,
+    microserviceUuid: incoming.microserviceUuid || existing.microserviceUuid,
+    user: incoming.user || existing.user,
+    agent: incoming.agent || existing.agent
+  }
+}
+
+function mergeLogBridgeSession (existing, incoming) {
+  if (!existing) {
+    return incoming
+  }
+  return {
+    ...existing,
+    ...incoming,
+    sessionId: incoming.sessionId || existing.sessionId,
+    microserviceUuid: incoming.microserviceUuid || existing.microserviceUuid,
+    fogUuid: incoming.fogUuid || existing.fogUuid,
+    user: incoming.user || existing.user,
+    agent: incoming.agent || existing.agent,
+    tailConfig: incoming.tailConfig || existing.tailConfig
+  }
+}
+
 /**
  * In-memory relay stub for cross-replica exec/log tests.
  * @param {'amqp'|'nats'} [transport='amqp']
@@ -110,7 +141,7 @@ function createMockRelayTransport (transport = 'amqp') {
       if (!execId) return false
       const existing = execBridges.get(execId)
       if (existing) {
-        existing.session = session
+        existing.session = mergeExecBridgeSession(existing.session, session)
         if (cleanupCallback) {
           existing.cleanupCallback = cleanupCallback
         }
@@ -124,10 +155,34 @@ function createMockRelayTransport (transport = 'amqp') {
       return execBridges.has(execId)
     },
 
+    setExecUserDeliveryHook (execId, hook) {
+      const bridge = execBridges.get(execId)
+      if (bridge) {
+        bridge.onUserRelayDelivery = hook
+      }
+    },
+
+    setExecAgentDeliveryHook (execId, hook) {
+      const bridge = execBridges.get(execId)
+      if (bridge) {
+        bridge.onAgentRelayDelivery = hook
+      }
+    },
+
+    setLogUserDeliveryHook (sessionId, hook) {
+      const bridge = logBridges.get(sessionId)
+      if (bridge) {
+        bridge.onUserRelayDelivery = hook
+      }
+    },
+
     async publishToAgent (execId, buffer) {
       const bridge = execBridges.get(execId)
       if (bridge && bridge.session.agent && bridge.session.agent.readyState === WebSocket.OPEN) {
         bridge.session.agent.send(buffer, { binary: true })
+        if (bridge.onAgentRelayDelivery) {
+          bridge.onAgentRelayDelivery(buffer)
+        }
       }
     },
 
@@ -135,6 +190,9 @@ function createMockRelayTransport (transport = 'amqp') {
       const bridge = execBridges.get(execId)
       if (bridge && bridge.session.user && bridge.session.user.readyState === WebSocket.OPEN) {
         bridge.session.user.send(buffer, { binary: true })
+        if (bridge.onUserRelayDelivery) {
+          bridge.onUserRelayDelivery(buffer)
+        }
       }
     },
 
@@ -144,7 +202,15 @@ function createMockRelayTransport (transport = 'amqp') {
 
     async enableForLogSession (session, cleanupCallback) {
       const sessionId = session.sessionId
-      logBridges.set(sessionId, { session, cleanupCallback })
+      const existing = logBridges.get(sessionId)
+      if (existing) {
+        existing.session = mergeLogBridgeSession(existing.session, session)
+        if (cleanupCallback) {
+          existing.cleanupCallback = cleanupCallback
+        }
+      } else {
+        logBridges.set(sessionId, { session, cleanupCallback })
+      }
       return true
     },
 
@@ -155,7 +221,10 @@ function createMockRelayTransport (transport = 'amqp') {
     async publishLogToUser (sessionId, buffer) {
       const bridge = logBridges.get(sessionId)
       if (bridge && bridge.session.user && bridge.session.user.readyState === WebSocket.OPEN) {
-        bridge.session.user.emit('message', buffer, true)
+        bridge.session.user.send(buffer, { binary: true })
+        if (bridge.onUserRelayDelivery) {
+          bridge.onUserRelayDelivery(buffer)
+        }
       }
     },
 

@@ -17,6 +17,7 @@ class LogSessionManager {
     this.logSessions = new Map() // Map<sessionId, LogSession>
     this.config = config
     this.cleanupInterval = null
+    this.expiredSessionHandler = null
     this.startCleanupInterval()
     logger.info('LogSessionManager initialized with config:' + JSON.stringify({
       logPendingTimeoutMs: config.session.logPendingTimeoutMs,
@@ -47,7 +48,13 @@ class LogSessionManager {
       tailConfig, // Per-session tail configuration
       lastActivity: Date.now(),
       createdAt: Date.now(),
-      transaction
+      transaction,
+      remoteAgentPaired: false,
+      remoteUserPaired: false,
+      pendingPairingTimer: null,
+      pairingStartedAt: null,
+      pairingMetricsStarted: false,
+      pairingCompleted: false
     }
     this.logSessions.set(sessionId, session)
     return session
@@ -68,6 +75,10 @@ class LogSessionManager {
     return sessions
   }
 
+  setExpiredSessionHandler (handler) {
+    this.expiredSessionHandler = typeof handler === 'function' ? handler : null
+  }
+
   updateLastActivity (sessionId) {
     const session = this.logSessions.get(sessionId)
     if (session) {
@@ -75,9 +86,19 @@ class LogSessionManager {
     }
   }
 
+  detachLocalLogSession (sessionId) {
+    const session = this.logSessions.get(sessionId)
+    if (!session || session.removing) {
+      return
+    }
+    this.logSessions.delete(sessionId)
+  }
+
   async removeLogSession (sessionId, transaction) {
     const session = this.logSessions.get(sessionId)
-    if (!session) return
+    if (!session || session.removing) return
+
+    session.removing = true
 
     // Close connections
     if (session.agent && session.agent.readyState === WebSocket.OPEN) {
@@ -149,8 +170,12 @@ class LogSessionManager {
 
       let isExpired = false
 
-      if (!session.agent && session.user) {
+      if (!session.agent && !session.remoteAgentPaired && session.user) {
         isExpired = timeSinceCreation > pendingTimeout
+      } else if (session.user && !session.agent && session.remoteAgentPaired) {
+        isExpired = timeSinceLastActivity > idleTimeout
+      } else if (session.agent && !session.user && session.remoteUserPaired) {
+        isExpired = timeSinceLastActivity > idleTimeout
       } else if (session.agent && !session.user) {
         isExpired = timeSinceLastActivity > pendingTimeout
       } else if (session.agent && session.user) {
@@ -165,26 +190,34 @@ class LogSessionManager {
     }
 
     for (const sessionId of expiredSessions) {
-      logger.info('Cleaning up expired log session:' + JSON.stringify({ sessionId }))
       const session = this.logSessions.get(sessionId)
-      if (session && session.user && session.user.readyState === WebSocket.OPEN) {
-        try {
-          session.user.close(1008, session.agent ? 'Log session idle timeout' : 'Timeout waiting for agent connection')
-        } catch (error) {
-          logger.warn('Failed to close expired log user connection:' + error.message)
-        }
+      if (this.expiredSessionHandler) {
+        await this.expiredSessionHandler(sessionId, session, transaction)
+      } else {
+        await this._removeExpiredLogSession(sessionId, session, transaction)
       }
-      if (session && session.agent && session.agent.readyState === WebSocket.OPEN) {
-        try {
-          session.agent.close(1000, 'Log session expired')
-        } catch (error) {
-          logger.warn('Failed to close expired log agent connection:' + error.message)
-        }
-      }
-      await this.removeLogSession(sessionId, transaction)
     }
 
     return expiredSessions.length
+  }
+
+  async _removeExpiredLogSession (sessionId, session, transaction) {
+    logger.info('Cleaning up expired log session:' + JSON.stringify({ sessionId }))
+    if (session && session.user && session.user.readyState === WebSocket.OPEN) {
+      try {
+        session.user.close(1008, (session.agent || session.remoteAgentPaired) ? 'Log session idle timeout' : 'Timeout waiting for agent connection')
+      } catch (error) {
+        logger.warn('Failed to close expired log user connection:' + error.message)
+      }
+    }
+    if (session && session.agent && session.agent.readyState === WebSocket.OPEN) {
+      try {
+        session.agent.close(1000, 'Log session expired')
+      } catch (error) {
+        logger.warn('Failed to close expired log agent connection:' + error.message)
+      }
+    }
+    await this.removeLogSession(sessionId, transaction)
   }
 
   startCleanupInterval () {

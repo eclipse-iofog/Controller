@@ -2,6 +2,7 @@ const { expect } = require('chai')
 const sinon = require('sinon')
 const msgpack = require('@msgpack/msgpack')
 const WebSocket = require('ws')
+const { headers: natsHeaders } = require('@nats-io/transport-node')
 
 const {
   NatsRelayTransportImpl,
@@ -213,5 +214,57 @@ describe('NatsRelayTransportImpl', () => {
 
     await expect(slowTransport.publishToAgent(execId, Buffer.from('x')))
       .to.be.rejectedWith(/not flushed within 20ms/)
+  })
+
+  it('CLOSE relay closes open socket without invoking cleanupCallback', async () => {
+    const userWs = createMockWebSocket()
+    const cleanup = sinon.stub().resolves()
+
+    await transport.enableForSession({ execId, user: userWs }, cleanup)
+
+    const hdrs = natsHeaders()
+    hdrs.set('messageType', '4')
+    nc.publish(execUserSubject(execId), Buffer.from(''), { headers: hdrs })
+
+    await new Promise((resolve) => setImmediate(resolve))
+    await new Promise((resolve) => setImmediate(resolve))
+
+    expect(userWs.close).to.have.been.calledOnce
+    expect(cleanup).to.not.have.been.called
+  })
+
+  it('CLOSE ack relay does not invoke cleanupCallback', async () => {
+    const userWs = createMockWebSocket()
+    const cleanup = sinon.stub().resolves()
+
+    await transport.enableForSession({ execId, user: userWs }, cleanup)
+
+    const hdrs = natsHeaders()
+    hdrs.set('messageType', '4')
+    hdrs.set('closeAck', 'true')
+    nc.publish(execUserSubject(execId), Buffer.from(''), { headers: hdrs })
+
+    await new Promise((resolve) => setImmediate(resolve))
+    await new Promise((resolve) => setImmediate(resolve))
+
+    expect(cleanup).to.not.have.been.called
+    expect(userWs.close).to.not.have.been.called
+  })
+
+  it('CLOSE relay invokes cleanupCallback when socket is already closed', async () => {
+    const userWs = createMockWebSocket()
+    userWs.readyState = WebSocket.CLOSED
+    const cleanup = sinon.stub().resolves()
+
+    await transport.enableForSession({ execId, user: userWs }, cleanup)
+
+    const hdrs = natsHeaders()
+    hdrs.set('messageType', '4')
+    nc.publish(execUserSubject(execId), Buffer.from(''), { headers: hdrs })
+
+    await new Promise((resolve) => setImmediate(resolve))
+    await new Promise((resolve) => setImmediate(resolve))
+
+    expect(cleanup).to.have.been.calledOnceWith(execId)
   })
 })
