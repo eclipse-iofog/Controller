@@ -50,6 +50,24 @@ class NatsRelayTransport extends WsRelayTransport {
     return this._impl.shouldUseRelay(execId)
   }
 
+  setExecUserDeliveryHook (execId, hook) {
+    if (typeof this._impl.setExecUserDeliveryHook === 'function') {
+      this._impl.setExecUserDeliveryHook(execId, hook)
+    }
+  }
+
+  setExecAgentDeliveryHook (execId, hook) {
+    if (typeof this._impl.setExecAgentDeliveryHook === 'function') {
+      this._impl.setExecAgentDeliveryHook(execId, hook)
+    }
+  }
+
+  setLogUserDeliveryHook (sessionId, hook) {
+    if (typeof this._impl.setLogUserDeliveryHook === 'function') {
+      this._impl.setLogUserDeliveryHook(sessionId, hook)
+    }
+  }
+
   shouldUseRelayForLogs (sessionId) {
     return this._impl.shouldUseRelayForLogs(sessionId)
   }

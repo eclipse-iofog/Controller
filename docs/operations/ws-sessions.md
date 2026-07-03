@@ -18,7 +18,7 @@ Controller exposes **interactive exec** and **log streaming** over WebSocket on 
 | **User auth** | Bearer JWT via `Authorization` header or `?token=` query param (browser Console). RBAC: `execSessions`, `logs`, `systemExecSessions`, `systemLogs`. |
 | **Agent auth** | Fog token on `/api/v3/agent/exec/*` and `/api/v3/agent/logs/*` — OIDC does **not** apply to agent routes. |
 
-> **Plan 17 (MS exec):** Open exec with **direct WebSocket** — `wss://…/api/v3/microservices/exec/:uuid` (app MS) or `…/system/exec/:uuid` (system MS). **No** `POST …/exec` before connect. Up to **3** concurrent exec sessions per microservice. Agent discovers sessions via `GET /api/v3/agent/exec/sessions` and connects `WS /api/v3/agent/exec/microservice/:uuid/:sessionId`. Fog node debug: `POST/DELETE /api/v3/iofog/:uuid/exec` provisions the debug system MS, then **`WS …/microservices/system/exec/:debugMsUuid`** (not the app exec path). Full spec: [17-multi-exec-sessions.md](../.cursor/controllerv3.8/docs/17-multi-exec-sessions.md).
+> **Plan 17 (MS exec):** Open exec with **direct WebSocket** — `wss://…/api/v3/microservices/exec/:uuid` (app MS) or `…/system/exec/:uuid` (system MS). **No** `POST …/exec` before connect. Up to **5** concurrent exec sessions per microservice. Agent discovers sessions via `GET /api/v3/agent/exec/sessions` and connects `WS /api/v3/agent/exec/microservice/:uuid/:sessionId`. Fog node debug: `POST/DELETE /api/v3/iofog/:uuid/exec` provisions the debug system MS, then **`WS …/microservices/system/exec/:debugMsUuid`** (not the app exec path). Full spec: [17-multi-exec-sessions.md](../.cursor/controllerv3.8/docs/17-multi-exec-sessions.md).
 
 ### Ingress log redaction (required)
 
@@ -118,13 +118,28 @@ spec:
 
 ---
 
+## Connection keepalive
+
+Controller uses **two layers** for long-lived exec/log WebSockets:
+
+| Layer | Mechanism | Peers |
+|-------|-----------|-------|
+| **WebSocket protocol** | Server sends RFC 6455 **Ping** frames every **`server.webSocket.pingInterval`** (default **30s**, env **`WS_PING_INTERVAL`**) | All four sockets: user + agent on exec and log paths (Edgelet, potctl, EdgeOps Console browser) |
+| **Application (exec user only)** | MessagePack **`CONTROL`** with payload **`keepalive`** | EdgeOps Console exec terminal — Controller echoes **`keepalive`** to the user socket; browsers cannot send native WS ping frames |
+
+Log streaming does **not** use application-level keepalive (Console `LogViewer` is receive-only). Quiet `follow=true` log sessions rely on WS protocol ping to keep the agent and browser legs alive through ingress and Edgelet read deadlines.
+
+`server.webSocket.pongTimeout` is reserved for future server-side watchdog use; v1 does **not** terminate sessions on missed pongs (Console exec owns the 10s app-level watchdog).
+
+---
+
 ## Scale SLO (R88)
 
 | Metric | Target |
 |--------|--------|
 | Concurrent WS per replica | **500** (`WS_REPLICA_MAX_CONCURRENT_WS`) |
 | p99 exec pairing latency | **< 5s** |
-| Exec sessions per microservice | **3** concurrent user WS (Plan 17) |
+| Exec sessions per microservice | **5** concurrent user WS |
 
 Run the load probe locally:
 
@@ -134,7 +149,7 @@ node test/load/ws-pairing-load.js --pairs 500
 node test/load/ws-pairing-load.js --multi-ms 100
 ```
 
-The `--multi-ms` mode creates **3 exec sessions per microservice** (100 MS × 3 = 300 pairs) to validate multi-session pairing latency under the same p99 SLO.
+The `--multi-ms` mode creates **5 exec sessions per microservice** (100 MS × 5 = 500 pairs) to validate multi-session pairing latency under the same p99 SLO.
 
 **AMQP profile** (`nats.enabled=false`): run the probe above on a dev machine — it exercises in-process `ExecSessionManager` pairing only (no router required). Record p99 from stdout; target **< 5000 ms**.
 
@@ -170,10 +185,10 @@ Enable `ENABLE_TELEMETRY=true`. Key metrics (`src/websocket/ws-metrics.js`):
 
 | Session | Limit |
 |---------|-------|
-| Exec user WS per microservice | **3** (Plan 17 — direct WS; no POST/DELETE MS exec REST) |
+| Exec user WS per microservice | **5** (direct WS; no POST/DELETE MS exec REST) |
 | Exec pending (user waits for agent) | **60s** |
 | Exec max duration | **8h** |
-| Log user WS per microservice/fog | **3** |
+| Log user WS per microservice/fog | **5** |
 | Log pending (user waits for agent) | **120s** |
 | Log idle | **2h** |
 | Log tail max lines | **5000** |

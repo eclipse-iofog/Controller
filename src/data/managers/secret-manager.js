@@ -1,5 +1,4 @@
 const BaseManager = require('./base-manager')
-const SecretHelper = require('../../helpers/secret-helper')
 const models = require('../models')
 const Secret = models.Secret
 
@@ -18,12 +17,16 @@ class SecretManager extends BaseManager {
   }
 
   async updateSecret (name, type, data, transaction) {
-    const encryptedData = await SecretHelper.encryptSecret(data, name, type)
-    return this.update(
-      { name },
-      { type, data: encryptedData },
-      transaction
-    )
+    const existing = await this.findOne({ name }, transaction)
+    if (!existing) {
+      throw new Error(`Secret ${name} not found`)
+    }
+
+    existing.type = type
+    existing.data = data
+    await existing.save({ transaction })
+
+    return existing
   }
 
   async getSecret (name, transaction) {

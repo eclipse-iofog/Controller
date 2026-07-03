@@ -80,7 +80,7 @@ async function createCAEndpoint (caData, transaction) {
 
   try {
     const secretName = caData.type === 'self-signed' ? caData.name : caData.secretName
-    const existingSecret = await SecretService.getSecretEndpoint(secretName)
+    const existingSecret = await SecretService.getSecretEndpoint(secretName, transaction)
     if (caData.type === 'self-signed') {
       if (existingSecret) {
         throw new Errors.ConflictError(`CA with name ${secretName} already exists`)
@@ -109,20 +109,20 @@ async function createCAEndpoint (caData, transaction) {
 
   if (caData.type === 'self-signed') {
     ca = await generateSelfSignedCA(caData.subject, caData.expiration)
-    await storeCA(ca, caData.name)
+    await storeCA(ca, caData.name, transaction)
     certDetails = parseCertificate(ca.cert)
   } else if (caData.type === 'k8s-secret') {
     // Import CA from Kubernetes secret
-    ca = await require('../utils/cert').getCAFromK8sSecret(caData.secretName)
+    ca = await require('../utils/cert').getCAFromK8sSecret(caData.secretName, transaction)
     certDetails = parseCertificate(ca.certificate)
     // Store the CA locally with the same name as the secret
     const checkedSecret = await SecretManager.findOne({ name: caData.secretName || caData.name }, transaction)
     if (!checkedSecret) {
-      await storeCA({ cert: ca.certificate, key: ca.key }, caData.secretName)
+      await storeCA({ cert: ca.certificate, key: ca.key }, caData.secretName, transaction)
     }
   } else if (caData.type === 'direct') {
     // Load from internal secret
-    const caObj = await require('../utils/cert').loadCA(caData.secretName)
+    const caObj = await require('../utils/cert').loadCA(caData.secretName, transaction)
     ca = await require('../utils/cert').getCAFromDirect(caObj)
     certDetails = parseCertificate(ca.certificate)
   } else {
@@ -192,7 +192,7 @@ async function getCAEndpoint (name, transaction) {
   }
 
   // Get the actual cert data from the secret
-  const secret = await SecretService.getSecretEndpoint(name)
+  const secret = await SecretService.getSecretEndpoint(name, transaction)
 
   if (!secret || secret.type !== 'tls') {
     throw new Errors.NotFoundError(`CA with name ${name} not found`)
@@ -280,7 +280,7 @@ async function _createCertificateEndpointInner (certData, transaction) {
 
   // Check if certificate already exists
   try {
-    const existingSecret = await SecretService.getSecretEndpoint(certData.name)
+    const existingSecret = await SecretService.getSecretEndpoint(certData.name, transaction)
     if (existingSecret) {
       throw new Errors.ConflictError(`Certificate with name ${certData.name} already exists`)
     }
@@ -310,11 +310,12 @@ async function _createCertificateEndpointInner (certData, transaction) {
               subject: certData.subject,
               hosts: certData.hosts,
               expiration: certData.expiration,
-              ca: certData.ca
+              ca: certData.ca,
+              transaction
             })
 
             // Get certificate details from newly created secret
-            const certSecret = await SecretService.getSecretEndpoint(certData.name)
+            const certSecret = await SecretService.getSecretEndpoint(certData.name, transaction)
             const certPem = Buffer.from(certSecret.data['tls.crt'], 'base64').toString()
             const certDetails = parseCertificate(certPem)
 
@@ -367,7 +368,8 @@ async function _createCertificateEndpointInner (certData, transaction) {
       subject: certData.subject,
       hosts: certData.hosts,
       expiration: certData.expiration,
-      ca: certData.ca
+      ca: certData.ca,
+      transaction
     })
   } catch (error) {
     logger.error(`Failed to generate certificate ${certData.name}:`, error.message)
@@ -375,7 +377,7 @@ async function _createCertificateEndpointInner (certData, transaction) {
   }
 
   // Get certificate from secret to parse details
-  const certSecret = await SecretService.getSecretEndpoint(certData.name)
+  const certSecret = await SecretService.getSecretEndpoint(certData.name, transaction)
   const certPem = Buffer.from(certSecret.data['tls.crt'], 'base64').toString()
   const certDetails = parseCertificate(certPem)
 
@@ -409,7 +411,7 @@ async function getCertificateEndpoint (name, transaction) {
   }
 
   // Get the actual cert data from the secret
-  const secret = await SecretService.getSecretEndpoint(name)
+  const secret = await SecretService.getSecretEndpoint(name, transaction)
 
   if (!secret || secret.type !== 'tls') {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.CERTIFICATE_NOT_FOUND, name))
@@ -508,7 +510,7 @@ async function renewCertificateEndpoint (name, transaction) {
 
     // Delete existing secret (if any) - we'll create a new one
     try {
-      await SecretService.deleteSecretEndpoint(name)
+      await SecretService.deleteSecretEndpoint(name, transaction)
     } catch (error) {
       // Ignore NotFoundError
       if (!(error instanceof Errors.NotFoundError)) {
@@ -548,7 +550,7 @@ async function renewCertificateEndpoint (name, transaction) {
     }
 
     // Generate new certificate
-    await generateCertificate(renewalData)
+    await generateCertificate({ ...renewalData, transaction })
 
     // Get the newly created secret
     const secretModel = await SecretManager.findOne({ name }, transaction)

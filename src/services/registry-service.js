@@ -1,5 +1,9 @@
 const RegistryManager = require('../data/managers/registry-manager')
 const SecretHelper = require('../helpers/secret-helper')
+const {
+  scheduleVaultDeleteAfterCommit,
+  scheduleVaultPromoteAfterCommit
+} = require('../helpers/vault-transaction-helper')
 const Validator = require('../schemas')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
@@ -31,16 +35,22 @@ const createRegistry = async function (registry, transaction) {
   const createdRegistry = await RegistryManager.create(registryCreate, transaction)
 
   if (!isPasswordEmpty(registryCreate.password)) {
-    const encryptedPassword = await SecretHelper.encryptSecret(
-      { value: registryCreate.password },
-      'registry-' + createdRegistry.id,
-      'registry'
-    )
+    const secretName = 'registry-' + createdRegistry.id
+    const secretData = { value: registryCreate.password }
+    const internalEncrypted = await SecretHelper.encryptSecretInternal(secretData, secretName)
     await RegistryManager.update(
       { id: createdRegistry.id },
-      { password: encryptedPassword },
+      { password: internalEncrypted },
       transaction
     )
+    scheduleVaultPromoteAfterCommit(transaction, {
+      secretData,
+      secretName,
+      secretType: 'registry',
+      model: () => require('../data/models').Registry,
+      where: { id: createdRegistry.id },
+      field: 'password'
+    })
   }
 
   await _updateChangeTracking(transaction)
@@ -110,7 +120,7 @@ const updateRegistry = async function (registry, registryId, isCLI, transaction)
   registryUpdate = AppHelper.deleteUndefinedFields(registryUpdate)
 
   if (registryUpdate.password !== undefined && isPasswordEmpty(registryUpdate.password) && SecretHelper.isVaultReference(existingRegistry.password)) {
-    await SecretHelper.deleteSecret('registry-' + existingRegistry.id, 'registry')
+    scheduleVaultDeleteAfterCommit(transaction, 'registry-' + existingRegistry.id, 'registry')
   }
 
   const where = isCLI

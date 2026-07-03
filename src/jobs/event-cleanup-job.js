@@ -2,6 +2,7 @@ const EventManager = require('../data/managers/event-manager')
 const EventService = require('../services/event-service')
 const Config = require('../config')
 const logger = require('../logger')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 async function run () {
   try {
@@ -9,7 +10,6 @@ async function run () {
   } catch (error) {
     logger.error('Error during event cleanup:', error)
   } finally {
-    // Schedule next run with current interval (may have changed via env var)
     const currentInterval = process.env.EVENT_CLEANUP_INTERVAL || Config.get('settings.eventCleanupInterval', 86400)
     setTimeout(run, currentInterval * 1000)
   }
@@ -17,15 +17,15 @@ async function run () {
 
 async function cleanupOldEvents () {
   try {
-    // Read retention days from config
     const retentionDays = process.env.EVENT_RETENTION_DAYS || Config.get('settings.eventRetentionDays', 7)
 
     logger.debug(`Starting cleanup of events older than ${retentionDays} days`)
-    const count = await EventManager.deleteEventsOlderThanDays(retentionDays, { fakeTransaction: true })
+    const count = await runInTransaction(
+      (transaction) => EventManager.deleteEventsOlderThanDays(retentionDays, transaction),
+      { priority: PRIORITY_BACKGROUND, label: 'event-cleanup' }
+    )
     logger.info(`Cleaned up ${count} events older than ${retentionDays} days`)
 
-    // Create audit trail for automated cleanup (non-blocking)
-    // This allows admins to distinguish between manual deletions and automated cleanup
     if (count > 0) {
       setImmediate(async () => {
         try {
@@ -43,7 +43,7 @@ async function cleanupOldEvents () {
             statusCode: 200,
             statusMessage: `Automated cleanup: Deleted ${count} events older than ${retentionDays} days`,
             requestId: null
-          }, { fakeTransaction: true }).catch(err => {
+          }).catch(err => {
             logger.error('Failed to create cleanup job audit record (non-blocking):', err)
           })
         } catch (error) {

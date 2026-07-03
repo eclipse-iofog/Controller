@@ -1,5 +1,6 @@
 const WebSocket = require('ws')
 const logger = require('../logger')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 const MicroserviceExecSessionManager = require('../data/managers/microservice-exec-session-manager')
 const ChangeTrackingService = require('../services/change-tracking-service')
 const FogManager = require('../data/managers/iofog-manager')
@@ -15,6 +16,7 @@ class ExecSessionManager {
     this.execSessions = new Map()
     this.config = config
     this.cleanupInterval = null
+    this.expiredSessionHandler = null
     this.startCleanupInterval()
     logger.info('ExecSessionManager initialized with config:' + JSON.stringify({
       execPendingTimeoutMs: config.session.execPendingTimeoutMs,
@@ -46,7 +48,14 @@ class ExecSessionManager {
       createdAt: Date.now(),
       transaction,
       queueBridgeEnabled: false,
-      metricsActive: false
+      metricsActive: false,
+      activationSent: false,
+      remoteAgentPaired: false,
+      remoteUserPaired: false,
+      pendingPairingTimer: null,
+      pairingStartedAt: null,
+      pairingMetricsStarted: false,
+      pairingCompleted: false
     }
     this.execSessions.set(sessionId, session)
     return session
@@ -66,6 +75,10 @@ class ExecSessionManager {
     return sessions
   }
 
+  setExpiredSessionHandler (handler) {
+    this.expiredSessionHandler = typeof handler === 'function' ? handler : null
+  }
+
   updateLastActivity (sessionId) {
     const session = this.execSessions.get(sessionId)
     if (session) {
@@ -73,9 +86,19 @@ class ExecSessionManager {
     }
   }
 
+  detachLocalExecSession (sessionId) {
+    const session = this.execSessions.get(sessionId)
+    if (!session || session.removing) {
+      return
+    }
+    this.execSessions.delete(sessionId)
+  }
+
   async removeExecSession (sessionId, transaction) {
     const session = this.execSessions.get(sessionId)
-    if (!session) return
+    if (!session || session.removing) return
+
+    session.removing = true
 
     if (session.agent && session.agent.readyState === WebSocket.OPEN) {
       session.agent.close()
@@ -124,8 +147,12 @@ class ExecSessionManager {
 
       let isExpired = false
 
-      if (!session.agent && session.user) {
+      if (!session.agent && !session.remoteAgentPaired && session.user) {
         isExpired = timeSinceCreation > pendingTimeout
+      } else if (session.user && !session.agent && session.remoteAgentPaired) {
+        isExpired = timeSinceLastActivity > maxDuration
+      } else if (session.agent && !session.user && session.remoteUserPaired) {
+        isExpired = timeSinceLastActivity > maxDuration
       } else if (session.agent && !session.user) {
         isExpired = timeSinceLastActivity > pendingTimeout
       } else if (session.agent && session.user) {
@@ -140,42 +167,43 @@ class ExecSessionManager {
     }
 
     for (const sessionId of expiredSessions) {
-      logger.info('Cleaning up expired exec session:' + JSON.stringify({ sessionId }))
       const session = this.execSessions.get(sessionId)
-      if (session && session.user && session.user.readyState === WebSocket.OPEN) {
-        try {
-          session.user.close(1008, session.agent ? 'Exec session max duration exceeded' : 'Timeout waiting for agent connection')
-        } catch (error) {
-          logger.warn('Failed to close expired exec user connection:' + error.message)
-        }
+      if (this.expiredSessionHandler) {
+        await this.expiredSessionHandler(sessionId, session, transaction)
+      } else {
+        await this._removeExpiredExecSession(sessionId, session, transaction)
       }
-      if (session && session.agent && session.agent.readyState === WebSocket.OPEN) {
-        try {
-          session.agent.close(1000, 'Exec session expired')
-        } catch (error) {
-          logger.warn('Failed to close expired exec agent connection:' + error.message)
-        }
-      }
-      await this.removeExecSession(sessionId, transaction)
     }
 
     return expiredSessions.length
+  }
+
+  async _removeExpiredExecSession (sessionId, session, transaction) {
+    logger.info('Cleaning up expired exec session:' + JSON.stringify({ sessionId }))
+    if (session && session.user && session.user.readyState === WebSocket.OPEN) {
+      try {
+        session.user.close(1008, (session.agent || session.remoteAgentPaired) ? 'Exec session max duration exceeded' : 'Timeout waiting for agent connection')
+      } catch (error) {
+        logger.warn('Failed to close expired exec user connection:' + error.message)
+      }
+    }
+    if (session && session.agent && session.agent.readyState === WebSocket.OPEN) {
+      try {
+        session.agent.close(1000, 'Exec session expired')
+      } catch (error) {
+        logger.warn('Failed to close expired exec agent connection:' + error.message)
+      }
+    }
+    await this.removeExecSession(sessionId, transaction)
   }
 
   startCleanupInterval () {
     const interval = this.config.session.cleanupInterval || 30000
     this.cleanupInterval = setInterval(async () => {
       try {
-        const models = require('../data/models')
-        const sequelize = models.sequelize
-        if (!sequelize) {
-          logger.warn('Sequelize not available, skipping exec session cleanup')
-          return
-        }
-
-        await sequelize.transaction(async (transaction) => {
+        await runInTransaction(async (transaction) => {
           await this.cleanupExpiredSessions(transaction)
-        })
+        }, { priority: PRIORITY_BACKGROUND, label: 'ws.execSessionCleanup' })
       } catch (error) {
         logger.error('Error during exec session cleanup:' + JSON.stringify({
           error: error.message,

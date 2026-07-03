@@ -123,6 +123,27 @@ class WebSocketQueueService {
     return this.execBridges.has(execId)
   }
 
+  setExecUserDeliveryHook (execId, hook) {
+    const bridge = this.execBridges.get(execId)
+    if (bridge) {
+      bridge.onUserRelayDelivery = hook
+    }
+  }
+
+  setExecAgentDeliveryHook (execId, hook) {
+    const bridge = this.execBridges.get(execId)
+    if (bridge) {
+      bridge.onAgentRelayDelivery = hook
+    }
+  }
+
+  setLogUserDeliveryHook (sessionId, hook) {
+    const bridge = this.logBridges.get(sessionId)
+    if (bridge) {
+      bridge.onUserRelayDelivery = hook
+    }
+  }
+
   async publishToAgent (execId, buffer, options = {}) {
     await this._send(execId, 'agent', buffer, options)
   }
@@ -422,6 +443,26 @@ class WebSocketQueueService {
               side,
               messageSize: body.length
             })
+            if (side === 'user' && currentBridge.onUserRelayDelivery) {
+              try {
+                currentBridge.onUserRelayDelivery(body)
+              } catch (error) {
+                logger.warn('[AMQP][QUEUE] Exec user relay delivery hook failed', {
+                  execId: session.execId,
+                  error: error.message
+                })
+              }
+            }
+            if (side === 'agent' && currentBridge.onAgentRelayDelivery) {
+              try {
+                currentBridge.onAgentRelayDelivery(body)
+              } catch (error) {
+                logger.warn('[AMQP][QUEUE] Exec agent relay delivery hook failed', {
+                  execId: session.execId,
+                  error: error.message
+                })
+              }
+            }
           } catch (error) {
             logger.error('[AMQP][QUEUE] Failed to deliver message to socket', {
               execId: session.execId,
@@ -482,6 +523,11 @@ class WebSocketQueueService {
       closeAck
     })
 
+    if (closeAck) {
+      context.delivery.accept()
+      return
+    }
+
     if (ws && ws.readyState === WebSocket.OPEN) {
       try {
         const reason = closeInitiator === 'agent' ? 'Agent closed connection' : 'User closed connection'
@@ -504,11 +550,21 @@ class WebSocketQueueService {
         hasSocket: !!ws,
         socketState: ws ? ws.readyState : 'N/A'
       })
+      if (bridge && bridge.cleanupCallback) {
+        try {
+          await bridge.cleanupCallback(execId)
+        } catch (error) {
+          logger.error('[AMQP][QUEUE] Error in cleanup callback during CLOSE handling', {
+            execId,
+            error: error.message
+          })
+        }
+      }
     }
 
     context.delivery.accept()
 
-    if (!closeAck && this.execBridges.has(execId)) {
+    if (this.execBridges.has(execId)) {
       const ackSide = side === 'user' ? 'agent' : 'user'
       try {
         await this._send(execId, ackSide, body, {
@@ -523,17 +579,6 @@ class WebSocketQueueService {
         logger.warn('[AMQP][QUEUE] Failed to send CLOSE acknowledgement', {
           execId,
           ackSide,
-          error: error.message
-        })
-      }
-    }
-
-    if (bridge && bridge.cleanupCallback) {
-      try {
-        await bridge.cleanupCallback(execId)
-      } catch (error) {
-        logger.error('[AMQP][QUEUE] Error in cleanup callback during CLOSE handling', {
-          execId,
           error: error.message
         })
       }
@@ -777,6 +822,16 @@ class WebSocketQueueService {
         }
         ws.send(body, { binary: true })
         context.delivery.accept()
+        if (currentBridge.onUserRelayDelivery) {
+          try {
+            currentBridge.onUserRelayDelivery(body)
+          } catch (error) {
+            logger.warn('[AMQP][QUEUE] Log user relay delivery hook failed', {
+              sessionId: session.sessionId,
+              error: error.message
+            })
+          }
+        }
       } else {
         context.delivery.release()
       }

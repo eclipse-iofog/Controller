@@ -10,6 +10,7 @@ const ApplicationManager = require('../../../src/data/managers/application-manag
 const NatsOperatorManager = require('../../../src/data/managers/nats-operator-manager')
 const SecretService = require('../../../src/services/secret-service')
 const NatsService = require('../../../src/services/nats-service')
+const ReconcileOutboxManager = require('../../../src/data/managers/reconcile-outbox-manager')
 const NatsAuthService = require('../../../src/services/nats-auth-service')
 const NatsSystemRules = require('../../../src/config/nats-system-rules')
 const { createOperator, createAccount } = require('@nats-io/nkeys')
@@ -73,7 +74,7 @@ describe('NATS Auth Service', () => {
         return Promise.resolve(null)
       })
       $sandbox.stub(NatsUserRuleManager, 'findOne').resolves(defaultUserRule)
-      $sandbox.stub(NatsService, 'enqueueReconcileTask').callsFake(() => Promise.resolve())
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueNats').callsFake(() => Promise.resolve())
     })
 
     context('when existing user has same account and same rule (ensure-only)', () => {
@@ -183,7 +184,7 @@ describe('NATS Auth Service', () => {
       createdUser = null
       $sandbox.stub(NatsAccountRuleManager, 'updateOrCreate').resolves()
       $sandbox.stub(NatsUserRuleManager, 'updateOrCreate').resolves()
-      $sandbox.stub(NatsService, 'enqueueReconcileTask').resolves()
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueNats').resolves()
       $sandbox.stub(NatsOperatorManager, 'findOne').resolves(operator)
       $sandbox.stub(SecretService, 'getSecretEndpoint').callsFake((secretName) => {
         if (secretName === operator.seedSecretName) {

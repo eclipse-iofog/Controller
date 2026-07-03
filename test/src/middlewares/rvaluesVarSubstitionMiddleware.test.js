@@ -144,13 +144,21 @@ describe('rvaluesVarSubstitionMiddleware', () => {
         host: 'myhost01',
       }))
 
+      beforeEach(() => {
+        const Transaction = require('sequelize/lib/transaction')
+        $sandbox.matchTransaction = sinon.match.instanceOf(Transaction)
+      })
+
       it('performs variable substitutions and applies filter', async () => {
         await $subject
         expect($nextfct).to.have.been.called
         expect(FogService.getFogEndPoint).to.have.been.called
         expect(FogService.getFogEndPoint).to.have.been.calledWith({ uuid: 'TkLh8wzcxb86CRnHQyJkx6VF468JFd4f' }, false)
         expect(ApplicationManager.findOnePopulated).to.have.been.calledOnce
-        expect(ApplicationManager.findOnePopulated).to.have.been.calledWith({ exclude: ['created_at', 'updated_at'] }, { fakeTransaction: true })
+        expect(ApplicationManager.findOnePopulated).to.have.been.calledWith(
+          { exclude: ['created_at', 'updated_at'] },
+          $sandbox.matchTransaction
+        )
         expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.called
         expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $redisAppName }, false)
 

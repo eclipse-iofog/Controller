@@ -4,12 +4,13 @@ const sinon = require('sinon')
 const ServicePlatformService = require('../../../src/services/service-platform-service')
 const ServiceManager = require('../../../src/data/managers/service-manager')
 const ServicePlatformReconcileTaskManager = require('../../../src/data/managers/service-platform-reconcile-task-manager')
-const FogPlatformReconcileTaskManager = require('../../../src/data/managers/fog-platform-reconcile-task-manager')
+const ReconcileOutboxManager = require('../../../src/data/managers/reconcile-outbox-manager')
 const HubRouterConfigLockManager = require('../../../src/data/managers/hub-router-config-lock-manager')
 const RouterManager = require('../../../src/data/managers/router-manager')
 const ServicesService = require('../../../src/services/services-service')
 const K8sClient = require('../../../src/utils/k8s-client')
 const config = require('../../../src/config')
+const transactionRunner = require('../../../src/helpers/transaction-runner')
 
 describe('Service platform service', () => {
   def('sandbox', () => sinon.createSandbox())
@@ -58,6 +59,14 @@ describe('Service platform service', () => {
     }
 
     beforeEach(() => {
+      $sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn, options = {}) => {
+        const result = await fn(transaction)
+        if (options.label === 'servicePlatform.hubReconcile') {
+          expect(K8sClient.getConfigMap).to.not.have.been.called
+          expect(K8sClient.patchConfigMap).to.not.have.been.called
+        }
+        return result
+      })
       $sandbox.stub(config, 'get').callsFake((key, defaultValue) => {
         if (key === 'app.uuid') {
           return 'controller-uuid-1'
@@ -92,31 +101,30 @@ describe('Service platform service', () => {
         }
       })
       $sandbox.stub(K8sClient, 'patchConfigMap').resolves()
-      $sandbox.stub(ServicesService, '_updateK8sService').resolves()
-      $sandbox.stub(K8sClient, 'watchLoadBalancerIP').resolves('203.0.113.10')
+      $sandbox.stub(ServicesService, '_syncK8sServiceResource').resolves('203.0.113.10')
       $sandbox.stub(ServicesService, 'handleServiceDistribution').resolves(['fog-a'])
-      $sandbox.stub(FogPlatformReconcileTaskManager, 'enqueueFogPlatformReconcileTask').resolves({ id: 1 })
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueFogPlatform').resolves({ id: 1 })
       $sandbox.stub(ServiceManager, 'findOneWithTags').resolves({ ...service, tags: [...service.tags] })
       $sandbox.stub(ServiceManager, 'update').resolves()
       $sandbox.stub(ServicePlatformReconcileTaskManager, 'delete').resolves()
     })
 
     it('runs hub reconcile, fan-out, and marks provisioning ready', async () => {
-      const result = await ServicePlatformService.reconcileService(serviceName, task, transaction)
+      const result = await ServicePlatformService.reconcileService(serviceName, task)
 
       expect(HubRouterConfigLockManager.tryAcquire).to.have.been.calledOnce
-      expect(K8sClient.patchConfigMap).to.have.been.called
-      expect(ServicesService._updateK8sService).to.have.been.calledOnce
-      expect(K8sClient.watchLoadBalancerIP).to.have.been.calledOnce
+      expect(K8sClient.getConfigMap).to.have.been.calledOnce
+      expect(K8sClient.patchConfigMap).to.have.been.calledOnce
+      expect(ServicesService._syncK8sServiceResource).to.have.been.calledOnce
       expect(HubRouterConfigLockManager.release).to.have.been.calledOnce
-      expect(FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.been.calledWith({
         fogUuid: 'fog-a',
         reason: 'service-changed'
-      }, transaction)
+      }, sinon.match.any)
       expect(ServiceManager.update).to.have.been.calledWith(
         { name: serviceName },
         { provisioningStatus: 'ready', provisioningError: null },
-        transaction
+        sinon.match.any
       )
       expect(result.provisioningStatus).to.equal('ready')
     })
@@ -136,27 +144,27 @@ describe('Service platform service', () => {
       })
       ServicesService.handleServiceDistribution.resolves(['fog-a', 'fog-b', 'fog-c'])
 
-      await ServicePlatformService.reconcileService(serviceName, tagChangeTask, transaction)
+      await ServicePlatformService.reconcileService(serviceName, tagChangeTask)
 
       expect(ServicesService.handleServiceDistribution).to.have.been.calledWith(
         ['site-a', 'site-b'],
-        transaction
+        sinon.match.any
       )
-      expect(FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask).to.have.callCount(3)
+      expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.callCount(3)
     })
 
     it('is safe to reconcile the same service twice', async () => {
-      await ServicePlatformService.reconcileService(serviceName, task, transaction)
-      await ServicePlatformService.reconcileService(serviceName, task, transaction)
+      await ServicePlatformService.reconcileService(serviceName, task)
+      await ServicePlatformService.reconcileService(serviceName, task)
 
-      expect(K8sClient.patchConfigMap.callCount).to.be.at.least(4)
+      expect(K8sClient.patchConfigMap.callCount).to.equal(2)
     })
 
     it('throws when LoadBalancer IP watch times out', async () => {
-      K8sClient.watchLoadBalancerIP.resolves(null)
+      ServicesService._syncK8sServiceResource.resolves(null)
 
       try {
-        await ServicePlatformService.reconcileService(serviceName, task, transaction)
+        await ServicePlatformService.reconcileService(serviceName, task)
         throw new Error('expected reconcile to fail')
       } catch (error) {
         expect(error.message).to.include('LoadBalancer IP not assigned')
@@ -166,7 +174,7 @@ describe('Service platform service', () => {
       expect(ServiceManager.update).to.not.have.been.calledWith(
         { name: serviceName },
         { provisioningStatus: 'ready', provisioningError: null },
-        transaction
+        sinon.match.any
       )
     })
   })
@@ -191,6 +199,7 @@ describe('Service platform service', () => {
     }
 
     beforeEach(() => {
+      $sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn) => fn(transaction))
       $sandbox.stub(config, 'get').callsFake((key, defaultValue) => {
         if (key === 'app.uuid') {
           return 'controller-uuid-1'
@@ -212,33 +221,35 @@ describe('Service platform service', () => {
       $sandbox.stub(K8sClient, 'patchConfigMap').resolves()
       $sandbox.stub(ServicesService, '_deleteK8sService').resolves()
       $sandbox.stub(ServicesService, 'handleServiceDistribution').resolves(['fog-a', 'fog-b'])
-      $sandbox.stub(FogPlatformReconcileTaskManager, 'enqueueFogPlatformReconcileTask').resolves({ id: 1 })
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueFogPlatform').resolves({ id: 1 })
       $sandbox.stub(ServicePlatformReconcileTaskManager, 'delete').resolves()
       $sandbox.stub(ServiceManager, 'findOneWithTags')
       $sandbox.stub(ServiceManager, 'update')
     })
 
     it('uses spec_snapshot for hub teardown, fan-out, and destroys the task', async () => {
-      const result = await ServicePlatformService.reconcileService(serviceName, deleteTask, transaction)
+      const result = await ServicePlatformService.reconcileService(serviceName, deleteTask)
 
       expect(ServiceManager.findOneWithTags).to.not.have.been.called
-      expect(K8sClient.patchConfigMap).to.have.been.calledTwice
+      expect(K8sClient.getConfigMap).to.have.been.calledOnce
+      expect(K8sClient.patchConfigMap).to.have.been.calledOnce
+      const patchData = K8sClient.patchConfigMap.firstCall.args[1]
+      const routerConfig = JSON.parse(patchData.data['skrouterd.json'])
+      expect(routerConfig).to.eql([])
       expect(ServicesService._deleteK8sService).to.have.been.calledWith(serviceName)
       expect(ServicesService.handleServiceDistribution).to.have.been.calledWith(
         ['site-a', 'site-b'],
-        transaction
+        sinon.match.any
       )
-      expect(ServicePlatformReconcileTaskManager.delete).to.have.been.calledWith({ id: 99 }, transaction)
+      expect(ServicePlatformReconcileTaskManager.delete).to.have.been.calledWith({ id: 99 }, sinon.match.any)
       expect(ServiceManager.update).to.not.have.been.called
       expect(result.isDelete).to.equal(true)
     })
   })
 
   describe('.acquireHubLockWithTimeout()', () => {
-    let clock
-
     beforeEach(() => {
-      clock = sinon.useFakeTimers()
+      $sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn) => fn(transaction))
       $sandbox.stub(config, 'get').callsFake((key, defaultValue) => {
         if (key === 'settings.hubRouterConfigLockTimeoutSeconds') {
           return 1
@@ -248,16 +259,11 @@ describe('Service platform service', () => {
       $sandbox.stub(HubRouterConfigLockManager, 'tryAcquire').resolves(false)
     })
 
-    afterEach(() => {
-      clock.restore()
-    })
-
-    it('times out when hub lock is held by another controller', async () => {
-      const acquirePromise = ServicePlatformService.acquireHubLockWithTimeout('controller-uuid-1', transaction)
-      await clock.runAllAsync()
+    it('times out when hub lock is held by another controller', async function () {
+      this.timeout(5000)
 
       try {
-        await acquirePromise
+        await ServicePlatformService.acquireHubLockWithTimeout('controller-uuid-1')
         throw new Error('expected lock acquire to fail')
       } catch (error) {
         expect(error.message).to.include('Timed out waiting for hub router ConfigMap lock')
@@ -270,15 +276,15 @@ describe('Service platform service', () => {
   describe('.fanOutFogReconcile()', () => {
     beforeEach(() => {
       $sandbox.stub(ServicesService, 'handleServiceDistribution').resolves(['fog-a', 'fog-b'])
-      $sandbox.stub(FogPlatformReconcileTaskManager, 'enqueueFogPlatformReconcileTask').resolves({ id: 1 })
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueFogPlatform').resolves({ id: 1 })
     })
 
     it('enqueues fog platform reconcile tasks for distributed fogs', async () => {
       const fogUuids = await ServicePlatformService.fanOutFogReconcile(['site-a'], transaction)
 
       expect(fogUuids).to.eql(['fog-a', 'fog-b'])
-      expect(FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask).to.have.been.calledTwice
-      expect(FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.been.calledTwice
+      expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.been.calledWith({
         fogUuid: 'fog-a',
         reason: 'service-changed'
       }, transaction)

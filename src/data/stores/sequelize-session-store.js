@@ -37,7 +37,7 @@ class SequelizeSessionStore extends Store {
       sid,
       data,
       expiresAt
-    })
+    }, { conflictFields: ['sid'] })
       .then(() => callback(null))
       .catch((error) => callback(error))
   }

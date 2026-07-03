@@ -8,6 +8,7 @@ const NatsAccountManager = require('../data/managers/nats-account-manager')
 const NatsUserManager = require('../data/managers/nats-user-manager')
 const NatsAuthService = require('./nats-auth-service')
 const SecretService = require('./secret-service')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 const NATS_DEFAULT_PORT = 4222
 
@@ -16,7 +17,6 @@ class NatsRelayConnectionManager {
     this._connectFn = deps.connectFn || connect
     this._config = deps.config || config
     this.maxReconnectAttempts = deps.maxReconnectAttempts ?? -1
-    this.fakeTransaction = { fakeTransaction: true }
     this.connection = null
     this.connectionPromise = null
     this.cachedHubRecord = null
@@ -210,7 +210,10 @@ class NatsRelayConnectionManager {
     if (this.cachedHubRecord) {
       return this.cachedHubRecord
     }
-    const hub = await NatsInstanceManager.findOne({ isHub: true }, this.fakeTransaction)
+    const hub = await runInTransaction(
+      (transaction) => NatsInstanceManager.findOne({ isHub: true }, transaction),
+      { priority: PRIORITY_BACKGROUND, label: 'nats-relay-hub-record' }
+    )
     if (!hub) {
       throw new Error('NATS hub not found. Ensure a hub NatsInstances row with isHub=true exists.')
     }
@@ -240,53 +243,59 @@ class NatsRelayConnectionManager {
   }
 
   async _ensureControllerNatsAccount () {
-    const hub = await NatsInstanceManager.findOne({ isHub: true }, this.fakeTransaction)
-    if (!hub) {
-      return
-    }
-    await NatsAuthService.ensureControllerNatsAccount()
+    await runInTransaction(async (transaction) => {
+      const hub = await NatsInstanceManager.findOne({ isHub: true }, transaction)
+      if (!hub) {
+        return
+      }
+      await NatsAuthService.ensureControllerNatsAccount(transaction, { triggerReconcile: false })
+    }, { priority: PRIORITY_BACKGROUND, label: 'nats-relay-ensure-controller-account' })
   }
 
   async _fetchControllerRelayCreds () {
-    const account = await NatsAccountManager.findOne({
-      name: NatsAuthService.CONTROLLER_NATS_ACCOUNT_NAME,
-      applicationId: null,
-      isSystem: false,
-      isLeafSystem: false
-    }, this.fakeTransaction)
+    return runInTransaction(async (transaction) => {
+      const foundAccount = await NatsAccountManager.findOne({
+        name: NatsAuthService.CONTROLLER_NATS_ACCOUNT_NAME,
+        applicationId: null,
+        isSystem: false,
+        isLeafSystem: false
+      }, transaction)
 
-    let credsSecretName = NatsAuthService.controllerNatsCredsSecretName()
-    if (account) {
-      const user = await NatsUserManager.findOne({
-        accountId: account.id,
-        name: NatsAuthService.CONTROLLER_NATS_USER_NAME
-      }, this.fakeTransaction)
-      if (user && user.credsSecretName) {
-        credsSecretName = user.credsSecretName
+      let foundUser = null
+      if (foundAccount) {
+        foundUser = await NatsUserManager.findOne({
+          accountId: foundAccount.id,
+          name: NatsAuthService.CONTROLLER_NATS_USER_NAME
+        }, transaction)
       }
-    }
 
-    const secret = await this._safeGetSecret(credsSecretName)
-    if (!secret || !secret.data) {
-      throw new Error(`Controller relay NATS creds secret not found: ${credsSecretName}`)
-    }
+      let credsSecretName = NatsAuthService.controllerNatsCredsSecretName()
+      if (foundUser && foundUser.credsSecretName) {
+        credsSecretName = foundUser.credsSecretName
+      }
 
-    const credsKey = Object.keys(secret.data).find((key) => key.endsWith('.creds')) || 'creds'
-    const raw = secret.data[credsKey]
-    if (!raw) {
-      throw new Error(`Missing creds payload in secret ${credsSecretName}`)
-    }
+      const secret = await this._safeGetSecret(credsSecretName, transaction)
+      if (!secret || !secret.data) {
+        throw new Error(`Controller relay NATS creds secret not found: ${credsSecretName}`)
+      }
 
-    const credsText = typeof raw === 'string'
-      ? raw
-      : Buffer.from(raw, 'base64').toString('utf8')
+      const credsKey = Object.keys(secret.data).find((key) => key.endsWith('.creds')) || 'creds'
+      const raw = secret.data[credsKey]
+      if (!raw) {
+        throw new Error(`Missing creds payload in secret ${credsSecretName}`)
+      }
 
-    return new TextEncoder().encode(credsText)
+      const credsText = typeof raw === 'string'
+        ? raw
+        : Buffer.from(raw, 'base64').toString('utf8')
+
+      return new TextEncoder().encode(credsText)
+    }, { priority: PRIORITY_BACKGROUND, label: 'nats-relay-fetch-creds-db' })
   }
 
-  async _safeGetSecret (name) {
+  async _safeGetSecret (name, transaction) {
     try {
-      return await SecretService.getSecretEndpoint(name)
+      return await SecretService.getSecretEndpoint(name, transaction)
     } catch (error) {
       if (error.name === 'NotFoundError') {
         logger.debug({ secret: name }, '[NATS][RELAY] Secret not found')

@@ -82,10 +82,9 @@ function restoreDbModels (snapshot) {
 
 function installBootstrapDb (sandbox, state) {
   const db = require('../../../src/data/models')
+  const transactionRunner = require('../../../src/helpers/transaction-runner')
 
-  db.sequelize = {
-    transaction: sandbox.stub().callsFake(async () => createNoopTransaction())
-  }
+  sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn) => fn(createNoopTransaction()))
 
   db.AuthGroup = {
     findOrCreate: sandbox.stub().callsFake(async ({ where, defaults }) => {

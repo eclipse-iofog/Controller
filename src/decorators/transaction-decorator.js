@@ -1,85 +1,53 @@
-const cq = require('concurrent-queue')
-const Transaction = require('sequelize/lib/transaction')
-
 const { isTest } = require('../helpers/app-helper')
-const { isSqliteBusyError } = require('../helpers/db-busy-retry')
+const { isSequelizeTransaction } = require('../helpers/sequelize-transaction')
+const {
+  runInTransaction,
+  runWithTransactionContext,
+  PRIORITY_INTERACTIVE,
+  getActiveTransactionContext
+} = require('../helpers/transaction-runner')
 
-const transactionsQueue = cq()
-  .limit({ concurrency: 1 })
-  .process((task, cb) => {
-    task.transaction
-      .apply(task.that, task.args)
-      .then((res) => cb(null, res))
-      .catch((err) => cb(err, null))
-  })
-
-function transaction (f) {
-  const fakeTransactionObject = { fakeTransaction: true }
-  return function (...fArgs) {
-    if (isTest()) {
-      return f.apply(this, fArgs)
-    }
-
-    if (fArgs.length > 0 && fArgs[fArgs.length - 1] instanceof Transaction) {
-      fArgs[fArgs.length - 1] = fakeTransactionObject
-      return f.apply(this, fArgs)
-    } else {
-      fArgs.push(fakeTransactionObject)
-      return f.apply(this, fArgs)
-    }
-  }
+function hasTransactionArg (args) {
+  return findTransactionArg(args) != null
 }
 
-function queueTransaction (resolve, reject, transaction, that, retries, ...args) {
-  const task = {
-    transaction,
-    that,
-    retries,
-    args
+function findTransactionArg (args) {
+  for (let i = args.length - 1; i >= 0; i--) {
+    if (isSequelizeTransaction(args[i])) {
+      return args[i]
+    }
   }
-
-  transactionsQueue(task, (error, success) => {
-    if (error === null) {
-      return resolve(success)
-    }
-
-    if (retries < 1 || !isSqliteBusyError(error)) {
-      return reject(error)
-    }
-
-    queueTransaction(resolve, reject, transaction, that, retries - 1, ...args)
-  })
-}
-
-function applyTransaction (resolve, reject, transaction, that, ...args) {
-  transaction.apply(that, args)
-    .then(resolve)
-    .catch((error) => {
-      if (!isSqliteBusyError(error)) {
-        return reject(error)
-      }
-
-      queueTransaction(resolve, reject, transaction, this, 5, ...args)
-    })
+  return null
 }
 
 /**
  * @param {Function} f - Async function that accepts (..., transaction) as last argument
- * @param {{ bypassQueue?: boolean }} [options] - If bypassQueue is true, run without enqueueing (so the call does not wait behind long-running queued transactions, e.g. NATS reconcile)
+ * @param {{ priority?: string, label?: string }} [options]
  */
 function generateTransaction (f, options = {}) {
-  const { bypassQueue = false } = options
-  const t = transaction(f)
+  const priority = options.priority || PRIORITY_INTERACTIVE
+  const label = options.label || f.name || 'generateTransaction'
+
   return function (...args) {
     if (isTest()) {
-      return t.apply(this, args)
+      return f.apply(this, args)
     }
-    if (bypassQueue) {
-      return Promise.resolve().then(() => t.apply(this, args))
+
+    if (hasTransactionArg(args)) {
+      const tx = findTransactionArg(args)
+      return runWithTransactionContext(tx, priority, () => f.apply(this, args))
     }
-    return new Promise((resolve, reject) => {
-      applyTransaction(resolve, reject, t, this, ...args)
-    })
+
+    const parentCtx = getActiveTransactionContext()
+    if (parentCtx?.transaction) {
+      return runWithTransactionContext(parentCtx.transaction, parentCtx.priority, () =>
+        f.apply(this, [...args, parentCtx.transaction]))
+    }
+
+    return runInTransaction(
+      (transaction) => f.apply(this, [...args, transaction]),
+      { priority, label }
+    )
   }
 }
 

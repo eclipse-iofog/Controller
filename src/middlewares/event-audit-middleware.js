@@ -44,11 +44,11 @@ function eventAuditMiddleware (req, res, next) {
         // Fire and forget - never await
         EventService.createHttpEvent(req, res, startTime).catch(err => {
           // Silent error handling - never throw
-          logger.error('Event logging failed (non-blocking):', err)
+          logger.error({ err }, 'Event logging failed (non-blocking)')
         })
       } catch (error) {
         // Catch any synchronous errors
-        logger.error('Event logging setup failed (non-blocking):', error)
+        logger.error({ err: error }, 'Event logging setup failed (non-blocking)')
         // Don't throw - request already completed
       }
     })

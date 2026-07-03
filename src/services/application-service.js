@@ -15,21 +15,34 @@ const NatsAccountRuleManager = require('../data/managers/nats-account-rule-manag
 const NatsRuleJwtValidation = require('../helpers/nats-rule-jwt-validation')
 const NatsAuthService = require('./nats-auth-service')
 const logger = require('../logger')
+const { schedulePostCommitBackground } = require('../helpers/transaction-runner')
 
 const onlyUnique = (value, index, self) => self.indexOf(value) === index
 
 function _scheduleApplicationNatsOrchestration (applicationId, reason) {
-  setImmediate(async () => {
+  schedulePostCommitBackground(`app-nats-orchestration-${applicationId}`, async (transaction) => {
     try {
       logger.info(`Starting background app NATS orchestration for app ${applicationId}: ${reason}`)
+      const suppressOutbox = { triggerReconcile: false }
       if (reason === 'nats-access-disabled') {
-        await MicroserviceService.reconcileNatsForApplication(applicationId)
-        await NatsAuthService.deleteAccountForApplication(applicationId)
+        await MicroserviceService.reconcileNatsForApplication(applicationId, transaction)
+        await NatsAuthService.deleteAccountForApplication(applicationId, transaction, suppressOutbox)
       } else {
-        await NatsAuthService.ensureAccountForApplication(applicationId)
-        await NatsAuthService.reissueAccountForApplication(applicationId)
-        await MicroserviceService.reconcileNatsForApplication(applicationId)
+        await NatsAuthService.ensureAccountForApplication(applicationId, transaction, suppressOutbox)
+        await NatsAuthService.reissueAccountForApplication(applicationId, transaction, suppressOutbox)
+        await MicroserviceService.reconcileNatsForApplication(applicationId, transaction)
       }
+      const mutationKind = reason === 'nats-access-disabled'
+        ? 'access-disable'
+        : reason === 'nats-access-enabled'
+          ? 'access-enable'
+          : 'rule-change'
+      const outboxReason = reason === 'nats-access-disabled' ? 'account-deleted' : 'account-created'
+      await NatsAuthService.enqueueNatsReconcileOutbox({
+        reason: outboxReason,
+        applicationId,
+        mutationKind
+      }, transaction)
       logger.info(`Completed background app NATS orchestration for app ${applicationId}: ${reason}`)
     } catch (error) {
       logger.error(`Background app NATS orchestration failed for app ${applicationId}: ${error.message}`)
@@ -446,14 +459,12 @@ async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (cond
   }
 }
 
-const bypassOptions = { bypassQueue: true }
-
 module.exports = {
-  createApplicationEndPoint: TransactionDecorator.generateTransaction(createApplicationEndPoint, bypassOptions),
-  deleteApplicationEndPoint: TransactionDecorator.generateTransaction(deleteApplicationEndPoint, bypassOptions),
-  deleteSystemApplicationEndPoint: TransactionDecorator.generateTransaction(deleteSystemApplicationEndPoint, bypassOptions),
-  updateApplicationEndPoint: TransactionDecorator.generateTransaction(updateApplicationEndPoint, bypassOptions),
-  patchApplicationEndPoint: TransactionDecorator.generateTransaction(patchApplicationEndPoint, bypassOptions),
+  createApplicationEndPoint: TransactionDecorator.generateTransaction(createApplicationEndPoint),
+  deleteApplicationEndPoint: TransactionDecorator.generateTransaction(deleteApplicationEndPoint),
+  deleteSystemApplicationEndPoint: TransactionDecorator.generateTransaction(deleteSystemApplicationEndPoint),
+  updateApplicationEndPoint: TransactionDecorator.generateTransaction(updateApplicationEndPoint),
+  patchApplicationEndPoint: TransactionDecorator.generateTransaction(patchApplicationEndPoint),
   getUserApplicationsEndPoint: TransactionDecorator.generateTransaction(getUserApplicationsEndPoint),
   getSystemApplicationsEndPoint: TransactionDecorator.generateTransaction(getSystemApplicationsEndPoint),
   getAllApplicationsEndPoint: TransactionDecorator.generateTransaction(getAllApplicationsEndPoint),

@@ -5,7 +5,8 @@ const RECONCILE_HEAVY_JOBS = new Set([
   'platform-reconcile-worker-job.js',
   'nats-reconcile-worker-job.js',
   'fog-platform-sweep-job.js',
-  'fog-status-job.js'
+  'fog-status-job.js',
+  'reconcile-outbox-drainer-job.js'
 ])
 
 const JOB_STAGGER_MS = 500

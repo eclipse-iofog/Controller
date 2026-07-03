@@ -1,5 +1,6 @@
 const BaseManager = require('./base-manager')
-const SecretHelper = require('../../helpers/secret-helper')
+const vaultManager = require('../../vault/vault-manager')
+const { scheduleVaultDeleteAfterCommit } = require('../../helpers/vault-transaction-helper')
 const models = require('../models')
 const ConfigMap = models.ConfigMap
 
@@ -31,8 +32,7 @@ class ConfigMapManager extends BaseManager {
     existing.useVault = useVault !== null ? useVault : existing.useVault
 
     // Save the instance - this triggers beforeSave hook which handles encryption/vault
-    const options = transaction.fakeTransaction ? {} : { transaction }
-    await existing.save(options)
+    await existing.save({ transaction })
 
     return existing
   }
@@ -61,16 +61,12 @@ class ConfigMapManager extends BaseManager {
   }
 
   async deleteConfigMap (name, transaction) {
-    // Get ConfigMap to check if it's in vault
     const configMap = await this.findOne({ name }, transaction)
-    if (configMap && configMap.useVault) {
-      // Delete from vault if it was stored there
-      const vaultManager = require('../../vault/vault-manager')
-      if (vaultManager.isEnabled()) {
-        await SecretHelper.deleteSecret(name, 'configmap')
-      }
+    const useVault = configMap && configMap.useVault
+    await this.delete({ name }, transaction)
+    if (useVault && vaultManager.isEnabled()) {
+      scheduleVaultDeleteAfterCommit(transaction, name, 'configmap')
     }
-    return this.delete({ name }, transaction)
   }
 }
 

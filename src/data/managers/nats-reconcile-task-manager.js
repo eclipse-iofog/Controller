@@ -1,9 +1,16 @@
 const BaseManager = require('./base-manager')
 const models = require('../models')
 const config = require('../../config')
-const databaseProvider = require('../providers/database-factory')
-const { Op } = require('sequelize')
 const { withDbBusyRetry } = require('../../helpers/db-busy-retry')
+const { claimNextReconcileTask } = require('../../helpers/db-dialect')
+
+const ACTIVE_STATUSES = ['pending', 'in_progress']
+
+const NATS_TASK_SELECT_SQL = `SELECT id, reason, application_id AS applicationId,
+  account_rule_id AS accountRuleId, user_rule_id AS userRuleId, fog_uuids AS fogUuids,
+  status, leader_uuid AS leaderUuid, claimed_at AS claimedAt,
+  created_at AS createdAt, updated_at AS updatedAt
+  FROM :table`
 
 class NatsReconcileTaskManager extends BaseManager {
   getEntity () {
@@ -15,39 +22,19 @@ class NatsReconcileTaskManager extends BaseManager {
   }
 
   async _claimNextInternal (controllerUuid, stalenessSeconds) {
-    const sequelize = databaseProvider.sequelize
     const T = stalenessSeconds != null ? stalenessSeconds : config.get('settings.natsReconcileTaskStalenessSeconds', 900)
     const staleThreshold = new Date(Date.now() - T * 1000)
-    const Entity = this.getEntity()
-    return sequelize.transaction(async (transaction) => {
-      const task = await Entity.findOne({
-        where: {
-          status: { [Op.in]: ['pending', 'in_progress'] },
-          [Op.or]: [
-            { leaderUuid: null },
-            { claimedAt: { [Op.lt]: staleThreshold } }
-          ]
-        },
-        order: [['id', 'ASC']],
-        limit: 1,
-        transaction
-      })
-      if (!task) return null
-      const [affected] = await Entity.update(
-        { leaderUuid: controllerUuid, claimedAt: new Date(), status: 'in_progress' },
-        {
-          where: {
-            id: task.id,
-            [Op.or]: [
-              { leaderUuid: null },
-              { claimedAt: { [Op.lt]: staleThreshold } }
-            ]
-          },
-          transaction
-        }
-      )
-      if (affected === 0) return null
-      return this.findOne({ id: task.id }, transaction)
+    const now = new Date()
+
+    return claimNextReconcileTask({
+      Entity: this.getEntity(),
+      controllerUuid,
+      staleThreshold,
+      now,
+      activeStatuses: ACTIVE_STATUSES,
+      includeNextAttemptFilter: false,
+      selectSql: NATS_TASK_SELECT_SQL,
+      reloadTask: (id, transaction) => this.findOne({ id }, transaction)
     })
   }
 }

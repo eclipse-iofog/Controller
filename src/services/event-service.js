@@ -4,6 +4,7 @@ const logger = require('../logger')
 const Errors = require('../helpers/errors')
 const Validator = require('../schemas')
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 /**
  * Extract resource type from URL path
@@ -342,6 +343,13 @@ async function createEvent (eventData, transaction) {
   return EventManager.create(eventRecord, transaction)
 }
 
+async function persistAuditEvent (eventData) {
+  return runInTransaction(
+    (transaction) => createEvent(eventData, transaction),
+    { priority: PRIORITY_BACKGROUND, label: 'event.audit' }
+  )
+}
+
 /**
  * Create event from HTTP request/response
  * @param {object} req - Express request object
@@ -390,9 +398,8 @@ async function createHttpEvent (req, res, startTime) {
     requestId: req.id || null
   }
 
-  // Use fake transaction for non-blocking event creation
-  await createEvent(eventData, { fakeTransaction: true }).catch(err => {
-    logger.error('Event logging failed (non-blocking):', err)
+  await persistAuditEvent(eventData).catch(err => {
+    logger.error({ err }, 'Event logging failed (non-blocking)')
   })
 }
 
@@ -431,9 +438,8 @@ async function createWsConnectEvent (connectionData) {
     requestId: null
   }
 
-  // Use fake transaction for non-blocking event creation
-  await createEvent(eventData, { fakeTransaction: true }).catch(err => {
-    logger.error('WebSocket connect event logging failed (non-blocking):', err)
+  await persistAuditEvent(eventData).catch(err => {
+    logger.error({ err }, 'WebSocket connect event logging failed (non-blocking)')
   })
 }
 
@@ -473,9 +479,8 @@ async function createWsDisconnectEvent (connectionData) {
     requestId: null
   }
 
-  // Use fake transaction for non-blocking event creation
-  await createEvent(eventData, { fakeTransaction: true }).catch(err => {
-    logger.error('WebSocket disconnect event logging failed (non-blocking):', err)
+  await persistAuditEvent(eventData).catch(err => {
+    logger.error({ err }, 'WebSocket disconnect event logging failed (non-blocking)')
   })
 }
 
@@ -635,7 +640,7 @@ async function deleteEvents (params = {}, context = {}, transaction) {
       const endpointType = request.path && request.path.startsWith('/api/v3/agent/') ? 'agent' : 'user'
       const actorId = extractActorId(request)
 
-      await createEvent({
+      await persistAuditEvent({
         timestamp: Date.now(),
         eventType: 'HTTP',
         endpointType,
@@ -649,11 +654,11 @@ async function deleteEvents (params = {}, context = {}, transaction) {
         statusCode: 200,
         statusMessage: days === 0 ? `Deleted all ${deletedCount} events` : `Deleted ${deletedCount} events older than ${days} days`,
         requestId: request.id || null
-      }, { fakeTransaction: true }).catch(err => {
-        logger.error('Failed to create DELETE events audit record (non-blocking):', err)
+      }).catch(err => {
+        logger.error({ err }, 'Failed to create DELETE events audit record (non-blocking)')
       })
     } catch (error) {
-      logger.error('Error creating DELETE events audit record (non-blocking):', error)
+      logger.error({ err: error }, 'Error creating DELETE events audit record (non-blocking)')
     }
   })
 

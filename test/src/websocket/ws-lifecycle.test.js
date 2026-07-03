@@ -9,6 +9,7 @@ const FogManager = require('../../../src/data/managers/iofog-manager')
 const WebSocketServerClass = require('../../../src/websocket/server')
 const MicroserviceExecSessionManager = require('../../../src/data/managers/microservice-exec-session-manager')
 const MicroserviceLogStatusManager = require('../../../src/data/managers/microservice-log-status-manager')
+const AppHelper = require('../../../src/helpers/app-helper')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const {
   createMockWebSocket,
@@ -24,7 +25,7 @@ const FAST_CONFIG = {
     execMaxDurationMs: 200,
     logPendingTimeoutMs: 100,
     logIdleTimeoutMs: 500,
-    logMaxConcurrentPerResource: 3,
+    logMaxConcurrentPerResource: 5,
     logTailMaxLines: 5000,
     cleanupInterval: 50
   }
@@ -39,22 +40,22 @@ describe('WebSocket session lifecycle', () => {
     $sandbox.restore()
   })
 
-  describe('exec 3-session quota', () => {
+  describe('exec 5-session quota', () => {
     let wsServer
 
     beforeEach(() => {
       resetWebSocketServerSingleton(WebSocketServerClass)
       wsServer = new WebSocketServerClass()
-      wsServer.sessionConfig = { ...wsServer.sessionConfig, execMaxConcurrentPerResource: 3 }
+      wsServer.sessionConfig = { ...wsServer.sessionConfig, execMaxConcurrentPerResource: 5 }
     })
 
     afterEach(() => {
       resetWebSocketServerSingleton(WebSocketServerClass)
     })
 
-    it('rejects fourth concurrent exec session for same microservice', async () => {
+    it('rejects sixth concurrent exec session for same microservice', async () => {
       $sandbox.stub(wsServer, 'validateUserConnection').resolves({ uuid: $ids.microserviceUuid })
-      $sandbox.stub(wsServer, 'countExecSessionsInDb').resolves(3)
+      $sandbox.stub(wsServer, 'countExecSessionsInDb').resolves(5)
 
       const ws = createMockWebSocket()
       const req = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)
@@ -72,22 +73,22 @@ describe('WebSocket session lifecycle', () => {
     })
   })
 
-  describe('log 3-viewer quota', () => {
+  describe('log 5-viewer quota', () => {
     let wsServer
 
     beforeEach(() => {
       resetWebSocketServerSingleton(WebSocketServerClass)
       wsServer = new WebSocketServerClass()
-      wsServer.sessionConfig = { ...wsServer.sessionConfig, logMaxConcurrentPerResource: 3 }
+      wsServer.sessionConfig = { ...wsServer.sessionConfig, logMaxConcurrentPerResource: 5 }
     })
 
     afterEach(() => {
       resetWebSocketServerSingleton(WebSocketServerClass)
     })
 
-    it('rejects fourth concurrent log session for same microservice', async () => {
+    it('rejects sixth concurrent log session for same microservice', async () => {
       $sandbox.stub(wsServer, 'validateUserLogsConnection').resolves({ success: true })
-      $sandbox.stub(wsServer, 'countLogSessionsInDb').resolves(3)
+      $sandbox.stub(wsServer, 'countLogSessionsInDb').resolves(5)
       $sandbox.stub(wsServer, 'isValidISO8601').returns(true)
 
       const ws = createMockWebSocket()
@@ -256,6 +257,51 @@ describe('WebSocket session lifecycle', () => {
         ChangeTrackingService.events.microserviceExecSessions,
         $transaction
       )
+    })
+  })
+
+  describe('relay setup deferred until transaction commits', () => {
+    let wsServer
+
+    beforeEach(() => {
+      resetWebSocketServerSingleton(WebSocketServerClass)
+      wsServer = new WebSocketServerClass()
+    })
+
+    afterEach(() => {
+      resetWebSocketServerSingleton(WebSocketServerClass)
+    })
+
+    it('does not await relay setup before handleUserLogsConnection returns', async () => {
+      let setupStarted = false
+      $sandbox.stub(wsServer, 'validateUserLogsConnection').resolves({ success: true })
+      $sandbox.stub(wsServer, 'countLogSessionsInDb').resolves(0)
+      $sandbox.stub(wsServer, 'isValidISO8601').returns(true)
+      $sandbox.stub(wsServer, 'setupLogMessageForwarding').callsFake(async () => {
+        setupStarted = true
+      })
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: $ids.fogUuid, uuid: $ids.microserviceUuid })
+      $sandbox.stub(FogManager, 'findOne').resolves({ uuid: $ids.fogUuid })
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
+      $sandbox.stub(MicroserviceLogStatusManager, 'create').resolves()
+      $sandbox.stub(AppHelper, 'generateUUID').returns($ids.sessionId)
+
+      const ws = createMockWebSocket()
+      const req = createMockRequest(`/api/v3/microservices/${$ids.microserviceUuid}/logs?tail=100`)
+
+      await wsServer.handleUserLogsConnection(
+        ws,
+        req,
+        'Bearer token',
+        $ids.microserviceUuid,
+        null,
+        false,
+        $transaction
+      )
+
+      expect(setupStarted).to.equal(false)
+      await delay(10)
+      expect(setupStarted).to.equal(true)
     })
   })
 })

@@ -54,10 +54,11 @@ class RbacServiceAccountManager extends BaseManager {
     if (!application) {
       throw new Errors.NotFoundError(`Application '${appName}' not found`)
     }
-    const options = transaction.fakeTransaction
-      ? { where: { applicationId: application.id, name }, include: serviceAccountIncludeApplication }
-      : { where: { applicationId: application.id, name }, include: serviceAccountIncludeApplication, transaction }
-    const sa = await RbacServiceAccount.findOne(options)
+    const sa = await RbacServiceAccount.findOne({
+      where: { applicationId: application.id, name },
+      include: serviceAccountIncludeApplication,
+      transaction
+    })
     return sa ? mapToResponse(sa) : null
   }
 
@@ -168,7 +169,7 @@ class RbacServiceAccountManager extends BaseManager {
 
     const updated = await RbacServiceAccount.findByPk(sa.id, {
       include: serviceAccountIncludeApplication,
-      transaction: transaction.fakeTransaction ? undefined : transaction
+      transaction
     })
     return mapToResponse(updated)
   }
@@ -216,10 +217,11 @@ class RbacServiceAccountManager extends BaseManager {
       }
       where.applicationId = application.id
     }
-    const findOptions = transaction.fakeTransaction
-      ? { where, include: serviceAccountIncludeApplication }
-      : { where, include: serviceAccountIncludeApplication, transaction }
-    const list = await RbacServiceAccount.findAll(findOptions)
+    const list = await RbacServiceAccount.findAll({
+      where,
+      include: serviceAccountIncludeApplication,
+      transaction
+    })
     return list.map(sa => mapToResponse(sa))
   }
 }

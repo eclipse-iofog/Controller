@@ -14,9 +14,11 @@ async function _checkForDuplicatePorts (agent, localPort, transaction) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.PORT_RESERVED, localPort))
   }
 
-  const microservices = await agent.getMicroservice()
+  // Read within the caller transaction so uncommitted deletes are visible (Plan 19).
+  const assocOptions = transaction != null ? { transaction } : undefined
+  const microservices = await agent.getMicroservice(assocOptions)
   for (const microservice of microservices) {
-    const ports = await microservice.getPorts()
+    const ports = await microservice.getPorts(assocOptions)
     if (ports.find(port => port.portExternal === localPort)) {
       throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.PORT_NOT_AVAILABLE, localPort))
     }

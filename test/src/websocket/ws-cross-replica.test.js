@@ -79,12 +79,12 @@ describe('WebSocket exec/log — cross-replica mock AMQP', () => {
       userWs,
       transaction
     )
-    await wsServer.setupExecMessageForwarding(sessionId, transaction)
+    await wsServer.setupExecMessageForwarding(sessionId)
     await delay(50)
 
     const session = wsServer.execSessionManager.getExecSession(sessionId)
     session.agent = agentWs
-    await wsServer.setupExecMessageForwarding(sessionId, transaction)
+    await wsServer.setupExecMessageForwarding(sessionId)
     await delay(50)
 
     expect(mockRelay.shouldUseRelay(sessionId)).to.equal(true)
@@ -164,6 +164,7 @@ describe('WebSocket exec/log — cross-replica mock AMQP', () => {
       false,
       transaction
     )
+    await delay(50)
 
     expect(mockRelay.shouldUseRelay($ids.sessionId)).to.equal(true)
     expect(wsServer.execSessionManager.getExecSession($ids.sessionId).agent).to.equal(null)

@@ -27,7 +27,7 @@ const Errors = require('../../../src/helpers/errors')
 const config = require('../../../src/config')
 const FogPlatformSpecManager = require('../../../src/data/managers/fog-platform-spec-manager')
 const FogPlatformStatusManager = require('../../../src/data/managers/fog-platform-status-manager')
-const FogPlatformReconcileTaskManager = require('../../../src/data/managers/fog-platform-reconcile-task-manager')
+const ReconcileOutboxManager = require('../../../src/data/managers/reconcile-outbox-manager')
 
 const isCLI = false
 const transaction = {}
@@ -89,7 +89,7 @@ function stubCreateFogDeps (sandbox, { uuid = 'testUuid', existingFogs = [{ uuid
   sandbox.stub(ioFogService, '_handleRouterCertificates').resolves()
   sandbox.stub(FogPlatformSpecManager, 'upsertSpec').resolves({ fogUuid: uuid, generation: 1 })
   sandbox.stub(FogPlatformStatusManager, 'ensurePending').resolves()
-  sandbox.stub(FogPlatformReconcileTaskManager, 'enqueueFogPlatformReconcileTask').resolves()
+  sandbox.stub(ReconcileOutboxManager, 'enqueueFogPlatform').resolves()
 }
 
 function stubUpdateFogDeps (sandbox, oldFog) {
@@ -113,7 +113,9 @@ function stubUpdateFogDeps (sandbox, oldFog) {
   sandbox.stub(FogPlatformSpecManager, 'getParsedSpec').resolves(null)
   sandbox.stub(FogPlatformSpecManager, 'upsertSpec').resolves({ fogUuid: oldFog.uuid, generation: 2 })
   sandbox.stub(FogPlatformStatusManager, 'ensurePending').resolves()
-  sandbox.stub(FogPlatformReconcileTaskManager, 'enqueueFogPlatformReconcileTask').resolves()
+  sandbox.stub(ReconcileOutboxManager, 'enqueueFogPlatform').resolves()
+  sandbox.stub(NatsInstanceManager, 'findByFog').resolves(null)
+  sandbox.stub(NatsConnectionManager, 'findAllWithNats').resolves([])
 }
 
 describe('ioFog Service', () => {
@@ -172,7 +174,7 @@ describe('ioFog Service', () => {
         natsMode: 'leaf'
       })
       expect(FogPlatformStatusManager.ensurePending).to.have.been.calledWith(uuid, transaction)
-      expect(FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.been.calledWith({
         fogUuid: uuid,
         reason: 'spec-changed',
         specGeneration: 1
@@ -295,7 +297,7 @@ describe('ioFog Service', () => {
       await $subject
       expect(FogPlatformSpecManager.upsertSpec).to.have.been.calledOnce
       expect(FogPlatformStatusManager.ensurePending).to.have.been.calledWith(uuid, transaction)
-      expect(FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.been.calledWith({
         fogUuid: uuid,
         reason: 'spec-changed',
         specGeneration: 2
@@ -313,6 +315,44 @@ describe('ioFog Service', () => {
       const renamed = { ...fogData, name: 'new-name' }
       return expect(ioFogService.updateFogEndPoint(renamed, isCLI, transaction))
         .to.be.rejectedWith('Agent Resource Name is immutable')
+    })
+
+    context('when upstream endpoint changes', () => {
+      beforeEach(() => {
+        RouterManager.findOne.callsFake((query) => {
+          if (query && query.iofogUuid === uuid) {
+            return Promise.resolve({ id: 10, iofogUuid: uuid, messagingPort: 5671, host: '1.2.3.4' })
+          }
+          return Promise.resolve({ id: 1, isDefault: true })
+        })
+        RouterConnectionManager.findAllWithRouters.callsFake((query) => {
+          if (query && query.destRouter === 10) {
+            return Promise.resolve([{ source: { iofogUuid: 'edge-downstream' } }])
+          }
+          return Promise.resolve([])
+        })
+        NatsInstanceManager.findByFog.resolves({ id: 20, iofogUuid: uuid, serverPort: 4222 })
+        NatsConnectionManager.findAllWithNats.resolves([])
+        FogPlatformSpecManager.getParsedSpec.resolves({
+          fogUuid: uuid,
+          generation: 1,
+          spec: {
+            routerMode: 'edge',
+            natsMode: 'leaf',
+            host: '1.2.3.4',
+            messagingPort: 5671
+          }
+        })
+      })
+
+      it('does not enqueue downstream platform reconcile on PATCH', async () => {
+        await $subject
+
+        expect(ReconcileOutboxManager.enqueueFogPlatform).to.not.have.been.calledWith({
+          fogUuid: 'edge-downstream',
+          reason: 'spec-changed'
+        }, transaction)
+      })
     })
 
     context('when fog is not found', () => {
@@ -416,7 +456,7 @@ describe('ioFog Service', () => {
       $sandbox.stub(ioFogManager, 'delete').resolves()
       $sandbox.stub(NatsService, 'cleanupNatsForFog').resolves()
       $sandbox.stub(FogPlatformStatusManager, 'setPhase').resolves()
-      $sandbox.stub(FogPlatformReconcileTaskManager, 'enqueueFogPlatformReconcileTask').resolves()
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueFogPlatform').resolves()
     })
 
     it('marks fog deleting and enqueues async teardown', async () => {
@@ -424,7 +464,7 @@ describe('ioFog Service', () => {
       expect(Validator.validate).to.have.been.calledWith(fogData, Validator.schemas.iofogDelete)
       expect(result).to.eql({ uuid })
       expect(FogPlatformStatusManager.setPhase).to.have.been.calledWith(uuid, 'Deleting', {}, transaction)
-      expect(FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.been.calledWith({
         fogUuid: uuid,
         reason: 'delete'
       }, transaction)
@@ -459,7 +499,7 @@ describe('ioFog Service', () => {
         generation: 4,
         spec: { routerMode: 'edge', natsMode: 'leaf' }
       })
-      $sandbox.stub(FogPlatformReconcileTaskManager, 'enqueueFogPlatformReconcileTask').resolves()
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueFogPlatform').resolves()
     })
 
     it('resets failed platform status and enqueues manual retry', async () => {
@@ -471,7 +511,7 @@ describe('ioFog Service', () => {
         { lastError: null },
         transaction
       )
-      expect(FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask).to.have.been.calledWith({
+      expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.been.calledWith({
         fogUuid: uuid,
         reason: 'manual-retry',
         specGeneration: 4

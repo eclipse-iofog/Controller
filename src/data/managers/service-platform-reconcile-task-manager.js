@@ -1,7 +1,6 @@
 const BaseManager = require('./base-manager')
 const models = require('../models')
 const config = require('../../config')
-const databaseProvider = require('../providers/database-factory')
 const { Op } = require('sequelize')
 const {
   SERVICE_PLATFORM_REASONS,
@@ -9,8 +8,14 @@ const {
   parseSpecSnapshot
 } = require('../../schemas/fog-platform-spec')
 const { withDbBusyRetry } = require('../../helpers/db-busy-retry')
+const { claimNextReconcileTask } = require('../../helpers/db-dialect')
 
 const ACTIVE_STATUSES = ['pending', 'in_progress']
+
+const SERVICE_TASK_SELECT_SQL = `SELECT id, service_name AS serviceName, reason, spec_snapshot AS specSnapshot,
+  status, leader_uuid AS leaderUuid, claimed_at AS claimedAt, next_attempt_at AS nextAttemptAt,
+  attempts, last_error AS lastError, created_at AS createdAt, updated_at AS updatedAt
+  FROM :table`
 
 class ServicePlatformReconcileTaskManager extends BaseManager {
   getEntity () {
@@ -29,12 +34,6 @@ class ServicePlatformReconcileTaskManager extends BaseManager {
   }
 
   async enqueueServicePlatformReconcileTask (options = {}, transaction) {
-    if (transaction.fakeTransaction) {
-      return databaseProvider.sequelize.transaction((t) =>
-        this.enqueueServicePlatformReconcileTask(options, t)
-      )
-    }
-
     const serviceName = options.serviceName
     if (!serviceName) {
       throw new Error('serviceName is required to enqueue service platform reconcile task')
@@ -76,50 +75,21 @@ class ServicePlatformReconcileTaskManager extends BaseManager {
   }
 
   async _claimNextServiceTaskInternal (controllerUuid, stalenessSeconds) {
-    const sequelize = databaseProvider.sequelize
     const T = stalenessSeconds != null
       ? stalenessSeconds
       : config.get('settings.fogPlatformReconcileTaskStalenessSeconds', 300)
     const staleThreshold = new Date(Date.now() - T * 1000)
-    const Entity = this.getEntity()
     const now = new Date()
 
-    return sequelize.transaction(async (transaction) => {
-      const task = await Entity.findOne({
-        where: {
-          status: { [Op.in]: ACTIVE_STATUSES },
-          [Op.or]: [
-            { nextAttemptAt: null },
-            { nextAttemptAt: { [Op.lte]: now } }
-          ],
-          [Op.and]: [{
-            [Op.or]: [
-              { leaderUuid: null },
-              { claimedAt: { [Op.lt]: staleThreshold } }
-            ]
-          }]
-        },
-        order: [['id', 'ASC']],
-        limit: 1,
-        transaction
-      })
-      if (!task) return null
-
-      const [affected] = await Entity.update(
-        { leaderUuid: controllerUuid, claimedAt: new Date(), status: 'in_progress' },
-        {
-          where: {
-            id: task.id,
-            [Op.or]: [
-              { leaderUuid: null },
-              { claimedAt: { [Op.lt]: staleThreshold } }
-            ]
-          },
-          transaction
-        }
-      )
-      if (affected === 0) return null
-      return this.findOne({ id: task.id }, transaction)
+    return claimNextReconcileTask({
+      Entity: this.getEntity(),
+      controllerUuid,
+      staleThreshold,
+      now,
+      activeStatuses: ACTIVE_STATUSES,
+      includeNextAttemptFilter: true,
+      selectSql: SERVICE_TASK_SELECT_SQL,
+      reloadTask: (id, transaction) => this.findOne({ id }, transaction)
     })
   }
 

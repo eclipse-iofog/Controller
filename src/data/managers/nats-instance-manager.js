@@ -8,7 +8,10 @@ class NatsInstanceManager extends BaseManager {
   }
 
   findByFog (iofogUuid, transaction) {
-    return NatsInstance.findOne({ where: { iofogUuid } }, { transaction })
+    return NatsInstance.findOne({
+      where: { iofogUuid },
+      transaction
+    })
   }
 }
 

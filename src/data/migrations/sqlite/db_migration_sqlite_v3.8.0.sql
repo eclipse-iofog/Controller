@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS Fogs (
     deployment_type VARCHAR(36),
     active_volume_mounts BIGINT DEFAULT 0,
     volume_mount_last_update BIGINT DEFAULT 0,
-    warning_message TEXT DEFAULT 'HEALTHY',
+    warning_message TEXT,
     gps_device VARCHAR(36),
     gps_scan_frequency INT DEFAULT 60,
     edge_guard_frequency INT DEFAULT 0,
@@ -737,7 +737,7 @@ CREATE INDEX idx_fog_log_status_session_id ON FogLogStatuses (session_id);
 CREATE TABLE IF NOT EXISTS RbacRoles (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name TEXT UNIQUE NOT NULL,
-    kind TEXT DEFAULT 'Role',
+    kind TEXT,
     created_at DATETIME,
     updated_at DATETIME
 );
@@ -757,7 +757,7 @@ CREATE TABLE IF NOT EXISTS RbacRoleRules (
 CREATE TABLE IF NOT EXISTS RbacRoleBindings (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     name TEXT UNIQUE NOT NULL,
-    kind TEXT DEFAULT 'RoleBinding',
+    kind TEXT,
     role_ref TEXT NOT NULL,
     subjects TEXT NOT NULL,
     created_at DATETIME,
@@ -1204,6 +1204,18 @@ CREATE TABLE IF NOT EXISTS ServicePlatformReconcileTasks (
 CREATE UNIQUE INDEX idx_service_platform_reconcile_tasks_active_service_name ON ServicePlatformReconcileTasks (service_name) WHERE status IN ('pending', 'in_progress');
 CREATE INDEX idx_service_platform_reconcile_tasks_status_claimed ON ServicePlatformReconcileTasks (status, claimed_at);
 CREATE INDEX idx_service_platform_reconcile_tasks_next_attempt ON ServicePlatformReconcileTasks (next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS ReconcileOutbox (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    kind VARCHAR(32) NOT NULL,
+    payload TEXT NOT NULL,
+    idempotency_key VARCHAR(255) NOT NULL UNIQUE,
+    created_at DATETIME,
+    processed_at DATETIME,
+    last_error TEXT
+);
+
+CREATE INDEX idx_reconcile_outbox_unprocessed ON ReconcileOutbox (processed_at, id);
 
 CREATE TABLE IF NOT EXISTS HubRouterConfigLocks (
     id INTEGER PRIMARY KEY NOT NULL CHECK (id = 1),

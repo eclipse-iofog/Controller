@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     sessionId: {
-      type: DataTypes.TEXT,
+      type: DataTypes.STRING(255),
       field: 'session_id',
       allowNull: false,
       unique: true

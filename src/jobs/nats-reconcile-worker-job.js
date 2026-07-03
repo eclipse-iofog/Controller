@@ -1,9 +1,9 @@
 const ClusterControllerService = require('../services/cluster-controller-service')
 const NatsService = require('../services/nats-service')
 const NatsReconcileTaskManager = require('../data/managers/nats-reconcile-task-manager')
-const databaseProvider = require('../data/providers/database-factory')
 const Config = require('../config')
 const logger = require('../logger')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 const scheduleTime = (Config.get('settings.natsReconcileWorkerIntervalSeconds', 3)) * 1000
 
@@ -50,12 +50,12 @@ async function processNextTask () {
     logger.info(`NATS reconcile task ${task.id} started`)
     await NatsService.reconcileResolverArtifacts(options)
     logger.info(`NATS reconcile task ${task.id} completed`)
-    await databaseProvider.sequelize.transaction(async (transaction) => {
+    await runInTransaction(async (transaction) => {
       await NatsReconcileTaskManager.getEntity().destroy({
         where: { id: task.id },
         transaction
       })
-    })
+    }, { priority: PRIORITY_BACKGROUND, label: 'natsReconcile.taskComplete' })
   } catch (error) {
     logger.error({
       err: error,

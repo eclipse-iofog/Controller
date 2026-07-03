@@ -11,11 +11,15 @@ const MicroserviceStatusManager = require('../data/managers/microservice-status-
 const { microserviceState } = require('../enums/microservice-state')
 const AuthDecorator = require('../decorators/authorization-decorator')
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const transactionRunner = require('../helpers/transaction-runner')
+const { PRIORITY_BACKGROUND } = transactionRunner
 const msgpack = require('@msgpack/msgpack')
 const { resolveTransport } = require('../services/ws-relay-transport-factory')
 const {
   recordExecSessionActive,
-  recordLogSessionActive
+  recordLogSessionActive,
+  recordPendingPairing,
+  recordPairingDurationMs
 } = require('./ws-metrics')
 const AppHelper = require('../helpers/app-helper')
 const MicroserviceLogStatusManager = require('../data/managers/microservice-log-status-manager')
@@ -24,6 +28,8 @@ const FogLogStatusManager = require('../data/managers/fog-log-status-manager')
 const ChangeTrackingService = require('../services/change-tracking-service')
 const FogManager = require('../data/managers/iofog-manager')
 const FogStates = require('../enums/fog-state')
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op
 
 const MESSAGE_TYPES = {
   STDIN: 0,
@@ -44,6 +50,9 @@ const DRAIN_CLOSE_CODE = 1001
 const DRAIN_CLOSE_REASON = 'Server draining'
 // when user WS bufferedAmount exceeds this, drop LOG_LINE silently and emit LOG_ERROR once.
 const LOG_BACKPRESSURE_BUFFER_BYTES = 256 * 1024
+const EXEC_AGENT_READY_NOTICE = 'Agent connected. Interactive exec is ready.\n'
+const LOG_AGENT_READY_NOTICE = 'Agent connected. Log streaming started.\n'
+const LOG_AGENT_DISCONNECTED_NOTICE = 'Agent disconnected.\n'
 
 const EventService = require('../services/event-service')
 const { isAuthConfigured: isOidcAuthConfigured } = require('../config/oidc')
@@ -174,9 +183,7 @@ class WebSocketServer {
       if (!session || !session.user || !session.agent) return
       session.activationSent = false
       try {
-        await TransactionDecorator.generateTransaction(async (tx) => {
-          await this.sendExecActivationToExecSession(session, sessionId, tx)
-        })()
+        await this.sendExecActivationToExecSession(session, sessionId)
       } catch (error) {
         logger.error('[RELAY] Failed to resend exec activation after relay recovery', {
           sessionId,
@@ -185,6 +192,8 @@ class WebSocketServer {
       }
     })
     this.pendingCloseTimeouts = new Map() // Track pending CLOSE messages in cross-replica scenarios
+    this._execCleanupInflight = new Map()
+    this._logCleanupInflight = new Map()
     this.haConfig = config.get('server.webSocket.ha') || {}
     this.isDraining = false
     this.drainPromise = null
@@ -214,6 +223,52 @@ class WebSocketServer {
         }
       })
     }
+
+    this.execSessionManager.setExpiredSessionHandler((sessionId, session, transaction) =>
+      this._handleExpiredExecSession(sessionId, session, transaction))
+    this.logSessionManager.setExpiredSessionHandler((sessionId, session, transaction) =>
+      this._handleExpiredLogSession(sessionId, session, transaction))
+  }
+
+  _startWebSocketHeartbeat (ws, { label, sessionId } = {}) {
+    if (!ws) {
+      return
+    }
+    this._stopWebSocketHeartbeat(ws)
+
+    const intervalMs = Number(this.config.pingInterval)
+    if (!Number.isFinite(intervalMs) || intervalMs <= 0) {
+      return
+    }
+
+    ws._heartbeatTimer = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.ping()
+        } catch (error) {
+          logger.debug('[WS-HEARTBEAT] Failed to send ping frame', {
+            label: label || null,
+            sessionId: sessionId || null,
+            error: error.message
+          })
+        }
+      }
+    }, intervalMs)
+
+    if (!ws._heartbeatCloseRegistered) {
+      ws._heartbeatCloseRegistered = true
+      ws.on('close', () => {
+        this._stopWebSocketHeartbeat(ws)
+      })
+    }
+  }
+
+  _stopWebSocketHeartbeat (ws) {
+    if (!ws || ws._heartbeatTimer == null) {
+      return
+    }
+    clearInterval(ws._heartbeatTimer)
+    ws._heartbeatTimer = null
   }
 
   // MessagePack encoding/decoding helpers with improved error handling
@@ -364,11 +419,11 @@ class WebSocketServer {
   }
 
   getLogConcurrencyLimit () {
-    return this.sessionConfig.logMaxConcurrentPerResource || 3
+    return this.sessionConfig.logMaxConcurrentPerResource || 5
   }
 
   getExecConcurrencyLimit () {
-    return this.sessionConfig.execMaxConcurrentPerResource || 3
+    return this.sessionConfig.execMaxConcurrentPerResource || 5
   }
 
   getLogTailMaxLines () {
@@ -408,13 +463,978 @@ class WebSocketServer {
     return true
   }
 
-  async countLogSessionsInDb (microserviceUuid, fogUuid, transaction) {
+  _scheduleRelaySetupAfterCommit (label, setupFn) {
+    setImmediate(async () => {
+      try {
+        await setupFn()
+      } catch (error) {
+        logger.error(`Failed to ${label}:` + JSON.stringify({
+          error: error.message,
+          stack: error.stack
+        }))
+      }
+    })
+  }
+
+  _runDedupedSessionCleanup (inflightMap, sessionId, label, cleanupFn) {
+    const existing = inflightMap.get(sessionId)
+    if (existing) {
+      return existing
+    }
+
+    const promise = transactionRunner.runInTransaction(
+      cleanupFn,
+      { priority: PRIORITY_BACKGROUND, label }
+    ).finally(() => {
+      inflightMap.delete(sessionId)
+    })
+
+    inflightMap.set(sessionId, promise)
+    return promise
+  }
+
+  async _cleanupLogSessionInTransaction (sessionId) {
+    return this._runDedupedSessionCleanup(
+      this._logCleanupInflight,
+      sessionId,
+      'ws.log.cleanup',
+      (transaction) => this.cleanupLogSession(sessionId, transaction)
+    )
+  }
+
+  async _cleanupExecSessionInTransaction (sessionId) {
+    return this._runDedupedSessionCleanup(
+      this._execCleanupInflight,
+      sessionId,
+      'ws.exec.cleanup',
+      (transaction) => this.cleanupExecSession(sessionId, transaction)
+    )
+  }
+
+  _isExecSessionAgentPaired (session) {
+    return !!(session && (session.agent || session.remoteAgentPaired))
+  }
+
+  _isExecSessionUserPaired (session) {
+    return !!(session && (session.user || session.remoteUserPaired))
+  }
+
+  _isLogSessionAgentPaired (session) {
+    return !!(session && (session.agent || session.remoteAgentPaired))
+  }
+
+  _isLogSessionUserPaired (session) {
+    return !!(session && (session.user || session.remoteUserPaired))
+  }
+
+  _clearPendingPairingTimer (session) {
+    if (session && session.pendingPairingTimer) {
+      clearTimeout(session.pendingPairingTimer)
+      session.pendingPairingTimer = null
+    }
+  }
+
+  _startExecPendingPairingMetrics (session) {
+    if (!session || session.pairingMetricsStarted) {
+      return
+    }
+    session.pairingMetricsStarted = true
+    session.pairingStartedAt = Date.now()
+    recordPendingPairing(1)
+  }
+
+  _startLogPendingPairingMetrics (session) {
+    if (!session || session.pairingMetricsStarted) {
+      return
+    }
+    session.pairingMetricsStarted = true
+    session.pairingStartedAt = Date.now()
+    recordPendingPairing(1)
+  }
+
+  _recordPairingCompleted (session) {
+    if (!session || session.pairingCompleted || !session.pairingMetricsStarted) {
+      return
+    }
+    session.pairingCompleted = true
+    recordPendingPairing(-1)
+    if (session.pairingStartedAt != null) {
+      recordPairingDurationMs(Date.now() - session.pairingStartedAt)
+    }
+  }
+
+  _abortPendingPairingMetrics (session) {
+    if (!session || session.pairingCompleted || !session.pairingMetricsStarted) {
+      return
+    }
+    session.pairingCompleted = true
+    recordPendingPairing(-1)
+  }
+
+  _markExecAgentPaired (sessionId, { notifyUser = false, source = 'local' } = {}) {
+    const session = this.execSessionManager.getExecSession(sessionId)
+    if (!session) {
+      return false
+    }
+    const wasPaired = this._isExecSessionAgentPaired(session)
+    session.remoteAgentPaired = true
+    this._clearPendingPairingTimer(session)
+    if (!wasPaired) {
+      this._recordPairingCompleted(session)
+    }
+    if (notifyUser && session.user && session.user.readyState === WebSocket.OPEN) {
+      try {
+        const readyMsg = {
+          type: MESSAGE_TYPES.STDERR,
+          data: Buffer.from(EXEC_AGENT_READY_NOTICE),
+          sessionId,
+          microserviceUuid: session.microserviceUuid,
+          execId: sessionId,
+          timestamp: Date.now()
+        }
+        session.user.send(this.encodeMessage(readyMsg), { binary: true })
+      } catch (error) {
+        logger.warn('Failed to notify user that exec agent connected:' + JSON.stringify({
+          sessionId,
+          source,
+          error: error.message
+        }))
+      }
+    }
+    return true
+  }
+
+  _markExecUserPaired (sessionId, { source = 'relay-notify' } = {}) {
+    const session = this.execSessionManager.getExecSession(sessionId)
+    if (!session) {
+      return false
+    }
+    session.remoteUserPaired = true
+    session.lastActivity = Date.now()
+    logger.info('Exec remote user paired:' + JSON.stringify({ sessionId, source }))
+    return true
+  }
+
+  _markLogUserPaired (sessionId, { source = 'relay-notify' } = {}) {
+    const session = this.logSessionManager.getLogSession(sessionId)
+    if (!session) {
+      return false
+    }
+    session.remoteUserPaired = true
+    session.lastActivity = Date.now()
+    logger.info('Log remote user paired:' + JSON.stringify({
+      sessionId,
+      source,
+      microserviceUuid: session.microserviceUuid,
+      fogUuid: session.fogUuid
+    }))
+    return true
+  }
+
+  _markLogAgentPaired (sessionId, { notifyUser = false, source = 'local' } = {}) {
+    const session = this.logSessionManager.getLogSession(sessionId)
+    if (!session) {
+      return false
+    }
+    const wasPaired = this._isLogSessionAgentPaired(session)
+    session.remoteAgentPaired = true
+    this._clearPendingPairingTimer(session)
+    if (!wasPaired) {
+      this._recordPairingCompleted(session)
+    }
+    if (notifyUser && session.user && session.user.readyState === WebSocket.OPEN) {
+      try {
+        const agentConnectedMsg = {
+          type: MESSAGE_TYPES.LOG_LINE,
+          data: Buffer.from(LOG_AGENT_READY_NOTICE),
+          sessionId,
+          timestamp: Date.now(),
+          microserviceUuid: session.microserviceUuid || null,
+          iofogUuid: session.fogUuid || null
+        }
+        session.user.send(this.encodeMessage(agentConnectedMsg), { binary: true })
+        logger.info('Notified user that agent connected for log session:' + JSON.stringify({
+          sessionId,
+          source,
+          microserviceUuid: session.microserviceUuid,
+          fogUuid: session.fogUuid
+        }))
+      } catch (error) {
+        logger.warn('Failed to notify user that log agent connected:' + JSON.stringify({
+          sessionId,
+          source,
+          error: error.message
+        }))
+      }
+    }
+    return true
+  }
+
+  async _sendExecActivationViaRelay (sessionId, microserviceUuid) {
+    if (!this.relayTransport.shouldUseRelay(sessionId)) {
+      return false
+    }
+    const activationMsg = {
+      type: MESSAGE_TYPES.ACTIVATION,
+      data: Buffer.from(JSON.stringify({
+        sessionId,
+        execId: sessionId,
+        microserviceUuid,
+        timestamp: Date.now()
+      })),
+      sessionId,
+      microserviceUuid,
+      execId: sessionId,
+      timestamp: Date.now()
+    }
+    try {
+      await this.relayTransport.publishToAgent(
+        sessionId,
+        this.encodeMessage(activationMsg),
+        { messageType: MESSAGE_TYPES.ACTIVATION }
+      )
+      const session = this.execSessionManager.getExecSession(sessionId)
+      if (session) {
+        session.activationSent = true
+      }
+      logger.info('[RELAY] Exec activation published to agent via relay:' + JSON.stringify({
+        sessionId,
+        microserviceUuid
+      }))
+      return true
+    } catch (error) {
+      logger.error('[RELAY] Failed to publish exec activation via relay:' + JSON.stringify({
+        sessionId,
+        microserviceUuid,
+        error: error.message
+      }))
+      return false
+    }
+  }
+
+  async _notifyExecUserViaRelay (sessionId, microserviceUuid) {
+    if (!this.relayTransport.shouldUseRelay(sessionId)) {
+      return false
+    }
+    const readyMsg = {
+      type: MESSAGE_TYPES.STDERR,
+      data: Buffer.from(EXEC_AGENT_READY_NOTICE),
+      sessionId,
+      microserviceUuid,
+      execId: sessionId,
+      timestamp: Date.now()
+    }
+    try {
+      await this.relayTransport.publishToUser(
+        sessionId,
+        this.encodeMessage(readyMsg),
+        { messageType: MESSAGE_TYPES.STDERR }
+      )
+      logger.info('[RELAY] Exec user ready notice published via relay:' + JSON.stringify({
+        sessionId,
+        microserviceUuid
+      }))
+      return true
+    } catch (error) {
+      logger.error('[RELAY] Failed to notify exec user via relay:' + JSON.stringify({
+        sessionId,
+        microserviceUuid,
+        error: error.message
+      }))
+      return false
+    }
+  }
+
+  async _notifyLogUserViaRelay (sessionId, { microserviceUuid, fogUuid, message }) {
+    if (!this.relayTransport.shouldUseRelayForLogs(sessionId)) {
+      return false
+    }
+    const notifyMsg = {
+      type: MESSAGE_TYPES.LOG_LINE,
+      data: Buffer.from(message),
+      sessionId,
+      timestamp: Date.now(),
+      microserviceUuid: microserviceUuid || null,
+      iofogUuid: fogUuid || null
+    }
+    try {
+      await this.relayTransport.publishLogToUser(sessionId, this.encodeMessage(notifyMsg))
+      return true
+    } catch (error) {
+      logger.error('[RELAY] Failed to notify log user via relay:' + JSON.stringify({
+        sessionId,
+        microserviceUuid,
+        fogUuid,
+        error: error.message
+      }))
+      return false
+    }
+  }
+
+  _registerExecUserRelayPairingHook (sessionId) {
+    if (typeof this.relayTransport.setExecUserDeliveryHook !== 'function') {
+      return
+    }
+    this.relayTransport.setExecUserDeliveryHook(sessionId, (buffer) => {
+      this._onExecUserRelayDelivery(sessionId, buffer)
+    })
+  }
+
+  _registerExecAgentRelayActivityHook (sessionId) {
+    if (typeof this.relayTransport.setExecAgentDeliveryHook !== 'function') {
+      return
+    }
+    this.relayTransport.setExecAgentDeliveryHook(sessionId, (buffer) => {
+      this._onExecAgentRelayDelivery(sessionId, buffer)
+    })
+  }
+
+  _registerLogUserRelayPairingHook (sessionId) {
+    if (typeof this.relayTransport.setLogUserDeliveryHook !== 'function') {
+      return
+    }
+    this.relayTransport.setLogUserDeliveryHook(sessionId, (buffer) => {
+      this._onLogUserRelayDelivery(sessionId, buffer)
+    })
+  }
+
+  _onExecUserRelayDelivery (sessionId, buffer) {
+    const session = this.execSessionManager.getExecSession(sessionId)
+    if (session) {
+      session.lastActivity = Date.now()
+    }
+    try {
+      const msg = this.decodeMessage(buffer)
+      if (msg.type === MESSAGE_TYPES.STDERR && msg.data) {
+        const text = msg.data.toString()
+        if (text.includes('Interactive exec is ready')) {
+          this._markExecAgentPaired(sessionId, { notifyUser: false, source: 'relay-notify' })
+        }
+      }
+    } catch (error) {
+      logger.debug('Ignoring exec user relay delivery hook decode error:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+    }
+  }
+
+  _onExecAgentRelayDelivery (sessionId, buffer) {
+    const session = this.execSessionManager.getExecSession(sessionId)
+    if (session) {
+      session.lastActivity = Date.now()
+    }
+    try {
+      this.decodeMessage(buffer)
+    } catch (error) {
+      logger.debug('Ignoring exec agent relay delivery hook decode error:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+    }
+  }
+
+  _onLogUserRelayDelivery (sessionId, buffer) {
+    const session = this.logSessionManager.getLogSession(sessionId)
+    if (session) {
+      session.lastActivity = Date.now()
+    }
+    try {
+      const msg = this.decodeMessage(buffer)
+      if (msg.type === MESSAGE_TYPES.LOG_LINE && msg.data) {
+        const text = msg.data.toString()
+        if (text.includes('Log streaming started')) {
+          this._markLogAgentPaired(sessionId, { notifyUser: false, source: 'relay-notify' })
+        }
+      }
+    } catch (error) {
+      logger.debug('Ignoring log user relay delivery hook decode error:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+    }
+  }
+
+  async _checkExecAgentPairedInDb (sessionId, transaction) {
+    const row = await MicroserviceExecSessionManager.findBySessionId(sessionId, transaction)
+    return !!(row && row.agentConnected)
+  }
+
+  async _checkExecUserConnectedInDb (sessionId, transaction) {
+    const row = await MicroserviceExecSessionManager.findBySessionId(sessionId, transaction)
+    return !!(row && row.userConnected)
+  }
+
+  async _checkLogAgentPairedInDb (sessionId, microserviceUuid, fogUuid, transaction) {
+    let row = null
     if (microserviceUuid) {
-      const rows = await MicroserviceLogStatusManager.findAll({ microserviceUuid }, transaction)
+      row = await MicroserviceLogStatusManager.findOne({ sessionId }, transaction)
+    } else if (fogUuid) {
+      row = await FogLogStatusManager.findOne({ sessionId }, transaction)
+    }
+    return !!(row && row.agentConnected)
+  }
+
+  async _checkLogUserConnectedInDb (sessionId, microserviceUuid, fogUuid, transaction) {
+    let row = null
+    if (microserviceUuid) {
+      row = await MicroserviceLogStatusManager.findOne({ sessionId }, transaction)
+    } else if (fogUuid) {
+      row = await FogLogStatusManager.findOne({ sessionId }, transaction)
+    }
+    return !!(row && row.userConnected)
+  }
+
+  async _isLogUserStillConnected (sessionId, session, microserviceUuid, fogUuid) {
+    if (session && session.user) {
+      return true
+    }
+    try {
+      return await transactionRunner.runInTransaction(
+        (tx) => this._checkLogUserConnectedInDb(sessionId, microserviceUuid, fogUuid, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.log.user-connected-db-check' }
+      )
+    } catch (error) {
+      logger.warn('Log user-connected DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+      return false
+    }
+  }
+
+  async _isExecUserStillConnected (sessionId, session) {
+    if (session && session.user) {
+      return true
+    }
+    try {
+      return await transactionRunner.runInTransaction(
+        (tx) => this._checkExecUserConnectedInDb(sessionId, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.exec.user-connected-db-check' }
+      )
+    } catch (error) {
+      logger.warn('Exec user-connected DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+      return false
+    }
+  }
+
+  async _notifyExecRemotePeerClose (sessionId, session, reason = 'Exec session expired') {
+    if (!session || !this.relayTransport.shouldUseRelay(sessionId)) {
+      return
+    }
+
+    const closeMsg = {
+      type: MESSAGE_TYPES.CLOSE,
+      execId: sessionId,
+      sessionId,
+      microserviceUuid: session.microserviceUuid,
+      timestamp: Date.now(),
+      data: Buffer.from(reason)
+    }
+    const encoded = this.encodeMessage(closeMsg)
+
+    try {
+      if (session.agent && !session.user && session.remoteUserPaired) {
+        await this.relayTransport.publishToUser(sessionId, encoded, { messageType: MESSAGE_TYPES.CLOSE })
+      } else if (session.user && !session.agent && session.remoteAgentPaired) {
+        await this.relayTransport.publishToAgent(sessionId, encoded, { messageType: MESSAGE_TYPES.CLOSE })
+      }
+    } catch (error) {
+      logger.error('[WS-CLOSE] Failed to notify remote exec peer via relay during session close', {
+        sessionId,
+        error: error.message
+      })
+    }
+  }
+
+  async _handleExpiredExecSession (sessionId, session, transaction) {
+    logger.info('Cleaning up expired exec session:' + JSON.stringify({ sessionId }))
+    if (session && session.user && session.user.readyState === WebSocket.OPEN) {
+      try {
+        session.user.close(
+          1008,
+          (session.agent || session.remoteAgentPaired)
+            ? 'Exec session max duration exceeded'
+            : 'Timeout waiting for agent connection'
+        )
+      } catch (error) {
+        logger.warn('Failed to close expired exec user connection:' + error.message)
+      }
+    }
+    if (session && session.agent && session.agent.readyState === WebSocket.OPEN) {
+      try {
+        session.agent.close(1000, 'Exec session expired')
+      } catch (error) {
+        logger.warn('Failed to close expired exec agent connection:' + error.message)
+      }
+    }
+
+    await this._notifyExecRemotePeerClose(sessionId, session, 'Exec session expired')
+    await this._cleanupExecSessionInTransaction(sessionId)
+  }
+
+  async _handleExpiredLogSession (sessionId, session, transaction) {
+    logger.info('Cleaning up expired log session:' + JSON.stringify({ sessionId }))
+    if (session && session.user && session.user.readyState === WebSocket.OPEN) {
+      try {
+        session.user.close(
+          1008,
+          (session.agent || session.remoteAgentPaired)
+            ? 'Log session idle timeout'
+            : 'Timeout waiting for agent connection'
+        )
+      } catch (error) {
+        logger.warn('Failed to close expired log user connection:' + error.message)
+      }
+    }
+    if (session && session.agent && session.agent.readyState === WebSocket.OPEN) {
+      try {
+        session.agent.close(1000, 'Log session expired')
+      } catch (error) {
+        logger.warn('Failed to close expired log agent connection:' + error.message)
+      }
+    }
+
+    if (session && this.relayTransport.shouldUseRelayForLogs(sessionId)) {
+      if (session.agent && !session.user && session.remoteUserPaired) {
+        await this._notifyLogUserViaRelay(sessionId, {
+          microserviceUuid: session.microserviceUuid,
+          fogUuid: session.fogUuid,
+          message: 'Log session ended.\n'
+        }).catch((error) => {
+          logger.error('[WS-CLOSE] Failed to notify remote log user via relay during session expiry', {
+            sessionId,
+            error: error.message
+          })
+        })
+      }
+    }
+
+    await this._cleanupLogSessionInTransaction(sessionId)
+  }
+
+  _scheduleExecPendingPairingTimeout (sessionId, userWs, microserviceUuid) {
+    const session = this.execSessionManager.getExecSession(sessionId)
+    if (!session) {
+      return
+    }
+    this._clearPendingPairingTimer(session)
+    const timeoutMs = this.getExecPendingTimeoutMs()
+    session.pendingPairingTimer = setTimeout(() => {
+      this._handleExecPendingTimeout(sessionId, userWs, microserviceUuid).catch((error) => {
+        logger.warn('Exec pending timeout handler failed:' + error.message)
+      })
+    }, timeoutMs)
+  }
+
+  _scheduleLogPendingPairingTimeout (sessionId, userWs, microserviceUuid, fogUuid) {
+    const session = this.logSessionManager.getLogSession(sessionId)
+    if (!session) {
+      return
+    }
+    this._clearPendingPairingTimer(session)
+    const timeoutMs = this.getLogPendingTimeoutMs()
+    session.pendingPairingTimer = setTimeout(() => {
+      this._handleLogPendingTimeout(sessionId, userWs, microserviceUuid, fogUuid).catch((error) => {
+        logger.warn('Log pending timeout handler failed:' + error.message)
+      })
+    }, timeoutMs)
+  }
+
+  async _handleExecPendingTimeout (sessionId, userWs, microserviceUuid) {
+    const session = this.execSessionManager.getExecSession(sessionId)
+    if (!session || this._isExecSessionAgentPaired(session)) {
+      return
+    }
+
+    try {
+      const pairedInDb = await transactionRunner.runInTransaction(
+        (tx) => this._checkExecAgentPairedInDb(sessionId, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.exec.pending-db-check' }
+      )
+      if (pairedInDb) {
+        this._markExecAgentPaired(sessionId, { notifyUser: false, source: 'db-fallback' })
+        return
+      }
+    } catch (error) {
+      logger.warn('Exec pending timeout DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+    }
+
+    this._abortPendingPairingMetrics(session)
+    logger.warn('Exec session pending timeout:' + JSON.stringify({
+      sessionId,
+      microserviceUuid,
+      timeout: this.getExecPendingTimeoutMs()
+    }))
+    try {
+      if (userWs.readyState === WebSocket.OPEN) {
+        const timeoutMsg = {
+          type: MESSAGE_TYPES.STDERR,
+          data: Buffer.from('Timeout waiting for agent connection.\n'),
+          sessionId,
+          microserviceUuid,
+          execId: sessionId,
+          timestamp: Date.now()
+        }
+        userWs.send(this.encodeMessage(timeoutMsg), { binary: true })
+        userWs.close(1008, 'Timeout waiting for agent connection')
+      }
+    } catch (error) {
+      logger.warn('Failed to close exec session on pending timeout:' + error.message)
+    }
+  }
+
+  async _handleLogPendingTimeout (sessionId, userWs, microserviceUuid, fogUuid) {
+    const session = this.logSessionManager.getLogSession(sessionId)
+    if (!session || this._isLogSessionAgentPaired(session)) {
+      return
+    }
+
+    try {
+      const pairedInDb = await transactionRunner.runInTransaction(
+        (tx) => this._checkLogAgentPairedInDb(sessionId, microserviceUuid, fogUuid, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.log.pending-db-check' }
+      )
+      if (pairedInDb) {
+        this._markLogAgentPaired(sessionId, { notifyUser: false, source: 'db-fallback' })
+        return
+      }
+    } catch (error) {
+      logger.warn('Log pending timeout DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+    }
+
+    this._abortPendingPairingMetrics(session)
+    logger.warn('Log session pending timeout:' + JSON.stringify({
+      sessionId,
+      microserviceUuid,
+      fogUuid,
+      timeout: this.getLogPendingTimeoutMs()
+    }))
+    try {
+      if (userWs.readyState === WebSocket.OPEN) {
+        const timeoutMsg = {
+          type: MESSAGE_TYPES.LOG_LINE,
+          data: Buffer.from('Timeout waiting for agent connection.\n'),
+          sessionId,
+          timestamp: Date.now(),
+          microserviceUuid: microserviceUuid || null,
+          iofogUuid: fogUuid || null
+        }
+        userWs.send(this.encodeMessage(timeoutMsg), { binary: true })
+        userWs.close(1008, 'Timeout waiting for agent connection')
+      }
+    } catch (error) {
+      logger.warn('Failed to close log session on pending timeout:' + error.message)
+    }
+  }
+
+  async _detachExecSessionLocal (sessionId) {
+    const session = this.execSessionManager.getExecSession(sessionId)
+    if (session) {
+      this._clearPendingPairingTimer(session)
+      if (session.metricsActive) {
+        recordExecSessionActive(-1)
+        session.metricsActive = false
+      }
+    }
+    this.execSessionManager.detachLocalExecSession(sessionId)
+    await this.relayTransport.cleanup(sessionId)
+      .catch((error) => {
+        logger.warn('[RELAY] Failed to cleanup exec relay bridge during local detach', {
+          sessionId,
+          error: error.message
+        })
+      })
+  }
+
+  async _detachLogSessionLocal (sessionId) {
+    const session = this.logSessionManager.getLogSession(sessionId)
+    if (session) {
+      this._clearPendingPairingTimer(session)
+      if (session.metricsActive) {
+        recordLogSessionActive(-1)
+        session.metricsActive = false
+      }
+    }
+    this.logBackpressureNotified.delete(sessionId)
+    this.logSessionManager.detachLocalLogSession(sessionId)
+    await this.relayTransport.cleanupLogSession(sessionId)
+      .catch((error) => {
+        logger.warn('[RELAY] Failed to cleanup log relay bridge during local detach', {
+          sessionId,
+          error: error.message
+        })
+      })
+    logger.info('Log session local detach complete:' + JSON.stringify({
+      sessionId,
+      microserviceUuid: session ? session.microserviceUuid || null : null,
+      fogUuid: session ? session.fogUuid || null : null
+    }))
+  }
+
+  async _handleAgentExecPartialDisconnect (sessionId, currentSession, fog) {
+    currentSession.agent = null
+    currentSession.activationSent = false
+    currentSession.remoteAgentPaired = false
+    currentSession.remoteUserPaired = false
+    currentSession.lastActivity = Date.now()
+
+    await TransactionDecorator.generateTransaction(async (closeTransaction) => {
+      await MicroserviceExecSessionManager.update(
+        { sessionId },
+        { agentConnected: false },
+        closeTransaction
+      )
+      await ChangeTrackingService.update(
+        fog.uuid,
+        ChangeTrackingService.events.microserviceExecSessions,
+        closeTransaction
+      )
+    })()
+
+    const relayEnabled = this.relayTransport.shouldUseRelay(sessionId)
+    if (relayEnabled) {
+      try {
+        const closeMsg = {
+          type: MESSAGE_TYPES.CLOSE,
+          execId: sessionId,
+          sessionId,
+          microserviceUuid: currentSession.microserviceUuid,
+          timestamp: Date.now(),
+          data: Buffer.from('Agent closed connection')
+        }
+        const encoded = this.encodeMessage(closeMsg)
+        await this.relayTransport.publishToUser(sessionId, encoded, { messageType: MESSAGE_TYPES.CLOSE })
+      } catch (error) {
+        logger.error('[WS-CLOSE] Failed to send CLOSE to user via relay after agent exec disconnect', {
+          sessionId,
+          error: error.message
+        })
+      }
+    } else if (currentSession.user && currentSession.user.readyState === WebSocket.OPEN) {
+      currentSession.user.close(1000, 'Agent closed connection')
+    }
+
+    if (!currentSession.user) {
+      await this._detachExecSessionLocal(sessionId)
+    }
+  }
+
+  async _handleUserExecPartialDisconnect (sessionId, currentSession, microserviceUuid) {
+    currentSession.user = null
+    currentSession.remoteAgentPaired = false
+    currentSession.lastActivity = Date.now()
+
+    await TransactionDecorator.generateTransaction(async (closeTransaction) => {
+      await MicroserviceExecSessionManager.update(
+        { sessionId },
+        { userConnected: false },
+        closeTransaction
+      )
+      const microservice = await MicroserviceManager.findOne(
+        { uuid: microserviceUuid },
+        closeTransaction
+      )
+      if (microservice) {
+        const fog = await FogManager.findOne({ uuid: microservice.iofogUuid }, closeTransaction)
+        if (fog) {
+          await ChangeTrackingService.update(
+            fog.uuid,
+            ChangeTrackingService.events.microserviceExecSessions,
+            closeTransaction
+          )
+        }
+      }
+    })()
+
+    if (currentSession.agent) {
+      if (currentSession.agent.readyState === WebSocket.OPEN) {
+        currentSession.agent.close(1000, 'User closed connection')
+      }
+      await this._cleanupExecSessionInTransaction(sessionId)
+      return
+    }
+
+    const relayEnabled = this.relayTransport.shouldUseRelay(sessionId)
+    if (relayEnabled) {
+      try {
+        const closeMsg = {
+          type: MESSAGE_TYPES.CLOSE,
+          execId: sessionId,
+          sessionId,
+          microserviceUuid: currentSession.microserviceUuid,
+          timestamp: Date.now(),
+          data: Buffer.from('User closed connection')
+        }
+        const encoded = this.encodeMessage(closeMsg)
+        await this.relayTransport.publishToAgent(sessionId, encoded, { messageType: MESSAGE_TYPES.CLOSE })
+      } catch (error) {
+        logger.error('[WS-CLOSE] Failed to send CLOSE to agent via relay after user exec disconnect', {
+          sessionId,
+          error: error.message
+        })
+      }
+    }
+
+    let agentStillConnected = false
+    try {
+      agentStillConnected = await transactionRunner.runInTransaction(
+        (tx) => this._checkExecAgentPairedInDb(sessionId, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.exec.user-partial-agent-db-check' }
+      )
+    } catch (error) {
+      logger.warn('Exec user partial disconnect agent DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+    }
+
+    if (!agentStillConnected) {
+      await this._cleanupExecSessionInTransaction(sessionId)
+    } else {
+      await this._detachExecSessionLocal(sessionId)
+    }
+  }
+
+  async _handleUserLogPartialDisconnect (sessionId, session, microserviceUuid, fogUuid) {
+    session.user = null
+    session.remoteUserPaired = false
+    session.lastActivity = Date.now()
+
+    await TransactionDecorator.generateTransaction(async (closeTransaction) => {
+      if (microserviceUuid) {
+        await MicroserviceLogStatusManager.update(
+          { sessionId },
+          { userConnected: false },
+          closeTransaction
+        )
+      } else if (fogUuid) {
+        await FogLogStatusManager.update(
+          { sessionId },
+          { userConnected: false },
+          closeTransaction
+        )
+      }
+
+      const fogForTracking = await FogManager.findOne({
+        uuid: fogUuid || (await MicroserviceManager.findOne({ uuid: microserviceUuid }, closeTransaction)).iofogUuid
+      }, closeTransaction)
+      if (fogForTracking) {
+        await ChangeTrackingService.update(
+          fogForTracking.uuid,
+          fogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
+          closeTransaction
+        )
+      }
+    })()
+
+    if (session.agent) {
+      if (session.agent.readyState === WebSocket.OPEN) {
+        session.agent.close(1000, 'User closed connection')
+      }
+      await this._cleanupLogSessionInTransaction(sessionId)
+      return
+    }
+
+    let agentStillConnected = false
+    try {
+      agentStillConnected = await transactionRunner.runInTransaction(
+        (tx) => this._checkLogAgentPairedInDb(sessionId, microserviceUuid, fogUuid, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.log.user-partial-agent-db-check' }
+      )
+    } catch (error) {
+      logger.warn('Log user partial disconnect agent DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+    }
+
+    if (!agentStillConnected) {
+      await this._cleanupLogSessionInTransaction(sessionId)
+    } else {
+      await this._detachLogSessionLocal(sessionId)
+    }
+  }
+
+  async _handleAgentLogPartialDisconnect (sessionId, session, { microserviceUuid, iofogUuid, logStatus }) {
+    session.agent = null
+    session.remoteAgentPaired = false
+    session.remoteUserPaired = false
+    session.lastActivity = Date.now()
+
+    await TransactionDecorator.generateTransaction(async (closeTransaction) => {
+      if (microserviceUuid) {
+        await MicroserviceLogStatusManager.update(
+          { sessionId },
+          { agentConnected: false },
+          closeTransaction
+        )
+      } else if (iofogUuid) {
+        await FogLogStatusManager.update(
+          { sessionId },
+          { agentConnected: false },
+          closeTransaction
+        )
+      }
+
+      let fogUuidForTracking = iofogUuid || logStatus.iofogUuid
+      if (!fogUuidForTracking && logStatus.microserviceUuid) {
+        const microservice = await MicroserviceManager.findOne(
+          { uuid: logStatus.microserviceUuid },
+          closeTransaction
+        )
+        fogUuidForTracking = microservice ? microservice.iofogUuid : null
+      }
+
+      if (fogUuidForTracking) {
+        await ChangeTrackingService.update(
+          fogUuidForTracking,
+          iofogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
+          closeTransaction
+        )
+      }
+    })()
+
+    const relayEnabled = this.relayTransport.shouldUseRelayForLogs(sessionId)
+    if (relayEnabled) {
+      await this._notifyLogUserViaRelay(sessionId, {
+        microserviceUuid: session.microserviceUuid,
+        fogUuid: session.fogUuid,
+        message: LOG_AGENT_DISCONNECTED_NOTICE
+      })
+    }
+
+    if (!session.user) {
+      await this._detachLogSessionLocal(sessionId)
+    }
+  }
+
+  async countLogSessionsInDb (microserviceUuid, fogUuid, transaction) {
+    const activeUserFilter = {
+      userConnected: true,
+      status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+    }
+    if (microserviceUuid) {
+      const rows = await MicroserviceLogStatusManager.findAll({
+        microserviceUuid,
+        ...activeUserFilter
+      }, transaction)
       return rows.length
     }
     if (fogUuid) {
-      const rows = await FogLogStatusManager.findAll({ iofogUuid: fogUuid }, transaction)
+      const rows = await FogLogStatusManager.findAll({
+        iofogUuid: fogUuid,
+        ...activeUserFilter
+      }, transaction)
       return rows.length
     }
     return 0
@@ -424,7 +1444,11 @@ class WebSocketServer {
     if (!microserviceUuid) {
       return 0
     }
-    const rows = await MicroserviceExecSessionManager.findAll({ microserviceUuid }, transaction)
+    const rows = await MicroserviceExecSessionManager.findAll({
+      microserviceUuid,
+      userConnected: true,
+      status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+    }, transaction)
     return rows.length
   }
 
@@ -867,6 +1891,8 @@ class WebSocketServer {
       )
       execSession.metricsActive = true
       recordExecSessionActive(1)
+      this._startExecPendingPairingMetrics(execSession)
+      this._startWebSocketHeartbeat(ws, { label: 'user-exec', sessionId })
 
       const activationMsg = {
         type: MESSAGE_TYPES.ACTIVATION,
@@ -899,43 +1925,12 @@ class WebSocketServer {
         }))
       }
 
-      await this.setupExecMessageForwarding(sessionId, transaction)
+      this._scheduleRelaySetupAfterCommit(
+        'setup exec message forwarding',
+        () => this.setupExecMessageForwarding(sessionId)
+      )
 
-      const EXEC_PENDING_TIMEOUT = this.getExecPendingTimeoutMs()
-      const pendingTimer = setTimeout(async () => {
-        const session = this.execSessionManager.getExecSession(sessionId)
-        if (!session || session.agent) {
-          return
-        }
-        logger.warn('Exec session pending timeout:' + JSON.stringify({
-          sessionId,
-          microserviceUuid,
-          timeout: EXEC_PENDING_TIMEOUT
-        }))
-        try {
-          if (ws.readyState === WebSocket.OPEN) {
-            const timeoutMsg = {
-              type: MESSAGE_TYPES.STDERR,
-              data: Buffer.from('Timeout waiting for agent connection.\n'),
-              sessionId,
-              microserviceUuid,
-              execId: sessionId,
-              timestamp: Date.now()
-            }
-            ws.send(this.encodeMessage(timeoutMsg), { binary: true })
-            ws.close(1008, 'Timeout waiting for agent connection')
-          }
-        } catch (error) {
-          logger.warn('Failed to close exec session on pending timeout:' + error.message)
-        }
-        try {
-          await TransactionDecorator.generateTransaction(async (timeoutTransaction) => {
-            await this.cleanupExecSession(sessionId, timeoutTransaction)
-          })()
-        } catch (error) {
-          logger.error('Failed to remove exec session after pending timeout:' + error.message)
-        }
-      }, EXEC_PENDING_TIMEOUT)
+      this._scheduleExecPendingPairingTimeout(sessionId, ws, microserviceUuid)
 
       setImmediate(async () => {
         try {
@@ -957,16 +1952,36 @@ class WebSocketServer {
       })
 
       ws.on('close', async (code, reason) => {
-        clearTimeout(pendingTimer)
         const session = this.execSessionManager.getExecSession(sessionId)
         if (session) {
+          this._clearPendingPairingTimer(session)
+          if (session.pairingMetricsStarted && !session.pairingCompleted) {
+            this._abortPendingPairingMetrics(session)
+          }
           session.user = null
           session.lastActivity = Date.now()
 
           try {
-            await TransactionDecorator.generateTransaction(async (closeTransaction) => {
-              await this.cleanupExecSession(sessionId, closeTransaction)
-            })()
+            let agentStillConnected = session.agent != null || session.remoteAgentPaired
+            if (!agentStillConnected) {
+              try {
+                agentStillConnected = await transactionRunner.runInTransaction(
+                  (tx) => this._checkExecAgentPairedInDb(sessionId, tx),
+                  { priority: PRIORITY_BACKGROUND, label: 'ws.exec.user-disconnect-db-check' }
+                )
+              } catch (error) {
+                logger.warn('Exec user disconnect DB check failed:' + JSON.stringify({
+                  sessionId,
+                  error: error.message
+                }))
+              }
+            }
+
+            if (agentStillConnected) {
+              await this._handleUserExecPartialDisconnect(sessionId, session, microserviceUuid)
+            } else {
+              await this._cleanupExecSessionInTransaction(sessionId)
+            }
           } catch (err) {
             logger.error('Failed to cleanup exec session on user disconnect:' + JSON.stringify({
               error: err.message,
@@ -1054,27 +2069,12 @@ class WebSocketServer {
         session.lastActivity = Date.now()
         session.activationSent = false
       }
+      this._startWebSocketHeartbeat(ws, { label: 'agent-exec', sessionId })
 
-      await this.setupExecMessageForwarding(sessionId, transaction)
-
-      if (session.user && session.user.readyState === WebSocket.OPEN) {
-        try {
-          const readyMsg = {
-            type: MESSAGE_TYPES.STDERR,
-            data: Buffer.from('Agent connected. Interactive exec is ready.\n'),
-            sessionId,
-            microserviceUuid,
-            execId: sessionId,
-            timestamp: Date.now()
-          }
-          session.user.send(this.encodeMessage(readyMsg), { binary: true })
-        } catch (error) {
-          logger.warn('Failed to notify user that exec agent connected:' + JSON.stringify({
-            sessionId,
-            error: error.message
-          }))
-        }
-      }
+      this._scheduleRelaySetupAfterCommit(
+        'setup exec message forwarding',
+        () => this.setupExecMessageForwarding(sessionId)
+      )
 
       this.scheduleAgentExecConnectEvent(req, microserviceUuid)
 
@@ -1112,51 +2112,13 @@ class WebSocketServer {
       ws.on('close', async (code, reason) => {
         const currentSession = this.execSessionManager.getExecSession(sessionId)
         if (currentSession) {
-          currentSession.agent = null
-          currentSession.lastActivity = Date.now()
-
           try {
-            await TransactionDecorator.generateTransaction(async (closeTransaction) => {
-              await MicroserviceExecSessionManager.update(
-                { sessionId },
-                { agentConnected: false },
-                closeTransaction
-              )
-
-              const relayEnabled = this.relayTransport.shouldUseRelay(sessionId)
-
-              if (!currentSession.user) {
-                await this.cleanupExecSession(sessionId, closeTransaction)
-              } else {
-                if (relayEnabled) {
-                  try {
-                    const closeMsg = {
-                      type: MESSAGE_TYPES.CLOSE,
-                      execId: sessionId,
-                      sessionId,
-                      microserviceUuid: currentSession.microserviceUuid,
-                      timestamp: Date.now(),
-                      data: Buffer.from('Agent closed connection')
-                    }
-                    const encoded = this.encodeMessage(closeMsg)
-                    await this.relayTransport.publishToUser(sessionId, encoded, { messageType: MESSAGE_TYPES.CLOSE })
-                  } catch (error) {
-                    logger.error('[WS-CLOSE] Failed to send CLOSE to user via queue after agent exec disconnect', {
-                      sessionId,
-                      error: error.message
-                    })
-                  }
-                } else if (currentSession.user.readyState === WebSocket.OPEN) {
-                  currentSession.user.close(1000, 'Agent closed connection')
-                }
-
-                await ChangeTrackingService.update(
-                  fog.uuid,
-                  ChangeTrackingService.events.microserviceExecSessions,
-                  closeTransaction
-                )
-              }
-            })()
+            const userStillConnected = await this._isExecUserStillConnected(sessionId, currentSession)
+            if (userStillConnected) {
+              await this._handleAgentExecPartialDisconnect(sessionId, currentSession, fog)
+            } else {
+              await this._cleanupExecSessionInTransaction(sessionId)
+            }
           } catch (err) {
             logger.error('Failed to handle agent exec disconnect:' + JSON.stringify({
               sessionId,
@@ -1224,12 +2186,15 @@ class WebSocketServer {
   //   return noisePatterns.some(pattern => pattern.test(output))
   // }
 
-  async sendExecActivationToExecSession (session, sessionId, transaction) {
-    if (!session.user || !session.agent) {
-      return false
-    }
+  async sendExecActivationToExecSession (session, sessionId) {
     if (session.activationSent) {
       return true
+    }
+
+    const hasLocalAgent = session.agent && session.agent.readyState === WebSocket.OPEN
+    const relayEnabled = this.relayTransport.shouldUseRelay(sessionId)
+    if (!hasLocalAgent && !relayEnabled) {
+      return false
     }
 
     const activationMsg = {
@@ -1261,7 +2226,7 @@ class WebSocketServer {
           microserviceUuid: session.microserviceUuid
         }))
         if (session.agent) {
-          await this.cleanupExecSession(sessionId, transaction)
+          await this._cleanupExecSessionInTransaction(sessionId)
         }
       }
       return success
@@ -1271,7 +2236,7 @@ class WebSocketServer {
         error: error.message
       }))
       if (session.agent) {
-        await this.cleanupExecSession(sessionId, transaction)
+        await this._cleanupExecSessionInTransaction(sessionId)
       }
       return false
     }
@@ -1440,9 +2405,7 @@ class WebSocketServer {
 
       for (const sessionId of execSessionIds) {
         cleanupTasks.push(
-          TransactionDecorator.generateTransaction(async (tx) => {
-            await this.cleanupExecSession(sessionId, tx)
-          })().catch((error) => {
+          this._cleanupExecSessionInTransaction(sessionId).catch((error) => {
             logger.warn('[WS-DRAIN] Exec session cleanup failed', { sessionId, error: error.message })
           })
         )
@@ -1450,9 +2413,7 @@ class WebSocketServer {
 
       for (const sessionId of logSessionIds) {
         cleanupTasks.push(
-          TransactionDecorator.generateTransaction(async (tx) => {
-            await this.cleanupLogSession(sessionId, tx)
-          })().catch((error) => {
+          this._cleanupLogSessionInTransaction(sessionId).catch((error) => {
             logger.warn('[WS-DRAIN] Log session cleanup failed', { sessionId, error: error.message })
           })
         )
@@ -1890,6 +2851,8 @@ class WebSocketServer {
       )
       logSession.metricsActive = true
       recordLogSessionActive(1)
+      this._startLogPendingPairingMetrics(logSession)
+      this._startWebSocketHeartbeat(ws, { label: 'user-log', sessionId })
 
       // 7. Send sessionId to user (MessagePack encoded)
       const sessionInfoMsg = {
@@ -1926,46 +2889,13 @@ class WebSocketServer {
         }))
       }
 
-      // 9. Setup message forwarding (will be activated when agent connects)
-      await this.setupLogMessageForwarding(sessionId, transaction)
+      // 9. Relay setup after DB transaction commits (NATS hub lookup uses background writes).
+      this._scheduleRelaySetupAfterCommit(
+        'setup log message forwarding',
+        () => this.setupLogMessageForwarding(sessionId)
+      )
 
-      // Pending timeout: close if agent does not connect within logPendingTimeoutMs
-      const LOG_PENDING_TIMEOUT = this.getLogPendingTimeoutMs()
-      const pendingTimer = setTimeout(async () => {
-        const session = this.logSessionManager.getLogSession(sessionId)
-        if (!session || session.agent) {
-          return
-        }
-        logger.warn('Log session pending timeout:' + JSON.stringify({
-          sessionId,
-          microserviceUuid,
-          fogUuid,
-          timeout: LOG_PENDING_TIMEOUT
-        }))
-        try {
-          if (ws.readyState === WebSocket.OPEN) {
-            const timeoutMsg = {
-              type: MESSAGE_TYPES.LOG_LINE,
-              data: Buffer.from('Timeout waiting for agent connection.\n'),
-              sessionId,
-              timestamp: Date.now(),
-              microserviceUuid: microserviceUuid || null,
-              iofogUuid: fogUuid || null
-            }
-            ws.send(this.encodeMessage(timeoutMsg), { binary: true })
-            ws.close(1008, 'Timeout waiting for agent connection')
-          }
-        } catch (error) {
-          logger.warn('Failed to close log session on pending timeout:' + error.message)
-        }
-        try {
-          await TransactionDecorator.generateTransaction(async (timeoutTransaction) => {
-            await this.logSessionManager.removeLogSession(sessionId, timeoutTransaction)
-          })()
-        } catch (error) {
-          logger.error('Failed to remove log session after pending timeout:' + error.message)
-        }
-      }, LOG_PENDING_TIMEOUT)
+      this._scheduleLogPendingPairingTimeout(sessionId, ws, microserviceUuid, fogUuid)
 
       // 10. Record WebSocket connection event (non-blocking)
       setImmediate(async () => {
@@ -1990,41 +2920,54 @@ class WebSocketServer {
 
       // Handle user disconnect
       ws.on('close', async (code, reason) => {
-        clearTimeout(pendingTimer)
         const session = this.logSessionManager.getLogSession(sessionId)
         if (session) {
+          this._clearPendingPairingTimer(session)
+          if (session.pairingMetricsStarted && !session.pairingCompleted) {
+            this._abortPendingPairingMetrics(session)
+          }
+          const agentStillConnected = session.agent != null || session.remoteAgentPaired
           session.user = null
           session.lastActivity = Date.now()
 
           try {
-            await TransactionDecorator.generateTransaction(async (closeTransaction) => {
-              if (microserviceUuid) {
-                await MicroserviceLogStatusManager.update(
-                  { sessionId },
-                  { userConnected: false },
-                  closeTransaction
+            let agentConnected = agentStillConnected
+            if (!agentConnected) {
+              try {
+                agentConnected = await transactionRunner.runInTransaction(
+                  (tx) => this._checkLogAgentPairedInDb(sessionId, microserviceUuid, fogUuid, tx),
+                  { priority: PRIORITY_BACKGROUND, label: 'ws.log.user-disconnect-db-check' }
                 )
-              } else if (fogUuid) {
-                await FogLogStatusManager.update(
-                  { sessionId },
-                  { userConnected: false },
-                  closeTransaction
-                )
+              } catch (error) {
+                logger.warn('Log user disconnect DB check failed:' + JSON.stringify({
+                  sessionId,
+                  error: error.message
+                }))
               }
+            }
 
-              if (!session.agent) {
-                await this.logSessionManager.removeLogSession(sessionId, closeTransaction)
-              } else {
-                const fogForTracking = await FogManager.findOne({
-                  uuid: fogUuid || (await MicroserviceManager.findOne({ uuid: microserviceUuid }, closeTransaction)).iofogUuid
-                }, closeTransaction)
-                await ChangeTrackingService.update(
-                  fogForTracking.uuid,
-                  fogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
-                  closeTransaction
-                )
-              }
-            })()
+            if (agentStillConnected) {
+              await this._handleUserLogPartialDisconnect(
+                sessionId,
+                session,
+                microserviceUuid,
+                fogUuid
+              )
+              logger.info('Log session user disconnected (agent still connected):' + JSON.stringify({
+                sessionId,
+                microserviceUuid: microserviceUuid || null,
+                fogUuid: fogUuid || null,
+                closeCode: code
+              }))
+            } else {
+              logger.info('Log session user disconnected (full cleanup):' + JSON.stringify({
+                sessionId,
+                microserviceUuid: microserviceUuid || null,
+                fogUuid: fogUuid || null,
+                closeCode: code
+              }))
+              await this._cleanupLogSessionInTransaction(sessionId)
+            }
           } catch (err) {
             logger.error('Failed to cleanup log session on user disconnect:' + JSON.stringify({
               error: err.message,
@@ -2142,6 +3085,7 @@ class WebSocketServer {
         session.agent = ws
         session.lastActivity = Date.now()
       }
+      this._startWebSocketHeartbeat(ws, { label: 'agent-log', sessionId })
 
       // 5.5. Set up message handler IMMEDIATELY on the agent WebSocket
       // This ensures messages are captured even if they arrive before setupLogMessageForwarding completes
@@ -2176,12 +3120,12 @@ class WebSocketServer {
 
         if (msg.type === MESSAGE_TYPES.LOG_LINE) {
           // Forward to user (one-to-one, like exec sessions)
-          await this.forwardLogToUser(sessionId, buffer, transaction)
+          await this.forwardLogToUser(sessionId, buffer)
         } else if (msg.type === MESSAGE_TYPES.LOG_START ||
                  msg.type === MESSAGE_TYPES.LOG_STOP ||
                  msg.type === MESSAGE_TYPES.LOG_ERROR) {
           // Handle control messages
-          await this.forwardLogToUser(sessionId, buffer, transaction)
+          await this.forwardLogToUser(sessionId, buffer)
         }
       })
 
@@ -2204,34 +3148,16 @@ class WebSocketServer {
       }
       ws.send(this.encodeMessage(configMsg), { binary: true })
 
-      // 7. Notify user that agent has connected and streaming has started
+      // 7. Notify user when agent connects (same-replica or relay in setupLogMessageForwarding)
       if (session.user && session.user.readyState === WebSocket.OPEN) {
-        try {
-          const agentConnectedMsg = {
-            type: MESSAGE_TYPES.LOG_START,
-            data: Buffer.from(JSON.stringify({
-              sessionId,
-              message: 'Agent connected. Log streaming started.\n'
-            })),
-            sessionId,
-            timestamp: Date.now()
-          }
-          session.user.send(this.encodeMessage(agentConnectedMsg), { binary: true })
-          logger.info('Notified user that agent connected for log session:' + JSON.stringify({
-            sessionId,
-            microserviceUuid: logStatus.microserviceUuid,
-            iofogUuid: logStatus.iofogUuid
-          }))
-        } catch (error) {
-          logger.warn('Failed to notify user that agent connected:' + JSON.stringify({
-            error: error.message,
-            sessionId
-          }))
-        }
+        this._markLogAgentPaired(sessionId, { notifyUser: true, source: 'same-replica' })
       }
 
-      // 8. Setup message forwarding (unidirectional: agent → user, one-to-one)
-      await this.setupLogMessageForwarding(sessionId, transaction)
+      // 8. Relay setup after DB transaction commits (NATS hub lookup uses background writes).
+      this._scheduleRelaySetupAfterCommit(
+        'setup log message forwarding',
+        () => this.setupLogMessageForwarding(sessionId)
+      )
 
       // 9. Record WebSocket connection event (non-blocking)
       setImmediate(async () => {
@@ -2270,38 +3196,35 @@ class WebSocketServer {
       ws.on('close', async (code, reason) => {
         const session = this.logSessionManager.getLogSession(sessionId)
         if (session) {
-          session.agent = null
-          session.lastActivity = Date.now()
-
           try {
-            await TransactionDecorator.generateTransaction(async (closeTransaction) => {
-              if (microserviceUuid) {
-                await MicroserviceLogStatusManager.update(
-                  { sessionId },
-                  { agentConnected: false },
-                  closeTransaction
-                )
-              } else if (iofogUuid) {
-                await FogLogStatusManager.update(
-                  { sessionId },
-                  { agentConnected: false },
-                  closeTransaction
-                )
-              }
-
-              if (!session.user) {
-                await this.logSessionManager.removeLogSession(sessionId, closeTransaction)
-              } else {
-                const fog = await FogManager.findOne({
-                  uuid: iofogUuid || logStatus.iofogUuid || (await MicroserviceManager.findOne({ uuid: logStatus.microserviceUuid }, closeTransaction)).iofogUuid
-                }, closeTransaction)
-                await ChangeTrackingService.update(
-                  fog.uuid,
-                  iofogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
-                  closeTransaction
-                )
-              }
-            })()
+            const userStillConnected = await this._isLogUserStillConnected(
+              sessionId,
+              session,
+              microserviceUuid,
+              iofogUuid
+            )
+            if (userStillConnected) {
+              logger.info('Log session agent disconnected (partial detach):' + JSON.stringify({
+                sessionId,
+                microserviceUuid: microserviceUuid || null,
+                fogUuid: iofogUuid || null,
+                userConnected: true,
+                closeCode: code
+              }))
+              await this._handleAgentLogPartialDisconnect(sessionId, session, {
+                microserviceUuid,
+                iofogUuid,
+                logStatus
+              })
+            } else {
+              logger.info('Log session agent disconnected (full cleanup):' + JSON.stringify({
+                sessionId,
+                microserviceUuid: microserviceUuid || null,
+                fogUuid: iofogUuid || null,
+                closeCode: code
+              }))
+              await this._cleanupLogSessionInTransaction(sessionId)
+            }
           } catch (err) {
             logger.error('Failed to cleanup log session on agent disconnect:' + JSON.stringify({
               error: err.message,
@@ -2352,7 +3275,7 @@ class WebSocketServer {
     }
   }
 
-  async setupLogMessageForwarding (sessionId, transaction) {
+  async setupLogMessageForwarding (sessionId) {
     const session = this.logSessionManager.getLogSession(sessionId)
     if (!session) {
       logger.warn('setupLogMessageForwarding: Session not found:' + JSON.stringify({ sessionId }))
@@ -2360,9 +3283,27 @@ class WebSocketServer {
     }
 
     // Enable queue bridge for cross-replica support (one-to-one, like exec sessions)
-    await this.relayTransport.enableForLogSession(session, (sessionId) => {
-      this.cleanupLogSession(sessionId, transaction)
+    await this.relayTransport.enableForLogSession(session, (closedSessionId) => {
+      this._cleanupLogSessionInTransaction(closedSessionId)
     })
+
+    const relayEnabled = this.relayTransport.shouldUseRelayForLogs(sessionId)
+    if (session.user && !session.agent && relayEnabled) {
+      this._registerLogUserRelayPairingHook(sessionId)
+    }
+    if (session.agent && !session.user && relayEnabled) {
+      const notified = await this._notifyLogUserViaRelay(sessionId, {
+        microserviceUuid: session.microserviceUuid,
+        fogUuid: session.fogUuid,
+        message: LOG_AGENT_READY_NOTICE
+      })
+      if (notified) {
+        this._markLogUserPaired(sessionId, { source: 'relay-notify' })
+      }
+    }
+    if (session.user && session.agent) {
+      this._markLogAgentPaired(sessionId, { notifyUser: false, source: 'same-replica-setup' })
+    }
 
     // ONLY agent → user forwarding (unidirectional, one-to-one)
     // All messages from agent are MessagePack encoded (binary)
@@ -2405,14 +3346,16 @@ class WebSocketServer {
           dataLength: msg.data ? msg.data.length : 0
         }))
 
+        session.lastActivity = Date.now()
+
         if (msg.type === MESSAGE_TYPES.LOG_LINE) {
           // Forward to user (one-to-one, like exec sessions)
-          await this.forwardLogToUser(sessionId, buffer, transaction)
+          await this.forwardLogToUser(sessionId, buffer)
         } else if (msg.type === MESSAGE_TYPES.LOG_START ||
                  msg.type === MESSAGE_TYPES.LOG_STOP ||
                  msg.type === MESSAGE_TYPES.LOG_ERROR) {
           // Handle control messages
-          await this.forwardLogToUser(sessionId, buffer, transaction)
+          await this.forwardLogToUser(sessionId, buffer)
         }
       })
     } else {
@@ -2456,12 +3399,14 @@ class WebSocketServer {
     return true
   }
 
-  async forwardLogToUser (sessionId, buffer, transaction) {
+  async forwardLogToUser (sessionId, buffer) {
     const session = this.logSessionManager.getLogSession(sessionId)
     if (!session) {
       logger.warn('forwardLogToUser: Session not found:' + JSON.stringify({ sessionId }))
       return
     }
+
+    session.lastActivity = Date.now()
 
     // Buffer is already MessagePack encoded from agent
     // Following exec session pattern: Use queue for ALL scenarios (single and multi-replica)
@@ -2515,15 +3460,25 @@ class WebSocketServer {
 
   async cleanupLogSession (sessionId, transaction) {
     const session = this.logSessionManager.getLogSession(sessionId)
+    if (session) {
+      this._clearPendingPairingTimer(session)
+      this._stopWebSocketHeartbeat(session.user)
+      this._stopWebSocketHeartbeat(session.agent)
+    }
     if (session && session.metricsActive) {
       recordLogSessionActive(-1)
     }
     this.logBackpressureNotified.delete(sessionId)
     await this.logSessionManager.removeLogSession(sessionId, transaction)
     await this.relayTransport.cleanupLogSession(sessionId)
+    logger.info('Log session cleanup complete:' + JSON.stringify({
+      sessionId,
+      microserviceUuid: session ? session.microserviceUuid || null : null,
+      fogUuid: session ? session.fogUuid || null : null
+    }))
   }
 
-  async setupExecMessageForwarding (sessionId, transaction) {
+  async setupExecMessageForwarding (sessionId) {
     const session = this.execSessionManager.getExecSession(sessionId)
     if (!session) {
       logger.warn('setupExecMessageForwarding: Session not found:' + JSON.stringify({ sessionId }))
@@ -2541,7 +3496,7 @@ class WebSocketServer {
           clearTimeout(timeout)
           this.pendingCloseTimeouts.delete(closeExecId)
         }
-        await this.cleanupExecSession(closeExecId, transaction)
+        await this._cleanupExecSessionInTransaction(closeExecId)
       })
       session.queueBridgeEnabled = true
       if (!wasQueueBridgeEnabled) {
@@ -2567,7 +3522,7 @@ class WebSocketServer {
         if (session.agent && session.agent.readyState === WebSocket.OPEN) {
           session.agent.close(RELAY_UNAVAILABLE_CLOSE_CODE, RELAY_UNAVAILABLE_CLOSE_REASON)
         }
-        await this.cleanupExecSession(sessionId, transaction)
+        await this._cleanupExecSessionInTransaction(sessionId)
         return
       }
       logger.warn('[RELAY] Failed to enable relay bridge for exec session', {
@@ -2577,8 +3532,30 @@ class WebSocketServer {
       })
     }
 
+    const relayEnabled = this.relayTransport.shouldUseRelay(sessionId)
+
+    if (user && !agent && relayEnabled) {
+      this._registerExecUserRelayPairingHook(sessionId)
+    }
+
+    if (agent && !user && relayEnabled) {
+      this._registerExecAgentRelayActivityHook(sessionId)
+      const activated = await this._sendExecActivationViaRelay(sessionId, session.microserviceUuid)
+      if (!activated) {
+        logger.error('[RELAY] Cross-replica exec activation failed on agent pod', {
+          sessionId,
+          microserviceUuid: session.microserviceUuid
+        })
+        return
+      }
+      const notified = await this._notifyExecUserViaRelay(sessionId, session.microserviceUuid)
+      if (notified) {
+        this._markExecUserPaired(sessionId, { source: 'relay-notify' })
+      }
+    }
+
     if (user && agent) {
-      const activated = await this.sendExecActivationToExecSession(session, sessionId, transaction)
+      const activated = await this.sendExecActivationToExecSession(session, sessionId)
       if (!activated) {
         logger.error('[RELAY] Exec session activation failed; aborting message forwarding setup', {
           sessionId,
@@ -2586,6 +3563,7 @@ class WebSocketServer {
         })
         return
       }
+      this._markExecAgentPaired(sessionId, { notifyUser: true, source: 'same-replica' })
     }
 
     if (user) {
@@ -2610,7 +3588,9 @@ class WebSocketServer {
           const sent = await this.sendMessageToAgent(session.agent, msg, execId, session.microserviceUuid)
           if (!sent && this.relayTransport.shouldUseRelay(execId)) {
             logger.error('[RELAY] Exec relay publish failed; closing session', { sessionId: execId })
-            await this.cleanupExecSession(execId, transaction)
+            await this._cleanupExecSessionInTransaction(execId)
+          } else {
+            session.lastActivity = Date.now()
           }
           return
         }
@@ -2633,7 +3613,7 @@ class WebSocketServer {
                 if (currentSession && currentSession.user && currentSession.user.readyState === WebSocket.OPEN) {
                   try {
                     currentSession.user.close(1000, 'Session closed (timeout)')
-                    await this.cleanupExecSession(execId, transaction)
+                    await this._cleanupExecSessionInTransaction(execId)
                   } catch (error) {
                     logger.error('[RELAY] Failed to close exec user socket on CLOSE timeout', {
                       sessionId: execId,
@@ -2650,7 +3630,7 @@ class WebSocketServer {
             if (user && user.readyState === WebSocket.OPEN) {
               user.close(1000, 'Session closed')
             }
-            await this.cleanupExecSession(execId, transaction)
+            await this._cleanupExecSessionInTransaction(execId)
             return
           }
 
@@ -2673,7 +3653,9 @@ class WebSocketServer {
           const sent = await this.sendMessageToAgent(session.agent, msg, execId, session.microserviceUuid)
           if (!sent && this.relayTransport.shouldUseRelay(execId)) {
             logger.error('[RELAY] Exec relay publish failed; closing session', { sessionId: execId })
-            await this.cleanupExecSession(execId, transaction)
+            await this._cleanupExecSessionInTransaction(execId)
+          } else {
+            session.lastActivity = Date.now()
           }
         } catch (error) {
           logger.error('[RELAY] Failed to process exec user message:' + JSON.stringify({
@@ -2709,7 +3691,7 @@ class WebSocketServer {
             } else if (session.user && session.user.readyState === WebSocket.OPEN) {
               session.user.close(1000, 'Agent closed connection')
             }
-            await this.cleanupExecSession(execId, transaction)
+            await this._cleanupExecSessionInTransaction(execId)
             return
           }
 
@@ -2717,12 +3699,13 @@ class WebSocketServer {
           if (relayEnabled) {
             try {
               await this.relayTransport.publishToUser(execId, buffer)
+              session.lastActivity = Date.now()
             } catch (error) {
               logger.error('[RELAY] Exec relay publish to user failed; closing session', {
                 sessionId: execId,
                 error: error.message
               })
-              await this.cleanupExecSession(execId, transaction)
+              await this._cleanupExecSessionInTransaction(execId)
             }
           } else if (session.user && session.user.readyState === WebSocket.OPEN) {
             if (msg.type === MESSAGE_TYPES.STDOUT || msg.type === MESSAGE_TYPES.STDERR) {
@@ -2736,6 +3719,7 @@ class WebSocketServer {
                   timestamp: Date.now()
                 }
                 session.user.send(this.encodeMessage(userMsg), { binary: true })
+                session.lastActivity = Date.now()
               }
             } else if (msg.type === MESSAGE_TYPES.CONTROL) {
               session.user.send(data, { binary: true })
@@ -2760,6 +3744,11 @@ class WebSocketServer {
 
   async cleanupExecSession (sessionId, transaction) {
     const session = this.execSessionManager.getExecSession(sessionId)
+    if (session) {
+      this._clearPendingPairingTimer(session)
+      this._stopWebSocketHeartbeat(session.user)
+      this._stopWebSocketHeartbeat(session.agent)
+    }
     if (session && session.metricsActive) {
       recordExecSessionActive(-1)
       session.metricsActive = false
@@ -2789,6 +3778,8 @@ class WebSocketServer {
         })
       }
     }
+
+    await this._notifyExecRemotePeerClose(sessionId, session, 'Session closed')
 
     await this.execSessionManager.removeExecSession(sessionId, transaction)
     await this.relayTransport.cleanup(sessionId)

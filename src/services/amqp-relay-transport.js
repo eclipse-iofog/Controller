@@ -51,6 +51,24 @@ class AmqpRelayTransport extends WsRelayTransport {
     return this._queueService.shouldUseQueue(execId)
   }
 
+  setExecUserDeliveryHook (execId, hook) {
+    if (typeof this._queueService.setExecUserDeliveryHook === 'function') {
+      this._queueService.setExecUserDeliveryHook(execId, hook)
+    }
+  }
+
+  setExecAgentDeliveryHook (execId, hook) {
+    if (typeof this._queueService.setExecAgentDeliveryHook === 'function') {
+      this._queueService.setExecAgentDeliveryHook(execId, hook)
+    }
+  }
+
+  setLogUserDeliveryHook (sessionId, hook) {
+    if (typeof this._queueService.setLogUserDeliveryHook === 'function') {
+      this._queueService.setLogUserDeliveryHook(sessionId, hook)
+    }
+  }
+
   shouldUseRelayForLogs (sessionId) {
     return this._queueService.shouldUseQueueForLogs(sessionId)
   }

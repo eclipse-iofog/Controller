@@ -5,11 +5,16 @@ const ClusterControllerService = require('../../../src/services/cluster-controll
 const FogPlatformService = require('../../../src/services/fog-platform-service')
 const ServicePlatformService = require('../../../src/services/service-platform-service')
 const FogPlatformReconcileTaskManager = require('../../../src/data/managers/fog-platform-reconcile-task-manager')
+const FogPlatformStatusManager = require('../../../src/data/managers/fog-platform-status-manager')
 const ServicePlatformReconcileTaskManager = require('../../../src/data/managers/service-platform-reconcile-task-manager')
 const ServiceManager = require('../../../src/data/managers/service-manager')
 const FogManager = require('../../../src/data/managers/iofog-manager')
-const databaseProvider = require('../../../src/data/providers/database-factory')
+const transactionRunner = require('../../../src/helpers/transaction-runner')
 const PlatformReconcileWorkerJob = require('../../../src/jobs/platform-reconcile-worker-job')
+
+function stubRunInTransaction (sandbox, transaction = {}) {
+  sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn) => fn(transaction))
+}
 
 describe('platform-reconcile-worker-job', () => {
   def('sandbox', () => sinon.createSandbox())
@@ -23,10 +28,11 @@ describe('platform-reconcile-worker-job', () => {
 
     $sandbox.stub(ClusterControllerService, 'getCurrentControllerUuid').returns('controller-1')
     $sandbox.stub(FogPlatformReconcileTaskManager, 'claimNextFogTask').resolves(task)
+    $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves({ phase: 'Ready' })
     $sandbox.stub(FogPlatformService, 'reconcileFog').resolves({ fogUuid: 'fog-1', phase: 'Ready' })
     $sandbox.stub(FogPlatformService, 'reconcileFogDelete')
     $sandbox.stub(FogPlatformReconcileTaskManager, 'getEntity').returns(entity)
-    $sandbox.stub(databaseProvider.sequelize, 'transaction').callsFake(async (fn) => fn(transaction))
+    stubRunInTransaction($sandbox, transaction)
 
     await PlatformReconcileWorkerJob.processNextFogTask()
 
@@ -34,36 +40,31 @@ describe('platform-reconcile-worker-job', () => {
     expect(FogPlatformService.reconcileFogDelete).to.not.have.been.called
     expect(entity.destroy).to.have.been.calledOnceWith({
       where: { id: 11 },
-      transaction
+      transaction: sinon.match.any
     })
   })
 
-  it('passes fakeTransaction into reconcileFog DB layer from worker (no reconcileFog stub)', async () => {
+  it('passes transaction into reconcileFog prepare phase from worker (no reconcileFog stub)', async () => {
     const task = { id: 14, fogUuid: 'fog-1', reason: 'spec-changed', attempts: 0 }
-    const appHelperPath = require.resolve('../../../src/helpers/app-helper')
-    const decoratorPath = require.resolve('../../../src/decorators/transaction-decorator')
-    const fogPlatformServicePath = require.resolve('../../../src/services/fog-platform-service')
-    const workerPath = require.resolve('../../../src/jobs/platform-reconcile-worker-job')
-
-    $sandbox.stub(require(appHelperPath), 'isTest').returns(false)
-    delete require.cache[decoratorPath]
-    delete require.cache[fogPlatformServicePath]
-    delete require.cache[workerPath]
-    const WorkerJob = require('../../../src/jobs/platform-reconcile-worker-job')
+    const labels = []
 
     $sandbox.stub(ClusterControllerService, 'getCurrentControllerUuid').returns('controller-1')
     $sandbox.stub(FogPlatformReconcileTaskManager, 'claimNextFogTask').resolves(task)
+    $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves({ phase: 'Progressing' })
     $sandbox.stub(FogManager, 'findOneWithTags').resolves(null)
     $sandbox.stub(FogPlatformReconcileTaskManager, 'recordFogTaskFailure').resolves(task)
-    const markFailedPath = require.resolve('../../../src/services/fog-platform-service')
-    $sandbox.stub(require(markFailedPath), 'markReconcileFailed').resolves()
-    $sandbox.stub(databaseProvider.sequelize, 'transaction').callsFake(async (fn) => fn({}))
+    $sandbox.stub(FogPlatformService, 'markReconcileFailed').resolves()
+    $sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn, options = {}) => {
+      labels.push(options.label)
+      return fn({ id: 'worker-tx' })
+    })
 
-    await WorkerJob.processNextFogTask()
+    await PlatformReconcileWorkerJob.processNextFogTask()
 
+    expect(labels).to.include('fogPlatform.prepare')
     expect(FogManager.findOneWithTags).to.have.been.calledOnceWith(
       { uuid: 'fog-1' },
-      sinon.match({ fakeTransaction: true })
+      { id: 'worker-tx' }
     )
   })
 
@@ -76,12 +77,71 @@ describe('platform-reconcile-worker-job', () => {
     $sandbox.stub(FogPlatformService, 'reconcileFogDelete').resolves({ fogUuid: 'fog-2', deleted: true })
     $sandbox.stub(FogPlatformService, 'reconcileFog')
     $sandbox.stub(FogPlatformReconcileTaskManager, 'getEntity').returns(entity)
-    $sandbox.stub(databaseProvider.sequelize, 'transaction').callsFake(async (fn) => fn({}))
+    stubRunInTransaction($sandbox)
 
     await PlatformReconcileWorkerJob.processNextFogTask()
 
     expect(FogPlatformService.reconcileFogDelete).to.have.been.calledOnceWith('fog-2')
     expect(FogPlatformService.reconcileFog).to.not.have.been.called
+  })
+
+  it('runs delete reconcile when platform phase is Deleting even if task reason is spec-changed', async () => {
+    const task = { id: 15, fogUuid: 'fog-4', reason: 'spec-changed', attempts: 0 }
+    const entity = { destroy: $sandbox.stub().resolves(1) }
+
+    $sandbox.stub(ClusterControllerService, 'getCurrentControllerUuid').returns('controller-1')
+    $sandbox.stub(FogPlatformReconcileTaskManager, 'claimNextFogTask').resolves(task)
+    $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves({ phase: 'Deleting' })
+    $sandbox.stub(FogPlatformService, 'reconcileFogDelete').resolves({ fogUuid: 'fog-4', deleted: true })
+    $sandbox.stub(FogPlatformService, 'reconcileFog')
+    $sandbox.stub(FogPlatformReconcileTaskManager, 'getEntity').returns(entity)
+    stubRunInTransaction($sandbox)
+
+    await PlatformReconcileWorkerJob.processNextFogTask()
+
+    expect(FogPlatformService.reconcileFogDelete).to.have.been.calledOnceWith('fog-4')
+    expect(FogPlatformService.reconcileFog).to.not.have.been.called
+  })
+
+  it('runs delete reconcile when reconcileFog skips because fog is deleting', async () => {
+    const task = { id: 16, fogUuid: 'fog-5', reason: 'manual-retry', attempts: 0 }
+    const entity = { destroy: $sandbox.stub().resolves(1) }
+
+    $sandbox.stub(ClusterControllerService, 'getCurrentControllerUuid').returns('controller-1')
+    $sandbox.stub(FogPlatformReconcileTaskManager, 'claimNextFogTask').resolves(task)
+    $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves({ phase: 'Progressing' })
+    $sandbox.stub(FogPlatformService, 'reconcileFog').resolves({ skipped: true, reason: 'deleting' })
+    $sandbox.stub(FogPlatformService, 'reconcileFogDelete').resolves({ fogUuid: 'fog-5', deleted: true })
+    $sandbox.stub(FogPlatformReconcileTaskManager, 'getEntity').returns(entity)
+    stubRunInTransaction($sandbox)
+
+    await PlatformReconcileWorkerJob.processNextFogTask()
+
+    expect(FogPlatformService.reconcileFog).to.have.been.calledOnceWith('fog-5')
+    expect(FogPlatformService.reconcileFogDelete).to.have.been.calledOnceWith('fog-5')
+  })
+
+  it('keeps Deleting phase when delete reconcile fails', async () => {
+    const task = { id: 17, fogUuid: 'fog-6', reason: 'delete', attempts: 1 }
+    const error = new Error('nats cleanup failed')
+
+    $sandbox.stub(ClusterControllerService, 'getCurrentControllerUuid').returns('controller-1')
+    $sandbox.stub(FogPlatformReconcileTaskManager, 'claimNextFogTask').resolves(task)
+    $sandbox.stub(FogPlatformService, 'reconcileFogDelete').rejects(error)
+    $sandbox.stub(FogPlatformReconcileTaskManager, 'recordFogTaskFailure').resolves(task)
+    $sandbox.stub(FogPlatformStatusManager, 'setPhase').resolves()
+    $sandbox.stub(FogPlatformService, 'markReconcileFailed')
+    stubRunInTransaction($sandbox)
+
+    await PlatformReconcileWorkerJob.processNextFogTask()
+
+    expect(FogPlatformStatusManager.setPhase).to.have.been.calledOnceWith(
+      'fog-6',
+      'Deleting',
+      { lastError: 'nats cleanup failed' },
+      sinon.match.any
+    )
+    expect(FogPlatformService.markReconcileFailed).to.not.have.been.called
   })
 
   it('records failure and updates fog status when reconcile throws', async () => {
@@ -90,10 +150,11 @@ describe('platform-reconcile-worker-job', () => {
 
     $sandbox.stub(ClusterControllerService, 'getCurrentControllerUuid').returns('controller-1')
     $sandbox.stub(FogPlatformReconcileTaskManager, 'claimNextFogTask').resolves(task)
+    $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves({ phase: 'Progressing' })
     $sandbox.stub(FogPlatformService, 'reconcileFog').rejects(error)
     $sandbox.stub(FogPlatformReconcileTaskManager, 'recordFogTaskFailure').resolves(task)
     $sandbox.stub(FogPlatformService, 'markReconcileFailed').resolves()
-    $sandbox.stub(databaseProvider.sequelize, 'transaction').callsFake(async (fn) => fn({}))
+    stubRunInTransaction($sandbox)
 
     await PlatformReconcileWorkerJob.processNextFogTask()
 
@@ -155,14 +216,14 @@ describe('platform-reconcile-worker-job', () => {
       provisioningStatus: 'ready'
     })
     $sandbox.stub(ServicePlatformReconcileTaskManager, 'getEntity').returns(entity)
-    $sandbox.stub(databaseProvider.sequelize, 'transaction').callsFake(async (fn) => fn(transaction))
+    stubRunInTransaction($sandbox, transaction)
 
     await PlatformReconcileWorkerJob.processNextServiceTask()
 
     expect(ServicePlatformService.reconcileService).to.have.been.calledOnceWith('api-gateway', task)
     expect(entity.destroy).to.have.been.calledOnceWith({
       where: { id: 21 },
-      transaction
+      transaction: sinon.match.any
     })
   })
 
@@ -188,7 +249,7 @@ describe('platform-reconcile-worker-job', () => {
     $sandbox.stub(ServicePlatformService, 'reconcileService').rejects(error)
     $sandbox.stub(ServicePlatformReconcileTaskManager, 'recordServiceTaskFailure').resolves(task)
     $sandbox.stub(ServiceManager, 'update').resolves()
-    $sandbox.stub(databaseProvider.sequelize, 'transaction').callsFake(async (fn) => fn({}))
+    stubRunInTransaction($sandbox)
 
     await PlatformReconcileWorkerJob.processNextServiceTask()
 
@@ -214,7 +275,7 @@ describe('platform-reconcile-worker-job', () => {
     $sandbox.stub(ServicePlatformService, 'reconcileService').rejects(error)
     $sandbox.stub(ServicePlatformReconcileTaskManager, 'recordServiceTaskFailure').resolves(task)
     $sandbox.stub(ServiceManager, 'update').resolves()
-    $sandbox.stub(databaseProvider.sequelize, 'transaction').callsFake(async (fn) => fn({}))
+    stubRunInTransaction($sandbox)
 
     await PlatformReconcileWorkerJob.processNextServiceTask()
 

@@ -36,6 +36,7 @@ class MySqlDatabaseProvider extends DatabaseProvider {
     }
 
     // Sequelize configuration
+    const poolConfig = mysqlConfig.pool || {}
     const sequelizeConfig = {
       dialect: 'mysql',
       host: connectionOptions.host,
@@ -46,6 +47,12 @@ class MySqlDatabaseProvider extends DatabaseProvider {
       dialectOptions: {
         connectTimeout: connectionOptions.connectTimeout
       },
+      pool: {
+        max: poolConfig.max != null ? poolConfig.max : 10,
+        min: poolConfig.min != null ? poolConfig.min : 0,
+        idle: poolConfig.idle != null ? poolConfig.idle : 20000
+      },
+      timezone: '+00:00',
       logging: false
     }
 

@@ -1,6 +1,8 @@
 const ClusterControllerService = require('../services/cluster-controller-service')
 const Config = require('../config')
 const logger = require('../logger')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
+const { checkSqliteFogCountWarning } = require('../helpers/sqlite-fog-warning')
 
 const scheduleTime = (Config.get('settings.controllerHeartbeatInterval', 30)) * 1000
 
@@ -22,8 +24,11 @@ async function updateControllerHeartbeat () {
       return
     }
 
-    const fakeTransaction = { fakeTransaction: true }
-    await ClusterControllerService.updateHeartbeat(uuid, fakeTransaction)
+    await runInTransaction(
+      (transaction) => ClusterControllerService.updateHeartbeat(uuid, transaction),
+      { priority: PRIORITY_BACKGROUND, label: 'controller-heartbeat' }
+    )
+    await checkSqliteFogCountWarning()
     logger.debug(`Updated heartbeat for controller: ${uuid}`)
   } catch (error) {
     logger.error(`Failed to update controller heartbeat: ${error.message}`)

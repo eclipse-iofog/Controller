@@ -1,4 +1,5 @@
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const { PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
@@ -13,8 +14,14 @@ const scheduleTime = Config.get('settings.fogStatusUpdateInterval') * 1000
 
 async function run () {
   try {
-    const _updateStoppedApplicationMicroserviceStatus = TransactionDecorator.generateTransaction(updateStoppedApplicationMicroserviceStatus)
-    const _updateStoppedMicroserviceStatus = TransactionDecorator.generateTransaction(updateStoppedMicroserviceStatus)
+    const _updateStoppedApplicationMicroserviceStatus = TransactionDecorator.generateTransaction(
+      updateStoppedApplicationMicroserviceStatus,
+      { priority: PRIORITY_BACKGROUND, label: 'stoppedAppStatus.application' }
+    )
+    const _updateStoppedMicroserviceStatus = TransactionDecorator.generateTransaction(
+      updateStoppedMicroserviceStatus,
+      { priority: PRIORITY_BACKGROUND, label: 'stoppedAppStatus.microservice' }
+    )
 
     // Handle microservices from deactivated applications
     await _updateStoppedApplicationMicroserviceStatus()

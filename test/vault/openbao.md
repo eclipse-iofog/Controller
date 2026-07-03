@@ -24,3 +24,6 @@ api_addr = "http://127.0.0.1:8200"
 
 <!-- Initial root token : s.JCqRS37hu1VOy7PX3QRVdSY2
 Key 1: nTLCXY6ZtlagqRkhdjTDwpVVXK8UA8oZNGrWbfKZ4VY= -->
+
+<!-- s.MDOM8UNA578MwWNifanh1G5g
+oqBgU9Z7B50yIywsYOoYGa5uTjFpw/1e1sEtRVbuqNg= -->
