@@ -25,7 +25,7 @@ const FAST_CONFIG = {
     execMaxDurationMs: 200,
     logPendingTimeoutMs: 100,
     logIdleTimeoutMs: 500,
-    logMaxConcurrentPerResource: 3,
+    logMaxConcurrentPerResource: 5,
     logTailMaxLines: 5000,
     cleanupInterval: 50
   }
@@ -40,22 +40,22 @@ describe('WebSocket session lifecycle', () => {
     $sandbox.restore()
   })
 
-  describe('exec 3-session quota', () => {
+  describe('exec 5-session quota', () => {
     let wsServer
 
     beforeEach(() => {
       resetWebSocketServerSingleton(WebSocketServerClass)
       wsServer = new WebSocketServerClass()
-      wsServer.sessionConfig = { ...wsServer.sessionConfig, execMaxConcurrentPerResource: 3 }
+      wsServer.sessionConfig = { ...wsServer.sessionConfig, execMaxConcurrentPerResource: 5 }
     })
 
     afterEach(() => {
       resetWebSocketServerSingleton(WebSocketServerClass)
     })
 
-    it('rejects fourth concurrent exec session for same microservice', async () => {
+    it('rejects sixth concurrent exec session for same microservice', async () => {
       $sandbox.stub(wsServer, 'validateUserConnection').resolves({ uuid: $ids.microserviceUuid })
-      $sandbox.stub(wsServer, 'countExecSessionsInDb').resolves(3)
+      $sandbox.stub(wsServer, 'countExecSessionsInDb').resolves(5)
 
       const ws = createMockWebSocket()
       const req = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)
@@ -73,22 +73,22 @@ describe('WebSocket session lifecycle', () => {
     })
   })
 
-  describe('log 3-viewer quota', () => {
+  describe('log 5-viewer quota', () => {
     let wsServer
 
     beforeEach(() => {
       resetWebSocketServerSingleton(WebSocketServerClass)
       wsServer = new WebSocketServerClass()
-      wsServer.sessionConfig = { ...wsServer.sessionConfig, logMaxConcurrentPerResource: 3 }
+      wsServer.sessionConfig = { ...wsServer.sessionConfig, logMaxConcurrentPerResource: 5 }
     })
 
     afterEach(() => {
       resetWebSocketServerSingleton(WebSocketServerClass)
     })
 
-    it('rejects fourth concurrent log session for same microservice', async () => {
+    it('rejects sixth concurrent log session for same microservice', async () => {
       $sandbox.stub(wsServer, 'validateUserLogsConnection').resolves({ success: true })
-      $sandbox.stub(wsServer, 'countLogSessionsInDb').resolves(3)
+      $sandbox.stub(wsServer, 'countLogSessionsInDb').resolves(5)
       $sandbox.stub(wsServer, 'isValidISO8601').returns(true)
 
       const ws = createMockWebSocket()

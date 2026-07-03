@@ -196,7 +196,7 @@ describe('WebSocket exec — same-replica integration (Plan 17)', () => {
     )
   })
 
-  it('allows three concurrent exec sessions on same microservice', async () => {
+  it('allows five concurrent exec sessions on same microservice', async () => {
     let dbSessionCount = 0
     $sandbox.stub(wsServer, 'countExecSessionsInDb').callsFake(async () => dbSessionCount)
     MicroserviceExecSessionManager.create.restore()
@@ -213,7 +213,7 @@ describe('WebSocket exec — same-replica integration (Plan 17)', () => {
     })
 
     const userSockets = []
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 5; i++) {
       const ws = createMockWebSocket()
       userSockets.push(ws)
       const req = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)
@@ -229,7 +229,7 @@ describe('WebSocket exec — same-replica integration (Plan 17)', () => {
       expect(ws.readyState).to.equal(WebSocket.OPEN)
     }
 
-    expect(wsServer.execSessionManager.countSessionsForResource($ids.microserviceUuid)).to.equal(3)
+    expect(wsServer.execSessionManager.countSessionsForResource($ids.microserviceUuid)).to.equal(5)
 
     const rejectedWs = createMockWebSocket()
     const rejectedReq = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)

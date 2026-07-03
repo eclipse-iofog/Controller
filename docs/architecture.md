@@ -206,7 +206,7 @@ Full spec: [`.cursor/controllerv3.8/docs/15-fog-platform-reconcile.md`](../.curs
 
 ## WebSocket exec & log sessions
 
-Interactive **exec** and **log streaming** use paired WebSocket sessions between operators (Bearer JWT), Controller, and Edgelet agents (fog token). Plan 16 hardens log sessions and shared WS infra (HA, drain, OTEL). **Plan 17** redesigns **microservice exec** to log-style multi-session flow (3 concurrent per MS, agent poll + session-scoped WS). **Plan 18** production-hardens cross-replica relay via **`WsRelayTransport`** — AMQP pool + recovery when `nats.enabled=false`, NATS Core when `nats.enabled=true` (R102–R113). **Edgelet agent wire change required** for exec only (see [edgelet-invariants.md §10.1](../.cursor/controllerv3.8/docs/edgelet-invariants.md)).
+Interactive **exec** and **log streaming** use paired WebSocket sessions between operators (Bearer JWT), Controller, and Edgelet agents (fog token). Plan 16 hardens log sessions and shared WS infra (HA, drain, OTEL). **Plan 17** redesigns **microservice exec** to log-style multi-session flow (5 concurrent per MS, agent poll + session-scoped WS). **Plan 18** production-hardens cross-replica relay via **`WsRelayTransport`** — AMQP pool + recovery when `nats.enabled=false`, NATS Core when `nats.enabled=true` (R102–R113). **Edgelet agent wire change required** for exec only (see [edgelet-invariants.md §10.1](../.cursor/controllerv3.8/docs/edgelet-invariants.md)).
 
 ```mermaid
 flowchart TB
@@ -283,14 +283,14 @@ sequenceDiagram
 | Topic | Normative value |
 |-------|-----------------|
 | MS exec entry | **Direct user WS** — no `POST …/microservices/…/exec` (R92, R94) |
-| MS exec concurrency | **3** user exec WS per microservice (R93) |
+| MS exec concurrency | **5** user exec WS per microservice |
 | MS exec lifecycle | **Per-session** — close deletes session row only; **no** `execEnabled=false` (R98) |
 | MS exec pending / max | **60s** pending for agent; **8h** max active session (Plan 16 carry-over) |
 | Agent exec discovery | `GET /agent/exec/sessions` on `execSessions` change flag (R95, R100) |
 | Agent exec WS | `/agent/exec/microservice/:uuid/:sessionId` only — legacy `/agent/exec/:uuid` removed (R96) |
 | User session notify | **ACTIVATION** (type 5) with `{ sessionId, microserviceUuid }` (R97) |
 | Fog debug provision | `POST/DELETE /iofog/:uuid/exec` unchanged; shell via `WS /microservices/system/exec/:debugMsUuid` (R99) |
-| Log concurrency | **3** user log WS per microservice (or per fog for node logs) |
+| Log concurrency | **5** user log WS per microservice (or per fog for node logs) |
 | Log limits | Tail max **5,000** lines; **120s** pending; **2h** idle |
 | Log content | Live relay only — no log line persistence; audit connect/disconnect |
 | HA relay | Cross-replica sessions **require** a **relay backend** (R112): **AMQP** router queues when `nats.enabled=false`; **NATS Core** subjects on hub when `nats.enabled=true`. Same-replica may use direct WS; **fail fast** close **1013** when active backend unavailable |

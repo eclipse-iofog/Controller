@@ -2767,7 +2767,7 @@ paths:
 
         Pairing: user connects directly via WebSocket; Controller creates a per-session row
         in `MicroserviceExecSessions` and relays STDIN/STDOUT/STDERR by `sessionId`.
-        No prior REST enable step is required (Plan 17). Max **3** concurrent exec sessions
+        No prior REST enable step is required (Plan 17). Max **5** concurrent exec sessions
         per microservice (close code **1008** when quota exceeded).
 
         On connect, Controller sends **ACTIVATION** (type 5) with JSON
@@ -2830,7 +2830,7 @@ paths:
       description: |
         Upgrades to binary MessagePack log stream (agent → user after pairing).
 
-        **RBAC:** `logs`. Max **3** concurrent user log WS per microservice.
+        **RBAC:** `logs`. Max **5** concurrent user log WS per microservice.
 
         Query params control tail behaviour (see parameters). Live relay only — no log persistence.
       operationId: userMicroserviceLogsWebSocket
@@ -2922,7 +2922,7 @@ paths:
       tags:
         - WebSocketSessions
       summary: User fog (node) log streaming WebSocket
-      description: Node-level logs; **RBAC** `systemLogs`. Max **3** concurrent sessions per fog.
+      description: Node-level logs; **RBAC** `systemLogs`. Max **5** concurrent sessions per fog.
       operationId: userFogLogsWebSocket
       parameters:
         - in: path
@@ -7160,7 +7160,7 @@ components:
         codes:
           - { code: 1000, reason: Normal closure, when: Session ended cleanly }
           - { code: 1001, reason: Server draining, when: SIGTERM / k8s preStop (R85) }
-          - { code: 1008, reason: Policy violation, when: RBAC deny, exec/log quota (3 per MS), invalid tail params, pending timeout, sessionId mismatch }
+          - { code: 1008, reason: Policy violation, when: RBAC deny, exec/log quota (5 per MS), invalid tail params, pending timeout, sessionId mismatch }
           - { code: 1013, reason: Router unavailable for cross-replica session, when: AMQP router down (R84) }
     EventRecord:
       type: object
