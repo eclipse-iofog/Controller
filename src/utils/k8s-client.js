@@ -55,14 +55,29 @@ async function getK8sAppsApi () {
   return k8sAppsApi
 }
 
+function _parseK8sErrorBody (body) {
+  if (body == null) {
+    return body
+  }
+  if (typeof body === 'string') {
+    try {
+      return JSON.parse(body)
+    } catch (_) {
+      return body
+    }
+  }
+  return body
+}
+
 /**
  * Returns true if the error indicates a Kubernetes 404 Not Found.
- * Handles both axios-style (error.response.status) and body.code/body.reason.
+ * Handles ApiException (client-node v1), axios-style, and Status body payloads.
  */
 function isK8sNotFound (error) {
   if (!error) return false
+  if (error.code === 404) return true
   if (error.response && error.response.status === 404) return true
-  const body = error.body || (error.response && error.response.body)
+  const body = _parseK8sErrorBody(error.body || (error.response && error.response.body))
   if (body && (body.code === 404 || body.reason === 'NotFound')) return true
   return false
 }
@@ -72,8 +87,9 @@ function isK8sNotFound (error) {
  */
 function isK8sConflict (error) {
   if (!error) return false
+  if (error.code === 409) return true
   if (error.response && error.response.status === 409) return true
-  const body = error.body || (error.response && error.response.body)
+  const body = _parseK8sErrorBody(error.body || (error.response && error.response.body))
   if (body && (body.code === 409 || body.reason === 'Conflict')) return true
   return false
 }

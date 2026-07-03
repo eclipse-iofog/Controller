@@ -484,69 +484,86 @@ function _getK8sServiceLabels () {
   }
 }
 
+// Helper function to build Kubernetes Service spec for create
+function _buildK8sServiceSpec (serviceConfig) {
+  const normalizedTags = (serviceConfig.tags || []).map(tag => tag.includes(':') ? tag : `${tag}:`)
+  const componentLabelKey = getComponentLabelKey()
+  return {
+    apiVersion: 'v1',
+    kind: 'Service',
+    metadata: {
+      name: serviceConfig.name,
+      labels: _getK8sServiceLabels(),
+      annotations: normalizedTags.reduce((acc, tag) => {
+        const [key, value] = tag.split(':')
+        acc[key] = (value || '').trim()
+        return acc
+      }, {})
+    },
+    spec: {
+      type: serviceConfig.k8sType,
+      selector: {
+        [componentLabelKey]: 'router'
+      },
+      ports: [{
+        name: 'iofog-service',
+        targetPort: parseInt(serviceConfig.bridgePort),
+        port: parseInt(serviceConfig.servicePort),
+        protocol: 'TCP'
+      }]
+    }
+  }
+}
+
+function _buildK8sServicePatchData (serviceConfig) {
+  const normalizedTags = (serviceConfig.tags || []).map(tag => tag.includes(':') ? tag : `${tag}:`)
+  const componentLabelKey = getComponentLabelKey()
+  return {
+    metadata: {
+      labels: _getK8sServiceLabels(),
+      annotations: normalizedTags.reduce((acc, tag) => {
+        const [key, value] = tag.split(':')
+        acc[key] = (value || '').trim()
+        return acc
+      }, {})
+    },
+    spec: {
+      type: serviceConfig.k8sType,
+      selector: {
+        [componentLabelKey]: 'router'
+      },
+      ports: [{
+        name: 'iofog-service',
+        port: parseInt(serviceConfig.servicePort),
+        targetPort: parseInt(serviceConfig.bridgePort),
+        protocol: 'TCP'
+      }]
+    }
+  }
+}
+
 // Helper function to create or update a Kubernetes service resource (I/O only; no DB).
 // Returns LoadBalancer IP when assigned, otherwise null.
 async function _syncK8sServiceResource (serviceConfig) {
   const existingService = await K8sClient.getService(serviceConfig.name, { ignoreNotFound: true })
+  const serviceSpec = _buildK8sServiceSpec(serviceConfig)
+
   if (!existingService) {
     logger.debug(`Service not found: ${serviceConfig.name}, creating new service`)
-    const normalizedTags = serviceConfig.tags.map(tag => tag.includes(':') ? tag : `${tag}:`)
-    const componentLabelKey = getComponentLabelKey()
-    const serviceSpec = {
-      apiVersion: 'v1',
-      kind: 'Service',
-      metadata: {
-        name: serviceConfig.name,
-        labels: _getK8sServiceLabels(),
-        annotations: normalizedTags.reduce((acc, tag) => {
-          const [key, value] = tag.split(':')
-          acc[key] = (value || '').trim()
-          return acc
-        }, {})
-      },
-      spec: {
-        type: serviceConfig.k8sType,
-        selector: {
-          [componentLabelKey]: 'router'
-        },
-        ports: [{
-          name: 'iofog-service',
-          targetPort: parseInt(serviceConfig.bridgePort),
-          port: parseInt(serviceConfig.servicePort),
-          protocol: 'TCP'
-        }]
-      }
-    }
-
     await K8sClient.createService(serviceSpec)
   } else {
-    const normalizedTags = serviceConfig.tags.map(tag => tag.includes(':') ? tag : `${tag}:`)
-    const componentLabelKey = getComponentLabelKey()
-    const patchData = {
-      metadata: {
-        labels: _getK8sServiceLabels(),
-        annotations: normalizedTags.reduce((acc, tag) => {
-          const [key, value] = tag.split(':')
-          acc[key] = (value || '').trim()
-          return acc
-        }, {})
-      },
-      spec: {
-        type: serviceConfig.k8sType,
-        selector: {
-          [componentLabelKey]: 'router'
-        },
-        ports: [{
-          name: 'iofog-service',
-          port: parseInt(serviceConfig.servicePort),
-          targetPort: parseInt(serviceConfig.bridgePort),
-          protocol: 'TCP'
-        }]
+    const patchData = _buildK8sServicePatchData(serviceConfig)
+    logger.debug(`Updating service: ${serviceConfig.name}`)
+    try {
+      await K8sClient.updateService(serviceConfig.name, patchData)
+    } catch (error) {
+      if (K8sClient.isK8sNotFound(error)) {
+        logger.warn(`Service ${serviceConfig.name} missing during update, creating new service`)
+        await K8sClient.createService(serviceSpec)
+      } else {
+        throw error
       }
     }
-
-    logger.debug(`Updating service: ${serviceConfig.name}`)
-    await K8sClient.updateService(serviceConfig.name, patchData)
   }
 
   if (serviceConfig.k8sType === 'LoadBalancer') {

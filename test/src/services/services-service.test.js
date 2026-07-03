@@ -459,6 +459,7 @@ spec:
       $sandbox.stub(K8sClient, 'getService').resolves(null)
       $sandbox.stub(K8sClient, 'createService').resolves({ metadata: { name: 'snapshot-service' } })
       $sandbox.stub(K8sClient, 'updateService').resolves({ metadata: { name: 'snapshot-service' } })
+      $sandbox.stub(K8sClient, 'isK8sNotFound').returns(false)
     })
 
     it('creates the K8s service when it does not exist', async () => {
@@ -476,6 +477,17 @@ spec:
 
       expect(K8sClient.createService).to.not.have.been.called
       expect(K8sClient.updateService).to.have.been.calledOnceWith('snapshot-service', sinon.match.object)
+    })
+
+    it('creates the K8s service when update returns not found', async () => {
+      K8sClient.getService.resolves({ metadata: { name: 'snapshot-service' } })
+      K8sClient.updateService.rejects(new Error('not found'))
+      K8sClient.isK8sNotFound.returns(true)
+
+      await ServicesService._syncK8sServiceResource(serviceConfig)
+
+      expect(K8sClient.updateService).to.have.been.calledOnce
+      expect(K8sClient.createService).to.have.been.calledOnce
     })
   })
 })
