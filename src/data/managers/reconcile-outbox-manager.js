@@ -34,6 +34,10 @@ class ReconcileOutboxManager extends BaseManager {
 
   async _resolveExistingEnqueue (existing, kind, serializedPayload, transaction) {
     if (existing.processedAt == null) {
+      if (existing.payload !== serializedPayload) {
+        await this.update({ id: existing.id }, { payload: serializedPayload }, transaction)
+        return this.findOne({ id: existing.id }, transaction)
+      }
       return existing
     }
     return this._reopenProcessedRow(existing, kind, serializedPayload, transaction)

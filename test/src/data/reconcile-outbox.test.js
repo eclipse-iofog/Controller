@@ -122,7 +122,7 @@ describe('reconcile-outbox', () => {
 
     await runInTransaction(async (transaction) => {
       const row = await ReconcileOutbox.findOne({
-        where: { idempotencyKey: 'nats:cluster-routes-changed:null:null:null:fog-other' }
+        where: { idempotencyKey: 'nats:cluster-routes-changed:null:null:null:null:null:null:fog-other' }
       }, transaction)
       await ReconcileOutboxManager.markProcessed(row.id, transaction)
     })

@@ -216,6 +216,19 @@ async function runWithTransactionContext (transaction, priority, fn) {
   return activeTransactionStore.run({ transaction, priority: effectivePriority }, () => fn(transaction))
 }
 
+/**
+ * Defer work until after the current API tick so a committed ALS parent tx cannot
+ * be reused. Always runs fn inside a fresh PRIORITY_BACKGROUND transaction (R138).
+ *
+ * @param {string} label - transaction-runner label for metrics/logging
+ * @param {Function} fn - async (transaction) => result
+ */
+function schedulePostCommitBackground (label, fn) {
+  setImmediate(async () => {
+    await runInTransaction(fn, { priority: PRIORITY_BACKGROUND, label })
+  })
+}
+
 function _resetQueueForTests () {
   interactiveLane.length = 0
   backgroundLane.length = 0
@@ -236,5 +249,6 @@ module.exports = {
   getWriteQueueMaxDepth,
   isSqliteProvider,
   runInTransaction,
-  runWithTransactionContext
+  runWithTransactionContext,
+  schedulePostCommitBackground
 }

@@ -1424,19 +1424,21 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
     throw error
   }
 
-  const shouldEnableNats = microserviceData.natsAccess === true
-  const shouldDisableNats = microserviceData.natsAccess === false && microservice.natsAccess
+  const natsAccessInPatch = Object.prototype.hasOwnProperty.call(microserviceData, 'natsAccess')
+  const shouldEnableNats = natsAccessInPatch && microserviceData.natsAccess === true && !microservice.natsAccess
+  const shouldDisableNats = natsAccessInPatch && microserviceData.natsAccess === false && microservice.natsAccess
   const natsRuleChanged = Object.prototype.hasOwnProperty.call(microserviceData, 'natsRuleId') &&
     microserviceData.natsRuleId !== microservice.natsRuleId
 
-  if (shouldEnableNats) {
-    if (natsRuleChanged) {
-      await NatsAuthService.reissueUserForMicroservice(updatedMicroservice.uuid, transaction)
-    }
-    await _ensureNatsCredsForMicroservice(updatedMicroservice, transaction)
-  } else if (shouldDisableNats) {
+  if (shouldDisableNats) {
     await _detachNatsCredsForMicroservice(microservice, transaction)
     await NatsAuthService.revokeMicroserviceUser(microservice.uuid, transaction)
+  } else if (microservice.natsAccess || shouldEnableNats) {
+    if (natsRuleChanged || shouldEnableNats) {
+      const mutationKind = shouldEnableNats ? 'access-enable' : 'rule-change'
+      await NatsAuthService.reissueUserForMicroservice(updatedMicroservice.uuid, transaction, { mutationKind })
+    }
+    await _ensureNatsCredsForMicroservice(updatedMicroservice, transaction)
   }
 
   if (changeTrackingEnabled) {
@@ -2703,15 +2705,15 @@ async function reconcileNatsForApplication (applicationId, transaction) {
     return
   }
   const microservices = await MicroserviceManager.findAll({ applicationId }, transaction)
+  const reconcileTriggerOptions = { triggerReconcile: false }
   for (const microservice of microservices) {
     if (!application.natsAccess || !microservice.natsAccess) {
       if (microservice.natsUserId || microservice.natsCredsSecretName || microservice.natsAccess) {
-        await NatsAuthService.revokeMicroserviceUser(microservice.uuid, transaction)
+        await NatsAuthService.revokeMicroserviceUser(microservice.uuid, transaction, reconcileTriggerOptions)
         await _detachNatsCredsForMicroservice(microservice, transaction)
       }
       continue
     }
-    const reconcileTriggerOptions = { triggerReconcile: false }
     await NatsAuthService.reissueUserForMicroservice(microservice.uuid, transaction, reconcileTriggerOptions)
     const refreshed = await MicroserviceManager.findOne({ uuid: microservice.uuid }, transaction)
     await _ensureNatsCredsForMicroservice(refreshed || microservice, transaction)

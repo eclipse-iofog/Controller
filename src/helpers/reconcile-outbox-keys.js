@@ -21,15 +21,27 @@ function buildNatsIdempotencyKey (payload = {}) {
     applicationId,
     accountRuleId,
     userRuleId,
-    fogUuids
+    fogUuids,
+    microserviceUuid,
+    mutationKind,
+    authGeneration
   } = payload
+
+  const scopeSuffix = [
+    applicationId ?? 'null',
+    accountRuleId ?? 'null',
+    userRuleId ?? 'null',
+    microserviceUuid ?? 'null',
+    mutationKind ?? 'null',
+    authGeneration ?? 'null'
+  ].join(':')
 
   if (Array.isArray(fogUuids) && fogUuids.length > 0) {
     const sorted = [...fogUuids].sort().join(',')
-    return `nats:${reason}:${applicationId ?? 'null'}:${accountRuleId ?? 'null'}:${userRuleId ?? 'null'}:${sorted}`
+    return `nats:${reason}:${scopeSuffix}:${sorted}`
   }
 
-  return `nats:${reason}:${applicationId ?? 'null'}:${accountRuleId ?? 'null'}:${userRuleId ?? 'null'}`
+  return `nats:${reason}:${scopeSuffix}`
 }
 
 function buildIdempotencyKey (kind, payload = {}) {

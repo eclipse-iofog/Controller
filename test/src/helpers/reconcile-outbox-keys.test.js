@@ -36,7 +36,7 @@ describe('reconcile-outbox-keys', () => {
       userRuleId: null,
       fogUuids: ['b', 'a']
     })
-    expect(key).to.equal('nats:cluster-routes-changed:null:null:null:a,b')
+    expect(key).to.equal('nats:cluster-routes-changed:null:null:null:null:null:null:a,b')
   })
 
   it('builds nats keys without fog uuids from scope fields', () => {
@@ -46,7 +46,23 @@ describe('reconcile-outbox-keys', () => {
       accountRuleId: null,
       userRuleId: null
     })
-    expect(key).to.equal('nats:account-created:42:null:null')
+    expect(key).to.equal('nats:account-created:42:null:null:null:null:null')
+  })
+
+  it('distinguishes distinct mutations via microserviceUuid and mutationKind', () => {
+    const enableKey = buildNatsIdempotencyKey({
+      reason: 'account-created',
+      applicationId: 42,
+      microserviceUuid: 'ms-a',
+      mutationKind: 'access-enable'
+    })
+    const ruleKey = buildNatsIdempotencyKey({
+      reason: 'account-created',
+      applicationId: 42,
+      microserviceUuid: 'ms-a',
+      mutationKind: 'rule-change'
+    })
+    expect(enableKey).to.not.equal(ruleKey)
   })
 
   it('routes buildIdempotencyKey by kind', () => {
