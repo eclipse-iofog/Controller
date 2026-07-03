@@ -230,6 +230,47 @@ class WebSocketServer {
       this._handleExpiredLogSession(sessionId, session, transaction))
   }
 
+  _startWebSocketHeartbeat (ws, { label, sessionId } = {}) {
+    if (!ws) {
+      return
+    }
+    this._stopWebSocketHeartbeat(ws)
+
+    const intervalMs = Number(this.config.pingInterval)
+    if (!Number.isFinite(intervalMs) || intervalMs <= 0) {
+      return
+    }
+
+    ws._heartbeatTimer = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        try {
+          ws.ping()
+        } catch (error) {
+          logger.debug('[WS-HEARTBEAT] Failed to send ping frame', {
+            label: label || null,
+            sessionId: sessionId || null,
+            error: error.message
+          })
+        }
+      }
+    }, intervalMs)
+
+    if (!ws._heartbeatCloseRegistered) {
+      ws._heartbeatCloseRegistered = true
+      ws.on('close', () => {
+        this._stopWebSocketHeartbeat(ws)
+      })
+    }
+  }
+
+  _stopWebSocketHeartbeat (ws) {
+    if (!ws || ws._heartbeatTimer == null) {
+      return
+    }
+    clearInterval(ws._heartbeatTimer)
+    ws._heartbeatTimer = null
+  }
+
   // MessagePack encoding/decoding helpers with improved error handling
   encodeMessage (message) {
     try {
@@ -1851,6 +1892,7 @@ class WebSocketServer {
       execSession.metricsActive = true
       recordExecSessionActive(1)
       this._startExecPendingPairingMetrics(execSession)
+      this._startWebSocketHeartbeat(ws, { label: 'user-exec', sessionId })
 
       const activationMsg = {
         type: MESSAGE_TYPES.ACTIVATION,
@@ -2027,6 +2069,7 @@ class WebSocketServer {
         session.lastActivity = Date.now()
         session.activationSent = false
       }
+      this._startWebSocketHeartbeat(ws, { label: 'agent-exec', sessionId })
 
       this._scheduleRelaySetupAfterCommit(
         'setup exec message forwarding',
@@ -2809,6 +2852,7 @@ class WebSocketServer {
       logSession.metricsActive = true
       recordLogSessionActive(1)
       this._startLogPendingPairingMetrics(logSession)
+      this._startWebSocketHeartbeat(ws, { label: 'user-log', sessionId })
 
       // 7. Send sessionId to user (MessagePack encoded)
       const sessionInfoMsg = {
@@ -3041,6 +3085,7 @@ class WebSocketServer {
         session.agent = ws
         session.lastActivity = Date.now()
       }
+      this._startWebSocketHeartbeat(ws, { label: 'agent-log', sessionId })
 
       // 5.5. Set up message handler IMMEDIATELY on the agent WebSocket
       // This ensures messages are captured even if they arrive before setupLogMessageForwarding completes
@@ -3417,6 +3462,8 @@ class WebSocketServer {
     const session = this.logSessionManager.getLogSession(sessionId)
     if (session) {
       this._clearPendingPairingTimer(session)
+      this._stopWebSocketHeartbeat(session.user)
+      this._stopWebSocketHeartbeat(session.agent)
     }
     if (session && session.metricsActive) {
       recordLogSessionActive(-1)
@@ -3699,6 +3746,8 @@ class WebSocketServer {
     const session = this.execSessionManager.getExecSession(sessionId)
     if (session) {
       this._clearPendingPairingTimer(session)
+      this._stopWebSocketHeartbeat(session.user)
+      this._stopWebSocketHeartbeat(session.agent)
     }
     if (session && session.metricsActive) {
       recordExecSessionActive(-1)

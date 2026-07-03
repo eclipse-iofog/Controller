@@ -118,6 +118,21 @@ spec:
 
 ---
 
+## Connection keepalive
+
+Controller uses **two layers** for long-lived exec/log WebSockets:
+
+| Layer | Mechanism | Peers |
+|-------|-----------|-------|
+| **WebSocket protocol** | Server sends RFC 6455 **Ping** frames every **`server.webSocket.pingInterval`** (default **30s**, env **`WS_PING_INTERVAL`**) | All four sockets: user + agent on exec and log paths (Edgelet, potctl, EdgeOps Console browser) |
+| **Application (exec user only)** | MessagePack **`CONTROL`** with payload **`keepalive`** | EdgeOps Console exec terminal — Controller echoes **`keepalive`** to the user socket; browsers cannot send native WS ping frames |
+
+Log streaming does **not** use application-level keepalive (Console `LogViewer` is receive-only). Quiet `follow=true` log sessions rely on WS protocol ping to keep the agent and browser legs alive through ingress and Edgelet read deadlines.
+
+`server.webSocket.pongTimeout` is reserved for future server-side watchdog use; v1 does **not** terminate sessions on missed pongs (Console exec owns the 10s app-level watchdog).
+
+---
+
 ## Scale SLO (R88)
 
 | Metric | Target |
