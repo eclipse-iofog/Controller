@@ -20,7 +20,12 @@ initialize().then(() => {
   const multer = require('multer')
   const multerMemStorage = multer.memoryStorage()
   const uploadFile = (fileName) => multer({
-    storage: multerMemStorage
+    storage: multerMemStorage,
+    limits: {
+      fieldNestingDepth: 0,
+      files: 1,
+      fields: 10
+    }
   }).single(fileName)
 
   // Initialize session and OIDC bearer validation after config is loaded
