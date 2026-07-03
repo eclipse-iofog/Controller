@@ -57,6 +57,27 @@ async function reconcileStaleSessionsInTransaction (transaction) {
 
     if (execSessionManager.getExecSession(sessionId)) continue
 
+    if (!row.userConnected && !row.agentConnected) {
+      await MicroserviceExecSessionManager.deleteBySessionId(sessionId, transaction)
+
+      const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
+      if (microservice) {
+        await ChangeTrackingService.update(
+          microservice.iofogUuid,
+          ChangeTrackingService.events.microserviceExecSessions,
+          transaction
+        )
+      }
+
+      execCleaned++
+      logger.info('Reconciled orphaned exec session row:' + JSON.stringify({
+        sessionId,
+        microserviceUuid,
+        status: row.status
+      }))
+      continue
+    }
+
     const age = now - new Date(row.updatedAt).getTime()
     const threshold = row.status === 'PENDING' ? execPendingTimeout : execMaxDuration
     if (age < threshold) continue
@@ -88,6 +109,27 @@ async function reconcileStaleSessionsInTransaction (transaction) {
   for (const row of msLogRows) {
     if (logSessionManager.getLogSession(row.sessionId)) continue
 
+    if (!row.userConnected && !row.agentConnected) {
+      await MicroserviceLogStatusManager.delete({ sessionId: row.sessionId }, transaction)
+      logCleaned++
+
+      const microservice = await MicroserviceManager.findOne({ uuid: row.microserviceUuid }, transaction)
+      if (microservice) {
+        await ChangeTrackingService.update(
+          microservice.iofogUuid,
+          ChangeTrackingService.events.microserviceLogs,
+          transaction
+        )
+      }
+
+      logger.info('Reconciled orphaned microservice log row:' + JSON.stringify({
+        sessionId: row.sessionId,
+        microserviceUuid: row.microserviceUuid,
+        status: row.status
+      }))
+      continue
+    }
+
     const age = now - new Date(row.updatedAt).getTime()
     const threshold = row.status === 'PENDING' ? logPendingTimeout : logIdleTimeout
     if (age < threshold) continue
@@ -118,6 +160,27 @@ async function reconcileStaleSessionsInTransaction (transaction) {
 
   for (const row of fogLogRows) {
     if (logSessionManager.getLogSession(row.sessionId)) continue
+
+    if (!row.userConnected && !row.agentConnected) {
+      await FogLogStatusManager.delete({ sessionId: row.sessionId }, transaction)
+      logCleaned++
+
+      const fog = await FogManager.findOne({ uuid: row.iofogUuid }, transaction)
+      if (fog) {
+        await ChangeTrackingService.update(
+          fog.uuid,
+          ChangeTrackingService.events.fogLogs,
+          transaction
+        )
+      }
+
+      logger.info('Reconciled orphaned fog log row:' + JSON.stringify({
+        sessionId: row.sessionId,
+        iofogUuid: row.iofogUuid,
+        status: row.status
+      }))
+      continue
+    }
 
     const age = now - new Date(row.updatedAt).getTime()
     const threshold = row.status === 'PENDING' ? logPendingTimeout : logIdleTimeout
@@ -158,5 +221,6 @@ async function reconcileStaleSessions () {
 }
 
 module.exports = {
-  run
+  run,
+  reconcileStaleSessionsInTransaction
 }

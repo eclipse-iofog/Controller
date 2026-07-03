@@ -28,6 +28,8 @@ const FogLogStatusManager = require('../data/managers/fog-log-status-manager')
 const ChangeTrackingService = require('../services/change-tracking-service')
 const FogManager = require('../data/managers/iofog-manager')
 const FogStates = require('../enums/fog-state')
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op
 
 const MESSAGE_TYPES = {
   STDIN: 0,
@@ -376,11 +378,11 @@ class WebSocketServer {
   }
 
   getLogConcurrencyLimit () {
-    return this.sessionConfig.logMaxConcurrentPerResource || 3
+    return this.sessionConfig.logMaxConcurrentPerResource || 5
   }
 
   getExecConcurrencyLimit () {
-    return this.sessionConfig.execMaxConcurrentPerResource || 3
+    return this.sessionConfig.execMaxConcurrentPerResource || 5
   }
 
   getLogTailMaxLines () {
@@ -832,6 +834,52 @@ class WebSocketServer {
     return !!(row && row.agentConnected)
   }
 
+  async _checkLogUserConnectedInDb (sessionId, microserviceUuid, fogUuid, transaction) {
+    let row = null
+    if (microserviceUuid) {
+      row = await MicroserviceLogStatusManager.findOne({ sessionId }, transaction)
+    } else if (fogUuid) {
+      row = await FogLogStatusManager.findOne({ sessionId }, transaction)
+    }
+    return !!(row && row.userConnected)
+  }
+
+  async _isLogUserStillConnected (sessionId, session, microserviceUuid, fogUuid) {
+    if (session && session.user) {
+      return true
+    }
+    try {
+      return await transactionRunner.runInTransaction(
+        (tx) => this._checkLogUserConnectedInDb(sessionId, microserviceUuid, fogUuid, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.log.user-connected-db-check' }
+      )
+    } catch (error) {
+      logger.warn('Log user-connected DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+      return false
+    }
+  }
+
+  async _isExecUserStillConnected (sessionId, session) {
+    if (session && session.user) {
+      return true
+    }
+    try {
+      return await transactionRunner.runInTransaction(
+        (tx) => this._checkExecUserConnectedInDb(sessionId, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.exec.user-connected-db-check' }
+      )
+    } catch (error) {
+      logger.warn('Exec user-connected DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+      return false
+    }
+  }
+
   async _notifyExecRemotePeerClose (sessionId, session, reason = 'Exec session expired') {
     if (!session || !this.relayTransport.shouldUseRelay(sessionId)) {
       return
@@ -1167,6 +1215,14 @@ class WebSocketServer {
       }
     })()
 
+    if (currentSession.agent) {
+      if (currentSession.agent.readyState === WebSocket.OPEN) {
+        currentSession.agent.close(1000, 'User closed connection')
+      }
+      await this._cleanupExecSessionInTransaction(sessionId)
+      return
+    }
+
     const relayEnabled = this.relayTransport.shouldUseRelay(sessionId)
     if (relayEnabled) {
       try {
@@ -1186,12 +1242,85 @@ class WebSocketServer {
           error: error.message
         })
       }
-    } else if (currentSession.agent && currentSession.agent.readyState === WebSocket.OPEN) {
-      currentSession.agent.close(1000, 'User closed connection')
     }
 
-    if (!currentSession.agent) {
+    let agentStillConnected = false
+    try {
+      agentStillConnected = await transactionRunner.runInTransaction(
+        (tx) => this._checkExecAgentPairedInDb(sessionId, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.exec.user-partial-agent-db-check' }
+      )
+    } catch (error) {
+      logger.warn('Exec user partial disconnect agent DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+    }
+
+    if (!agentStillConnected) {
+      await this._cleanupExecSessionInTransaction(sessionId)
+    } else {
       await this._detachExecSessionLocal(sessionId)
+    }
+  }
+
+  async _handleUserLogPartialDisconnect (sessionId, session, microserviceUuid, fogUuid) {
+    session.user = null
+    session.remoteUserPaired = false
+    session.lastActivity = Date.now()
+
+    await TransactionDecorator.generateTransaction(async (closeTransaction) => {
+      if (microserviceUuid) {
+        await MicroserviceLogStatusManager.update(
+          { sessionId },
+          { userConnected: false },
+          closeTransaction
+        )
+      } else if (fogUuid) {
+        await FogLogStatusManager.update(
+          { sessionId },
+          { userConnected: false },
+          closeTransaction
+        )
+      }
+
+      const fogForTracking = await FogManager.findOne({
+        uuid: fogUuid || (await MicroserviceManager.findOne({ uuid: microserviceUuid }, closeTransaction)).iofogUuid
+      }, closeTransaction)
+      if (fogForTracking) {
+        await ChangeTrackingService.update(
+          fogForTracking.uuid,
+          fogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
+          closeTransaction
+        )
+      }
+    })()
+
+    if (session.agent) {
+      if (session.agent.readyState === WebSocket.OPEN) {
+        session.agent.close(1000, 'User closed connection')
+      }
+      await this._cleanupLogSessionInTransaction(sessionId)
+      return
+    }
+
+    let agentStillConnected = false
+    try {
+      agentStillConnected = await transactionRunner.runInTransaction(
+        (tx) => this._checkLogAgentPairedInDb(sessionId, microserviceUuid, fogUuid, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'ws.log.user-partial-agent-db-check' }
+      )
+    } catch (error) {
+      logger.warn('Log user partial disconnect agent DB check failed:' + JSON.stringify({
+        sessionId,
+        error: error.message
+      }))
+    }
+
+    if (!agentStillConnected) {
+      await this._cleanupLogSessionInTransaction(sessionId)
+    } else {
+      await this._detachLogSessionLocal(sessionId)
     }
   }
 
@@ -1249,12 +1378,22 @@ class WebSocketServer {
   }
 
   async countLogSessionsInDb (microserviceUuid, fogUuid, transaction) {
+    const activeUserFilter = {
+      userConnected: true,
+      status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+    }
     if (microserviceUuid) {
-      const rows = await MicroserviceLogStatusManager.findAll({ microserviceUuid }, transaction)
+      const rows = await MicroserviceLogStatusManager.findAll({
+        microserviceUuid,
+        ...activeUserFilter
+      }, transaction)
       return rows.length
     }
     if (fogUuid) {
-      const rows = await FogLogStatusManager.findAll({ iofogUuid: fogUuid }, transaction)
+      const rows = await FogLogStatusManager.findAll({
+        iofogUuid: fogUuid,
+        ...activeUserFilter
+      }, transaction)
       return rows.length
     }
     return 0
@@ -1264,7 +1403,11 @@ class WebSocketServer {
     if (!microserviceUuid) {
       return 0
     }
-    const rows = await MicroserviceExecSessionManager.findAll({ microserviceUuid }, transaction)
+    const rows = await MicroserviceExecSessionManager.findAll({
+      microserviceUuid,
+      userConnected: true,
+      status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+    }, transaction)
     return rows.length
   }
 
@@ -1926,9 +2069,9 @@ class WebSocketServer {
       ws.on('close', async (code, reason) => {
         const currentSession = this.execSessionManager.getExecSession(sessionId)
         if (currentSession) {
-          const relayEnabled = this.relayTransport.shouldUseRelay(sessionId)
           try {
-            if (currentSession.user != null || relayEnabled) {
+            const userStillConnected = await this._isExecUserStillConnected(sessionId, currentSession)
+            if (userStillConnected) {
               await this._handleAgentExecPartialDisconnect(sessionId, currentSession, fog)
             } else {
               await this._cleanupExecSessionInTransaction(sessionId)
@@ -2759,41 +2902,19 @@ class WebSocketServer {
               }
             }
 
-            if (agentConnected) {
-              await TransactionDecorator.generateTransaction(async (closeTransaction) => {
-                if (microserviceUuid) {
-                  await MicroserviceLogStatusManager.update(
-                    { sessionId },
-                    { userConnected: false },
-                    closeTransaction
-                  )
-                } else if (fogUuid) {
-                  await FogLogStatusManager.update(
-                    { sessionId },
-                    { userConnected: false },
-                    closeTransaction
-                  )
-                }
-
-                const fogForTracking = await FogManager.findOne({
-                  uuid: fogUuid || (await MicroserviceManager.findOne({ uuid: microserviceUuid }, closeTransaction)).iofogUuid
-                }, closeTransaction)
-                await ChangeTrackingService.update(
-                  fogForTracking.uuid,
-                  fogUuid ? ChangeTrackingService.events.fogLogs : ChangeTrackingService.events.microserviceLogs,
-                  closeTransaction
-                )
-              })()
+            if (agentStillConnected) {
+              await this._handleUserLogPartialDisconnect(
+                sessionId,
+                session,
+                microserviceUuid,
+                fogUuid
+              )
               logger.info('Log session user disconnected (agent still connected):' + JSON.stringify({
                 sessionId,
                 microserviceUuid: microserviceUuid || null,
                 fogUuid: fogUuid || null,
                 closeCode: code
               }))
-              session.remoteAgentPaired = false
-              if (!session.agent) {
-                await this._detachLogSessionLocal(sessionId)
-              }
             } else {
               logger.info('Log session user disconnected (full cleanup):' + JSON.stringify({
                 sessionId,
@@ -3030,17 +3151,19 @@ class WebSocketServer {
       ws.on('close', async (code, reason) => {
         const session = this.logSessionManager.getLogSession(sessionId)
         if (session) {
-          const relayEnabled = this.relayTransport.shouldUseRelayForLogs(sessionId)
-          const partialDisconnect = session.user != null || relayEnabled
-
           try {
-            if (partialDisconnect) {
+            const userStillConnected = await this._isLogUserStillConnected(
+              sessionId,
+              session,
+              microserviceUuid,
+              iofogUuid
+            )
+            if (userStillConnected) {
               logger.info('Log session agent disconnected (partial detach):' + JSON.stringify({
                 sessionId,
                 microserviceUuid: microserviceUuid || null,
                 fogUuid: iofogUuid || null,
-                userConnected: session.user != null,
-                relayEnabled,
+                userConnected: true,
                 closeCode: code
               }))
               await this._handleAgentLogPartialDisconnect(sessionId, session, {

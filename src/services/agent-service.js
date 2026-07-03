@@ -645,7 +645,8 @@ const getAgentLogSessions = async function (fog, transaction) {
     const msSessions = await MicroserviceLogStatusManager.findAll(
       {
         microserviceUuid: { [Op.in]: microserviceUuids },
-        status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+        status: { [Op.in]: ['PENDING', 'ACTIVE'] },
+        userConnected: true
       },
       transaction
     )
@@ -664,7 +665,8 @@ const getAgentLogSessions = async function (fog, transaction) {
   const fogSessions = await FogLogStatusManager.findAll(
     {
       iofogUuid: fog.uuid,
-      status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+      status: { [Op.in]: ['PENDING', 'ACTIVE'] },
+      userConnected: true
     },
     transaction
   )
@@ -697,7 +699,8 @@ const getAgentExecSessions = async function (fog, transaction) {
     const msSessions = await MicroserviceExecSessionManager.findAll(
       {
         microserviceUuid: { [Op.in]: microserviceUuids },
-        status: { [Op.in]: ['PENDING', 'ACTIVE'] }
+        status: { [Op.in]: ['PENDING', 'ACTIVE'] },
+        userConnected: true
       },
       transaction
     )

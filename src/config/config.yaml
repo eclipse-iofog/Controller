@@ -23,15 +23,15 @@ server:
       timeout: 3600000             # Legacy idle fallback (ms); exec uses execMaxDurationMs
       maxConnections: 100          # Maximum connections per session
       cleanupInterval: 30000       # Session cleanup interval (30 seconds)
-      execPendingTimeoutMs: 60000  # Exec: user wait for agent (R81)
-      execMaxDurationMs: 28800000  # Exec: max active session 8h (R81)
-      execMaxConcurrentPerResource: 3  # Exec: max user WS per MS (R92)
-      logPendingTimeoutMs: 120000  # Log: user wait for agent (R82)
-      logIdleTimeoutMs: 7200000    # Log: idle session 2h (R82)
-      logMaxConcurrentPerResource: 3  # Log: max user WS per MS or fog (R82)
-      logTailMaxLines: 5000        # Log: tail query param max (R82)
-      replicaMaxConcurrentWs: 500    # Scale SLO per replica (R88)
-      drainTimeoutMs: 30000        # Graceful drain on SIGTERM/preStop (R85)
+      execPendingTimeoutMs: 60000  # Exec: user wait for agen
+      execMaxDurationMs: 28800000  # Exec: max active session 8h
+      execMaxConcurrentPerResource: 5  # Exec: max user WS per MS
+      logPendingTimeoutMs: 120000  # Log: user wait for agent
+      logIdleTimeoutMs: 7200000    # Log: idle session 2h
+      logMaxConcurrentPerResource: 5  # Log: max user WS per MS or fog
+      logTailMaxLines: 5000        # Log: tail query param max
+      replicaMaxConcurrentWs: 500    # Scale SLO per replica
+      drainTimeoutMs: 30000        # Graceful drain on SIGTERM/preStop
     relay:
       amqp:
         poolSize: 8
@@ -42,7 +42,7 @@ server:
         maxPendingMessages: 8192
         publishTimeoutMs: 5000
     ha:
-      crossReplicaRequiresAmqp: true   # Cross-replica exec/log relay requires AMQP router (R84)
+      crossReplicaRequiresAmqp: true   # Cross-replica exec/log relay requires AMQP router
       failFastOnRouterUnavailable: true
     security:
       maxConnectionsPerIp: 10
