@@ -26,7 +26,10 @@ const NatsReconcileTaskManager = require('../data/managers/nats-reconcile-task-m
 const ReconcileOutboxManager = require('../data/managers/reconcile-outbox-manager')
 const NatsUserManager = require('../data/managers/nats-user-manager')
 const ApplicationManager = require('../data/managers/application-manager')
+const NatsAccountRuleManager = require('../data/managers/nats-account-rule-manager')
+const NatsUserRuleManager = require('../data/managers/nats-user-rule-manager')
 const NatsAuthService = require('./nats-auth-service')
+const NatsSystemRules = require('../config/nats-system-rules')
 const ChangeTrackingService = require('./change-tracking-service')
 const MicroservicesService = require('./microservices-service')
 const FogManager = require('../data/managers/iofog-manager')
@@ -1499,10 +1502,14 @@ function _getAffectedFogUuidsForApplication (applicationId, natsInstanceByFog, m
   return out
 }
 
-function _getAffectedFogUuidsForAccountRule (accountRuleId, natsInstanceByFog, microservicesByFog, applicationsWithNatsById) {
+function _getAffectedFogUuidsForAccountRule (accountRuleId, natsInstanceByFog, microservicesByFog, applicationsWithNatsById, defaultAccountRuleId) {
   const appIds = []
   for (const [appId, app] of applicationsWithNatsById) {
-    if (app.natsRuleId === accountRuleId) appIds.push(appId)
+    if (app.natsRuleId === accountRuleId) {
+      appIds.push(appId)
+    } else if (defaultAccountRuleId && accountRuleId === defaultAccountRuleId && app.natsRuleId == null && app.natsAccess) {
+      appIds.push(appId)
+    }
   }
   const out = new Set()
   for (const [fogUuid, ni] of natsInstanceByFog) {
@@ -1519,7 +1526,19 @@ async function _getAffectedFogUuidsForUserRule (userRuleId, natsInstanceByFog, t
   for (const [fogUuid, ni] of natsInstanceByFog) {
     if (!ni.isLeaf) out.add(fogUuid)
   }
-  const microservicesWithRule = await MicroserviceManager.findAll({ natsRuleId: userRuleId }, transaction)
+  const userRule = await NatsUserRuleManager.findOne({ id: userRuleId }, transaction)
+  let microservicesWithRule = await MicroserviceManager.findAll({ natsRuleId: userRuleId }, transaction)
+  if (userRule && userRule.name === NatsSystemRules.MICROSERVICE_USER_RULE_NAME) {
+    const defaultRuleMicroservices = await MicroserviceManager.findAll({ natsAccess: true, natsRuleId: null }, transaction)
+    const seenMsUuids = new Set((microservicesWithRule || []).map((ms) => ms.uuid))
+    microservicesWithRule = [...(microservicesWithRule || [])]
+    for (const ms of defaultRuleMicroservices || []) {
+      if (!seenMsUuids.has(ms.uuid)) {
+        microservicesWithRule.push(ms)
+        seenMsUuids.add(ms.uuid)
+      }
+    }
+  }
   for (const ms of microservicesWithRule || []) {
     if (ms.iofogUuid) out.add(ms.iofogUuid)
   }
@@ -1568,13 +1587,23 @@ async function _reconcileResolverArtifactsOnceDb (options = {}, transaction) {
   let candidateFogs
   const fogFilter = Array.isArray(options.fogUuids) && options.fogUuids.length > 0 ? new Set(options.fogUuids) : null
   const reason = options.reason || 'auth-mutation'
+  const defaultAccountRule = await NatsAccountRuleManager.findOne({
+    name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME
+  }, transaction)
+  const defaultAccountRuleId = defaultAccountRule ? defaultAccountRule.id : null
   if (fogFilter) {
     candidateFogs = fogs.filter((fog) => fogFilter.has(fog.uuid))
   } else if ((reason === 'account-created' || reason === 'account-deleted') && options.applicationId != null) {
     const affected = _getAffectedFogUuidsForApplication(options.applicationId, natsInstanceByFog, microservicesByFog)
     candidateFogs = fogs.filter((f) => affected.has(f.uuid))
   } else if (reason === 'account-rule-updated' && options.accountRuleId != null) {
-    const affected = _getAffectedFogUuidsForAccountRule(options.accountRuleId, natsInstanceByFog, microservicesByFog, applicationsWithNatsById)
+    const affected = _getAffectedFogUuidsForAccountRule(
+      options.accountRuleId,
+      natsInstanceByFog,
+      microservicesByFog,
+      applicationsWithNatsById,
+      defaultAccountRuleId
+    )
     candidateFogs = fogs.filter((f) => affected.has(f.uuid))
   } else if (reason === 'user-rule-updated' && options.userRuleId != null) {
     const affected = await _getAffectedFogUuidsForUserRule(options.userRuleId, natsInstanceByFog, transaction)
@@ -1633,11 +1662,21 @@ async function _reconcileResolverArtifactsOnceDb (options = {}, transaction) {
 
     const fogMicroservices = microservicesByFog.get(fog.uuid) || []
     if (!skipReissueForAccountDeleted) {
+      const affectedAppIds = new Set()
       for (const microservice of fogMicroservices) {
         if (!microservice.natsAccess || !microservice.applicationId) continue
         const app = applicationsWithNatsById.get(microservice.applicationId)
         if (!app || !app.natsAccess) continue
+        affectedAppIds.add(microservice.applicationId)
         await NatsAuthServiceRuntime.reissueUserForMicroservice(microservice.uuid, transaction, reconcileTriggerOptions)
+      }
+      if (affectedAppIds.size > 0) {
+        const refreshedAccounts = await NatsAccountManager.findAll({
+          applicationId: { [Op.in]: [...affectedAppIds] }
+        }, transaction)
+        for (const account of refreshedAccounts || []) {
+          accountByAppId.set(account.applicationId, account)
+        }
       }
     }
 
@@ -1724,6 +1763,10 @@ async function _computeAffectedFogUuidsForEnqueue (options, transaction) {
     }
   }
   const fogUuids = fogs.map((f) => f.uuid)
+  const defaultAccountRule = await NatsAccountRuleManager.findOne({
+    name: NatsSystemRules.APPLICATION_ACCOUNT_RULE_NAME
+  }, transaction)
+  const defaultAccountRuleId = defaultAccountRule ? defaultAccountRule.id : null
   if (reason === 'server-deleted' || reason === 'cluster-routes-changed') {
     return []
   }
@@ -1742,7 +1785,13 @@ async function _computeAffectedFogUuidsForEnqueue (options, transaction) {
     return fogUuids.filter((u) => affected.has(u))
   }
   if (reason === 'account-rule-updated' && options.accountRuleId != null) {
-    const affected = _getAffectedFogUuidsForAccountRule(options.accountRuleId, natsInstanceByFog, microservicesByFog, applicationsWithNatsById)
+    const affected = _getAffectedFogUuidsForAccountRule(
+      options.accountRuleId,
+      natsInstanceByFog,
+      microservicesByFog,
+      applicationsWithNatsById,
+      defaultAccountRuleId
+    )
     return fogUuids.filter((u) => affected.has(u))
   }
   if (reason === 'user-rule-updated' && options.userRuleId != null) {
