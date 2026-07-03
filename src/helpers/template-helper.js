@@ -1,6 +1,7 @@
 const ApplicationManager = require('../data/managers/application-manager.js') // Using manager instead of service to avoid dependency loop
 const FogService = require('../services/iofog-service')
 const MicroservicesService = require('../services/microservices-service')
+const { runInTransaction } = require('../helpers/transaction-runner')
 
 // ninja2 like template engine
 const { Liquid } = require('../lib/liquidjs/liquid.node.cjs')
@@ -29,7 +30,10 @@ async function findApplicationHandler (name) {
     return this.context.environments._applicationsByName[name]
   }
 
-  const result = await ApplicationManager.findOnePopulated({ exclude: ['created_at', 'updated_at'] }, { fakeTransaction: true }) // TODO: Get a proper DB transaction
+  const result = await runInTransaction(
+    (transaction) => ApplicationManager.findOnePopulated({ exclude: ['created_at', 'updated_at'] }, transaction),
+    { label: 'template-find-application' }
+  )
   if (result) {
     result.microservices = (await MicroservicesService.listMicroservicesEndPoint({ applicationName: name }, false)).microservices
     if (this.context.environments._applicationsByName) {

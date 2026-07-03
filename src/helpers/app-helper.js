@@ -112,14 +112,13 @@ function checkTransaction (transaction) {
   if (isTest()) {
     return
   }
-  // TODO [when transactions concurrency issue fixed]: Remove '!transaction.fakeTransaction'
-  if (!transaction || (!(transaction instanceof Transaction) && !transaction.fakeTransaction)) {
+  if (!transaction || !(transaction instanceof Transaction)) {
     throw new Errors.TransactionError()
   }
 }
 
 function withTransaction (transaction, options = {}) {
-  if (transaction && !transaction.fakeTransaction) {
+  if (transaction) {
     options.transaction = transaction
   }
   return options

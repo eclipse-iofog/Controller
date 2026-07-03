@@ -2,6 +2,7 @@ const forge = require('node-forge')
 const k8sClient = require('./k8s-client')
 const BigNumber = require('bignumber.js')
 const logger = require('../logger')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 // Types for CA input
 const CA_TYPES = {
@@ -81,7 +82,7 @@ async function validateCA (cert, key) {
  * @param {string} name - Name of the secret
  * @returns {Promise<void>}
  */
-async function storeCA (ca, name) {
+async function storeCA (ca, name, transaction) {
   try {
     // Ensure data is in base64 format for TLS secrets
     const secretData = {
@@ -98,7 +99,7 @@ async function storeCA (ca, name) {
 
     // Use the secret service to store the CA
     const SecretService = require('../services/secret-service')
-    await SecretService.createSecretEndpoint(secret)
+    await SecretService.createSecretEndpoint(secret, transaction)
   } catch (error) {
     throw new Error(`Failed to store CA: ${error.message}`)
   }
@@ -107,15 +108,20 @@ async function storeCA (ca, name) {
 /**
  * Loads CA certificate and key from internal secret storage
  * @param {string} name - Name of the secret
+ * @param {import('sequelize').Transaction} [transaction]
  * @returns {Promise<CAStorage>}
  */
-async function loadCA (name) {
+async function loadCA (name, transaction) {
   try {
     // Use SecretManager to get the secret with decryption handling
     const SecretManager = require('../data/managers/secret-manager')
-    const fakeTransaction = { fakeTransaction: true }
 
-    const secret = await SecretManager.getSecret(name, fakeTransaction)
+    const secret = transaction
+      ? await SecretManager.getSecret(name, transaction)
+      : await runInTransaction(
+        (tx) => SecretManager.getSecret(name, tx),
+        { priority: PRIORITY_BACKGROUND, label: 'cert-load-ca' }
+      )
     if (!secret) {
       throw new Error(`TLS secret with name ${name} not found`)
     }
@@ -233,7 +239,7 @@ async function generateSelfSignedCA (subject, expiration = 5 * 365 * 24 * 60 * 6
 }
 
 // CA handling functions
-async function getCAFromK8sSecret (secretName) {
+async function getCAFromK8sSecret (secretName, transaction) {
   try {
     // Check that k8sClient is properly required and available
     if (!k8sClient) {
@@ -257,28 +263,37 @@ async function getCAFromK8sSecret (secretName) {
     try {
       // Use SecretManager to check if there's a local secret
       const SecretManager = require('../data/managers/secret-manager')
-      const localSecret = await SecretManager.findOne({ name: secretName }, { fakeTransaction: true })
+      const localSecret = transaction
+        ? await SecretManager.findOne({ name: secretName }, transaction)
+        : await runInTransaction(
+          (tx) => SecretManager.findOne({ name: secretName }, tx),
+          { priority: PRIORITY_BACKGROUND, label: 'cert-k8s-local-secret' }
+        )
 
-      // If no local secret, we need to create one
       if (!localSecret) {
-        // Store the CA in local secret storage
-        await storeCA({ cert, key }, secretName)
-        // Also create a certificate record
+        await storeCA({ cert, key }, secretName, transaction)
         const CertificateManager = require('../data/managers/certificate-manager')
         const forge = require('node-forge')
         const forgeCert = forge.pki.certificateFromPem(cert)
-        // Extract subject
         const subject = forgeCert.subject.getField('CN') ? forgeCert.subject.getField('CN').value : secretName
 
-        // Create CA record
-        await CertificateManager.createCertificateRecord({
+        const caRecord = {
           name: secretName,
           subject,
           isCA: true,
           validFrom: forgeCert.validity.notBefore,
           validTo: forgeCert.validity.notAfter,
           serialNumber: forgeCert.serialNumber
-        }, { fakeTransaction: true })
+        }
+
+        if (transaction) {
+          await CertificateManager.createCertificateRecord(caRecord, transaction)
+        } else {
+          await runInTransaction(
+            (tx) => CertificateManager.createCertificateRecord(caRecord, tx),
+            { priority: PRIORITY_BACKGROUND, label: 'cert-k8s-create-ca-record' }
+          )
+        }
       }
     } catch (dbError) {
       // Continue anyway - we at least have the cert/key
@@ -309,7 +324,7 @@ async function getCAFromDirect (ca) {
   }
 }
 
-async function getCAFromInput (ca) {
+async function getCAFromInput (ca, transaction) {
   if (!ca) {
     return null
   }
@@ -319,11 +334,11 @@ async function getCAFromInput (ca) {
 
   switch (caType) {
     case CA_TYPES.K8S_SECRET.toLowerCase():
-      return getCAFromK8sSecret(ca.secretName)
+      return getCAFromK8sSecret(ca.secretName, transaction)
     case CA_TYPES.DIRECT.toLowerCase():
       if (ca.secretName) {
         // If secretName is provided, load from internal secret storage
-        const caData = await loadCA(ca.secretName)
+        const caData = await loadCA(ca.secretName, transaction)
         return getCAFromDirect(caData)
       }
       return getCAFromDirect(ca)
@@ -345,7 +360,8 @@ async function generateCertificate ({
   hosts,
   expiration = 5 * 365 * 24 * 60 * 60 * 1000,
   ca,
-  isRenewal = false
+  isRenewal = false,
+  transaction
 }) {
   try {
     return await _generateCertificateBody({
@@ -354,7 +370,8 @@ async function generateCertificate ({
       hosts,
       expiration,
       ca,
-      isRenewal
+      isRenewal,
+      transaction
     })
   } catch (error) {
     logger.error(`Certificate generation failed for ${name}:`, error.message)
@@ -368,9 +385,10 @@ async function _generateCertificateBody ({
   hosts,
   expiration,
   ca,
-  isRenewal
+  isRenewal,
+  transaction
 }) {
-  const caCert = await getCAFromInput(ca)
+  const caCert = await getCAFromInput(ca, transaction)
 
   // Generate RSA key pair
   const keys = forge.pki.rsa.generateKeyPair(2048)
@@ -512,7 +530,7 @@ async function _generateCertificateBody ({
   if (isRenewal) {
     // For renewals, delete the existing secret first
     try {
-      await SecretService.deleteSecretEndpoint(name)
+      await SecretService.deleteSecretEndpoint(name, transaction)
     } catch (error) {
       // If the secret doesn't exist, that's okay, just continue
       if (error.name !== 'NotFoundError') {
@@ -522,7 +540,7 @@ async function _generateCertificateBody ({
   }
 
   // Create new secret with certificate data
-  await SecretService.createSecretEndpoint(secret)
+  await SecretService.createSecretEndpoint(secret, transaction)
 
   return {
     cert: certPem,

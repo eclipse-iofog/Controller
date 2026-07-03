@@ -7,6 +7,7 @@ const config = require('../../config')
 const db = require('../../data/models')
 const { getOidcSettings } = require('../../config/oidc')
 const { PASSWORD_CHANGE_REQUIRED_CLAIM } = require('../../services/auth-token-service')
+const { runInTransaction } = require('../../helpers/transaction-runner')
 
 const PASSWORD_CHANGE_ALLOWLIST = [
   { method: 'GET', path: '/api/v3/user/profile' },
@@ -318,17 +319,16 @@ function requirePermission (resource, verb) {
       const finalVerb = verb || routeDef.verb
       const resourceName = routeDef.resourceName
 
-      // Get database transaction (create a fake transaction for read-only operations)
-      const transaction = { fakeTransaction: true }
-
-      // Authorize
-      const authResult = await authorizer.authorize(
-        subjects,
-        routeDef.apiGroup || '',
-        finalResource,
-        finalVerb,
-        resourceName,
-        transaction
+      const authResult = await runInTransaction(
+        (transaction) => authorizer.authorize(
+          subjects,
+          routeDef.apiGroup || '',
+          finalResource,
+          finalVerb,
+          resourceName,
+          transaction
+        ),
+        { label: 'rbac-authorize' }
       )
 
       if (!authResult.allowed) {
@@ -410,17 +410,16 @@ async function authorizeWebSocket (req, token) {
       subjects: subjects
     })
 
-    // Get database transaction
-    const transaction = { fakeTransaction: true }
-
-    // Authorize
-    const authResult = await authorizer.authorize(
-      subjects,
-      routeDef.apiGroup || '',
-      routeDef.resource,
-      routeDef.verb,
-      routeDef.resourceName,
-      transaction
+    const authResult = await runInTransaction(
+      (transaction) => authorizer.authorize(
+        subjects,
+        routeDef.apiGroup || '',
+        routeDef.resource,
+        routeDef.verb,
+        routeDef.resourceName,
+        transaction
+      ),
+      { label: 'rbac-authorize-ws' }
     )
 
     logger.debug(`WebSocket authorization result:`, {
@@ -572,17 +571,16 @@ function protect (_roles) {
         return callback()
       }
 
-      // Get database transaction
-      const transaction = { fakeTransaction: true }
-
-      // Authorize
-      const authResult = await authorizer.authorize(
-        subjects,
-        routeDef.apiGroup || '',
-        routeDef.resource,
-        routeDef.verb,
-        routeDef.resourceName,
-        transaction
+      const authResult = await runInTransaction(
+        (transaction) => authorizer.authorize(
+          subjects,
+          routeDef.apiGroup || '',
+          routeDef.resource,
+          routeDef.verb,
+          routeDef.resourceName,
+          transaction
+        ),
+        { label: 'rbac-protect' }
       )
 
       if (!authResult.allowed) {

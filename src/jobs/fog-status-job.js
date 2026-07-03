@@ -1,4 +1,5 @@
 const TransactionDecorator = require('../decorators/transaction-decorator')
+const { PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 const FogManager = require('../data/managers/iofog-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
@@ -14,7 +15,10 @@ const scheduleTime = Config.get('settings.fogStatusUpdateInterval') * 1000
 
 async function run () {
   try {
-    const _updateFogsConnectionStatus = TransactionDecorator.generateTransaction(updateFogsConnectionStatus)
+    const _updateFogsConnectionStatus = TransactionDecorator.generateTransaction(
+      updateFogsConnectionStatus,
+      { priority: PRIORITY_BACKGROUND, label: 'fogStatus.updateConnection' }
+    )
     await _updateFogsConnectionStatus()
   } catch (error) {
     logger.error('Error during fog status update:', error)

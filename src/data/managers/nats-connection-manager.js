@@ -22,8 +22,9 @@ class NatsConnectionManager extends BaseManager {
           required: true
         }
       ],
-      where
-    }, { transaction })
+      where,
+      transaction
+    })
   }
 }
 

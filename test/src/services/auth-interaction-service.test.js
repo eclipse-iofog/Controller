@@ -149,7 +149,7 @@ describe('Auth interaction service', () => {
 
       const req = { headers: {} }
       const res = {}
-      const completeResult = await AuthInteractionService.complete($interactionUid, req, res, false)
+      const completeResult = await AuthInteractionService.complete($interactionUid, req, res)
       expect(completeResult.step).to.equal('complete')
     })
 
@@ -167,7 +167,7 @@ describe('Auth interaction service', () => {
       }, false)
 
       try {
-        await AuthInteractionService.complete($interactionUid, { headers: {} }, {}, false)
+        await AuthInteractionService.complete($interactionUid, { headers: {} }, {})
         expect.fail('expected completion to fail')
       } catch (error) {
         expect(error).to.be.instanceOf(Errors.ValidationError)
@@ -266,7 +266,7 @@ describe('Auth interaction service', () => {
 
       const req = { headers: {} }
       const res = {}
-      const completeResult = await AuthInteractionService.complete($interactionUid, req, res, false)
+      const completeResult = await AuthInteractionService.complete($interactionUid, req, res)
 
       expect(completeResult.step).to.equal('complete')
       expect(completeResult.redirectTo).to.equal('https://controller.test/oidc/auth/test/resume')

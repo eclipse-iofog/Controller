@@ -2,11 +2,12 @@ const ClusterControllerService = require('../services/cluster-controller-service
 const FogPlatformService = require('../services/fog-platform-service')
 const ServicePlatformService = require('../services/service-platform-service')
 const FogPlatformReconcileTaskManager = require('../data/managers/fog-platform-reconcile-task-manager')
+const FogPlatformStatusManager = require('../data/managers/fog-platform-status-manager')
 const ServicePlatformReconcileTaskManager = require('../data/managers/service-platform-reconcile-task-manager')
 const ServiceManager = require('../data/managers/service-manager')
-const databaseProvider = require('../data/providers/database-factory')
 const Config = require('../config')
 const logger = require('../logger')
+const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 const scheduleTime = (Config.get('settings.fogPlatformReconcileWorkerIntervalSeconds', 3)) * 1000
 
@@ -19,6 +20,34 @@ async function run () {
   } finally {
     setTimeout(run, scheduleTime)
   }
+}
+
+async function isFogDeleteReconcileTask (task, transaction) {
+  if (task.reason === 'delete') {
+    return true
+  }
+  const status = await FogPlatformStatusManager.getParsedStatus(task.fogUuid, transaction)
+  return !!(status && status.phase === 'Deleting')
+}
+
+async function runFogReconcileForTask (task) {
+  if (task.reason === 'delete') {
+    return FogPlatformService.reconcileFogDelete(task.fogUuid)
+  }
+
+  const status = await runInTransaction(
+    (transaction) => FogPlatformStatusManager.getParsedStatus(task.fogUuid, transaction),
+    { priority: PRIORITY_BACKGROUND, label: 'platformReconcile.fogDeleteCheck' }
+  )
+  if (status && status.phase === 'Deleting') {
+    return FogPlatformService.reconcileFogDelete(task.fogUuid)
+  }
+
+  const result = await FogPlatformService.reconcileFog(task.fogUuid)
+  if (result && result.skipped && result.reason === 'deleting') {
+    return FogPlatformService.reconcileFogDelete(task.fogUuid)
+  }
+  return result
 }
 
 async function processNextFogTask () {
@@ -46,9 +75,7 @@ async function processNextFogTask () {
       reason: task.reason
     })
 
-    const result = task.reason === 'delete'
-      ? await FogPlatformService.reconcileFogDelete(task.fogUuid)
-      : await FogPlatformService.reconcileFog(task.fogUuid)
+    const result = await runFogReconcileForTask(task)
 
     logger.info(`Fog platform reconcile task ${task.id} completed`, {
       fogUuid: task.fogUuid,
@@ -56,12 +83,12 @@ async function processNextFogTask () {
       result
     })
 
-    await databaseProvider.sequelize.transaction(async (transaction) => {
+    await runInTransaction(async (transaction) => {
       await FogPlatformReconcileTaskManager.getEntity().destroy({
         where: { id: task.id },
         transaction
       })
-    })
+    }, { priority: PRIORITY_BACKGROUND, label: 'platformReconcile.fogTaskComplete' })
   } catch (error) {
     logger.error({
       err: error,
@@ -116,12 +143,12 @@ async function processNextServiceTask () {
     })
 
     if (task.reason !== 'delete') {
-      await databaseProvider.sequelize.transaction(async (transaction) => {
+      await runInTransaction(async (transaction) => {
         await ServicePlatformReconcileTaskManager.getEntity().destroy({
           where: { id: task.id },
           transaction
         })
-      })
+      }, { priority: PRIORITY_BACKGROUND, label: 'platformReconcile.serviceTaskComplete' })
     }
   } catch (error) {
     logger.error({
@@ -146,15 +173,21 @@ async function processNextServiceTask () {
 async function handleFogTaskFailure (task, error) {
   const errorMessage = error.message || String(error)
 
-  await databaseProvider.sequelize.transaction(async (transaction) => {
+  await runInTransaction(async (transaction) => {
     await FogPlatformReconcileTaskManager.recordFogTaskFailure(
       task.id,
       errorMessage,
       { attempts: task.attempts },
       transaction
     )
-    await FogPlatformService.markReconcileFailed(task.fogUuid, error, transaction)
-  })
+    if (await isFogDeleteReconcileTask(task, transaction)) {
+      await FogPlatformStatusManager.setPhase(task.fogUuid, 'Deleting', {
+        lastError: errorMessage
+      }, transaction)
+    } else {
+      await FogPlatformService.markReconcileFailed(task.fogUuid, error, transaction)
+    }
+  }, { priority: PRIORITY_BACKGROUND, label: 'platformReconcile.fogTaskFailure' })
 }
 
 async function handleServiceTaskFailure (task, error) {
@@ -163,7 +196,7 @@ async function handleServiceTaskFailure (task, error) {
   const nextAttempts = (task.attempts != null ? task.attempts : 0) + 1
   const isPermanent = nextAttempts >= maxAttempts
 
-  await databaseProvider.sequelize.transaction(async (transaction) => {
+  await runInTransaction(async (transaction) => {
     await ServicePlatformReconcileTaskManager.recordServiceTaskFailure(
       task.id,
       errorMessage,
@@ -181,11 +214,13 @@ async function handleServiceTaskFailure (task, error) {
         transaction
       )
     }
-  })
+  }, { priority: PRIORITY_BACKGROUND, label: 'platformReconcile.serviceTaskFailure' })
 }
 
 module.exports = {
   run,
   processNextFogTask,
-  processNextServiceTask
+  processNextServiceTask,
+  runFogReconcileForTask,
+  isFogDeleteReconcileTask
 }

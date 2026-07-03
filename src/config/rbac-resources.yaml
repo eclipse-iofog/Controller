@@ -248,6 +248,53 @@ resources:
           GET: [get]
           PUT: [update]
 
+  networkTopology:
+    basePath: /api/v3/network-topology
+    routes:
+      - path: /api/v3/network-topology/summary
+        methods:
+          GET: [list]
+      - path: /api/v3/network-topology/router/overview
+        methods:
+          GET: [list]
+      - path: /api/v3/network-topology/nats/overview
+        methods:
+          GET: [list]
+      - path: /api/v3/network-topology/router/nodes
+        methods:
+          GET: [list]
+      - path: /api/v3/network-topology/nats/nodes
+        methods:
+          GET: [list]
+      - path: /api/v3/network-topology/router/nodes/:id
+        methods:
+          GET: [get]
+        resourceNameParam: id
+      - path: /api/v3/network-topology/nats/nodes/:id
+        methods:
+          GET: [get]
+        resourceNameParam: id
+      - path: /api/v3/network-topology/router/nodes/:id/connections
+        methods:
+          GET: [get]
+        resourceNameParam: id
+      - path: /api/v3/network-topology/nats/nodes/:id/connections
+        methods:
+          GET: [get]
+        resourceNameParam: id
+      - path: /api/v3/network-topology/router/connections
+        methods:
+          GET: [list]
+      - path: /api/v3/network-topology/nats/connections
+        methods:
+          GET: [list]
+      - path: /api/v3/network-topology/router/subgraph
+        methods:
+          GET: [list]
+      - path: /api/v3/network-topology/nats/subgraph
+        methods:
+          GET: [list]
+
   # NATS (granular resources)
   natsOperator:
     basePath: /api/v3/nats

@@ -18,6 +18,8 @@ const {
 } = require('../config/oidc')
 const { getPublicUrl, getConsoleUrl } = require('../config/auth-urls')
 const { getSessionStoreTtlMs } = require('../config/auth-session-store')
+const { withTransaction } = require('../helpers/app-helper')
+const { runInTransaction, PRIORITY_INTERACTIVE } = require('../helpers/transaction-runner')
 const AuthTokenService = require('./auth-token-service')
 
 const OAUTH_SESSION_KEY = 'controllerOauth'
@@ -93,7 +95,7 @@ function linkExternalUserByEmail (tokenResponse) {
   return email
 }
 
-async function resolveEmbeddedUserFromTokenResponse (tokenResponse) {
+async function resolveEmbeddedUserFromTokenResponse (tokenResponse, transaction) {
   if (!tokenResponse.id_token) {
     throw new Errors.AuthenticationError('OAuth response missing id_token')
   }
@@ -104,13 +106,13 @@ async function resolveEmbeddedUserFromTokenResponse (tokenResponse) {
     throw new Errors.AuthenticationError('OAuth response missing subject')
   }
 
-  const user = await db.AuthUser.findByPk(userId, {
+  const user = await db.AuthUser.findByPk(userId, withTransaction(transaction, {
     include: [{
       model: db.AuthGroup,
       as: 'groups',
       through: { attributes: [] }
     }]
-  })
+  }))
 
   if (!user || user.deletedAt) {
     throw new Errors.AuthenticationError('OAuth user not found')
@@ -173,13 +175,15 @@ async function callback (req) {
   const consoleUrl = getConsoleUrl()
 
   if (getAuthMode() === 'embedded') {
-    const user = await resolveEmbeddedUserFromTokenResponse(tokenResponse)
-    const groupNames = (user.groups || []).map((group) => group.name)
-    const tokens = await AuthTokenService.issueTokenPair(user, groupNames)
-    return {
-      tokens,
-      consoleUrl
-    }
+    return runInTransaction(async (transaction) => {
+      const user = await resolveEmbeddedUserFromTokenResponse(tokenResponse, transaction)
+      const groupNames = (user.groups || []).map((group) => group.name)
+      const tokens = await AuthTokenService.issueTokenPair(user, groupNames, transaction)
+      return {
+        tokens,
+        consoleUrl
+      }
+    }, { priority: PRIORITY_INTERACTIVE, label: 'auth.oauth.callback.embedded' })
   }
 
   linkExternalUserByEmail(tokenResponse)

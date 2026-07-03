@@ -85,9 +85,7 @@ class EventManager extends BaseManager {
       offset: Number(offset) // Ensure it's a number
     }
 
-    if (!transaction.fakeTransaction) {
-      options.transaction = transaction
-    }
+    options.transaction = transaction
 
     const { count, rows } = await Event.findAndCountAll(options)
 
@@ -126,9 +124,7 @@ class EventManager extends BaseManager {
     }
     // If days = 0, where clause is empty, so all events will be deleted
 
-    if (!transaction.fakeTransaction) {
-      options.transaction = transaction
-    }
+    options.transaction = transaction
 
     const deletedCount = await Event.destroy(options)
     return deletedCount

@@ -1,12 +1,17 @@
 const BaseManager = require('./base-manager')
 const models = require('../models')
 const config = require('../../config')
-const databaseProvider = require('../providers/database-factory')
 const { Op } = require('sequelize')
 const { FOG_PLATFORM_REASONS } = require('../../schemas/fog-platform-spec')
 const { withDbBusyRetry } = require('../../helpers/db-busy-retry')
+const { claimNextReconcileTask } = require('../../helpers/db-dialect')
 
 const ACTIVE_STATUSES = ['pending', 'in_progress']
+
+const FOG_TASK_SELECT_SQL = `SELECT id, fog_uuid AS fogUuid, reason, spec_generation AS specGeneration,
+  status, leader_uuid AS leaderUuid, claimed_at AS claimedAt, next_attempt_at AS nextAttemptAt,
+  attempts, last_error AS lastError, created_at AS createdAt, updated_at AS updatedAt
+  FROM :table`
 
 class FogPlatformReconcileTaskManager extends BaseManager {
   getEntity () {
@@ -18,12 +23,6 @@ class FogPlatformReconcileTaskManager extends BaseManager {
   }
 
   async enqueueFogPlatformReconcileTask (options = {}, transaction) {
-    if (transaction.fakeTransaction) {
-      return databaseProvider.sequelize.transaction((t) =>
-        this.enqueueFogPlatformReconcileTask(options, t)
-      )
-    }
-
     const fogUuid = options.fogUuid
     if (!fogUuid) {
       throw new Error('fogUuid is required to enqueue fog platform reconcile task')
@@ -42,6 +41,20 @@ class FogPlatformReconcileTaskManager extends BaseManager {
     })
 
     if (existing) {
+      if (reason === 'delete' && existing.status === 'in_progress') {
+        await Entity.update({
+          reason: 'delete',
+          specGeneration,
+          status: 'pending',
+          leaderUuid: null,
+          claimedAt: null,
+          nextAttemptAt: null,
+          attempts: 0,
+          lastError: null
+        }, { where: { id: existing.id }, transaction })
+        return this.findOne({ id: existing.id }, transaction)
+      }
+
       const update = { specGeneration }
       if (reason === 'delete' || existing.reason !== 'delete') {
         update.reason = reason
@@ -68,50 +81,24 @@ class FogPlatformReconcileTaskManager extends BaseManager {
   }
 
   async _claimNextFogTaskInternal (controllerUuid, stalenessSeconds) {
-    const sequelize = databaseProvider.sequelize
     const T = stalenessSeconds != null
       ? stalenessSeconds
       : config.get('settings.fogPlatformReconcileTaskStalenessSeconds', 300)
+    const deleteT = config.get('settings.fogPlatformDeleteReconcileTaskStalenessSeconds', 60)
     const staleThreshold = new Date(Date.now() - T * 1000)
-    const Entity = this.getEntity()
+    const deleteStaleThreshold = new Date(Date.now() - deleteT * 1000)
     const now = new Date()
 
-    return sequelize.transaction(async (transaction) => {
-      const task = await Entity.findOne({
-        where: {
-          status: { [Op.in]: ACTIVE_STATUSES },
-          [Op.or]: [
-            { nextAttemptAt: null },
-            { nextAttemptAt: { [Op.lte]: now } }
-          ],
-          [Op.and]: [{
-            [Op.or]: [
-              { leaderUuid: null },
-              { claimedAt: { [Op.lt]: staleThreshold } }
-            ]
-          }]
-        },
-        order: [['id', 'ASC']],
-        limit: 1,
-        transaction
-      })
-      if (!task) return null
-
-      const [affected] = await Entity.update(
-        { leaderUuid: controllerUuid, claimedAt: new Date(), status: 'in_progress' },
-        {
-          where: {
-            id: task.id,
-            [Op.or]: [
-              { leaderUuid: null },
-              { claimedAt: { [Op.lt]: staleThreshold } }
-            ]
-          },
-          transaction
-        }
-      )
-      if (affected === 0) return null
-      return this.findOne({ id: task.id }, transaction)
+    return claimNextReconcileTask({
+      Entity: this.getEntity(),
+      controllerUuid,
+      staleThreshold,
+      deleteStaleThreshold,
+      now,
+      activeStatuses: ACTIVE_STATUSES,
+      includeNextAttemptFilter: true,
+      selectSql: FOG_TASK_SELECT_SQL,
+      reloadTask: (id, transaction) => this.findOne({ id }, transaction)
     })
   }
 

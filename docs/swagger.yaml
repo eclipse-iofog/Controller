@@ -726,10 +726,20 @@ paths:
     get:
       tags:
         - Cluster
-      summary: Lists all cluster controllers
+      summary: Lists cluster controllers (active replicas by default)
       operationId: listClusterControllers
       security:
         - authToken: []
+      parameters:
+        - in: query
+          name: includeInactive
+          description: >-
+            When true, include inactive controller rows (historical replicas from
+            past rollouts). Default false returns only active replicas.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Success
@@ -2767,14 +2777,14 @@ paths:
 
         Pairing: user connects directly via WebSocket; Controller creates a per-session row
         in `MicroserviceExecSessions` and relays STDIN/STDOUT/STDERR by `sessionId`.
-        No prior REST enable step is required (Plan 17). Max **3** concurrent exec sessions
+        No prior REST enable step is required (Plan 17). Max **5** concurrent exec sessions
         per microservice (close code **1008** when quota exceeded).
 
         On connect, Controller sends **ACTIVATION** (type 5) with JSON
         `{ sessionId, microserviceUuid }` in the `data` field and top-level `sessionId`,
         followed by STDERR "waiting for agent…". Relay frames use `execId` equal to `sessionId`.
 
-        **HA (R112):** Multi-replica deployments require a **relay backend** selected at startup by **`nats.enabled`**: AMQP router queues when `false` (default), NATS Core pub/sub on the platform hub when `true`. Cross-replica sessions fail fast with close code **1013** when the active relay backend is unavailable. See `docs/operations/ws-sessions.md`.
+        **HA:** Multi-replica deployments require a **relay backend** selected at startup by **`nats.enabled`**: AMQP router queues when `false` (default), NATS Core pub/sub on the platform hub when `true`. Cross-replica sessions fail fast with close code **1013** when the active relay backend is unavailable. See `docs/operations/ws-sessions.md`.
 
         See `#/components/schemas/WsExecMessageTypes` and `#/components/schemas/WsCloseCodes`.
       operationId: userMicroserviceExecWebSocket
@@ -2830,7 +2840,7 @@ paths:
       description: |
         Upgrades to binary MessagePack log stream (agent → user after pairing).
 
-        **RBAC:** `logs`. Max **3** concurrent user log WS per microservice.
+        **RBAC:** `logs`. Max **5** concurrent user log WS per microservice.
 
         Query params control tail behaviour (see parameters). Live relay only — no log persistence.
       operationId: userMicroserviceLogsWebSocket
@@ -2922,7 +2932,7 @@ paths:
       tags:
         - WebSocketSessions
       summary: User fog (node) log streaming WebSocket
-      description: Node-level logs; **RBAC** `systemLogs`. Max **3** concurrent sessions per fog.
+      description: Node-level logs; **RBAC** `systemLogs`. Max **5** concurrent sessions per fog.
       operationId: userFogLogsWebSocket
       parameters:
         - in: path
@@ -6056,6 +6066,406 @@ paths:
           description: RoleBinding Not Found
         "500":
           description: Internal Server Error
+  /network-topology/summary:
+    get:
+      tags:
+        - NetworkTopology
+      summary: Network topology summary counts
+      operationId: getNetworkTopologySummary
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkTopologySummaryResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+  /network-topology/router/overview:
+    get:
+      tags:
+        - NetworkTopology
+      summary: Router topology overview
+      operationId: getRouterTopologyOverview
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouterTopologyOverviewResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+  /network-topology/nats/overview:
+    get:
+      tags:
+        - NetworkTopology
+      summary: NATS topology overview
+      operationId: getNatsTopologyOverview
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NatsTopologyOverviewResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+  /network-topology/router/nodes:
+    get:
+      tags:
+        - NetworkTopology
+      summary: List router topology nodes
+      operationId: listRouterTopologyNodes
+      security:
+        - authToken: []
+      parameters:
+        - $ref: "#/components/parameters/NetworkTopologyLimitParam"
+        - $ref: "#/components/parameters/NetworkTopologyOffsetParam"
+        - $ref: "#/components/parameters/NetworkTopologyRouterRoleParam"
+        - $ref: "#/components/parameters/NetworkTopologyDeploymentTargetParam"
+        - $ref: "#/components/parameters/NetworkTopologySearchParam"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouterTopologyNodeListResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+  /network-topology/nats/nodes:
+    get:
+      tags:
+        - NetworkTopology
+      summary: List NATS topology nodes
+      operationId: listNatsTopologyNodes
+      security:
+        - authToken: []
+      parameters:
+        - $ref: "#/components/parameters/NetworkTopologyLimitParam"
+        - $ref: "#/components/parameters/NetworkTopologyOffsetParam"
+        - $ref: "#/components/parameters/NetworkTopologyNatsRoleParam"
+        - $ref: "#/components/parameters/NetworkTopologyDeploymentTargetParam"
+        - $ref: "#/components/parameters/NetworkTopologySearchParam"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NatsTopologyNodeListResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+  /network-topology/router/nodes/{id}:
+    get:
+      tags:
+        - NetworkTopology
+      summary: Get a router topology node
+      operationId: getRouterTopologyNode
+      security:
+        - authToken: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Router node id (`default-router` or agent iofog UUID)
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouterTopologyNodeDetail"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+  /network-topology/nats/nodes/{id}:
+    get:
+      tags:
+        - NetworkTopology
+      summary: Get a NATS topology node
+      operationId: getNatsTopologyNode
+      security:
+        - authToken: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: NATS node id (`default-nats-hub` or agent iofog UUID)
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NatsTopologyNodeDetail"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+  /network-topology/router/nodes/{id}/connections:
+    get:
+      tags:
+        - NetworkTopology
+      summary: Get router node connections
+      operationId: getRouterTopologyNodeConnections
+      security:
+        - authToken: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopologyNodeConnectionsResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+  /network-topology/nats/nodes/{id}/connections:
+    get:
+      tags:
+        - NetworkTopology
+      summary: Get NATS node connections
+      operationId: getNatsTopologyNodeConnections
+      security:
+        - authToken: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopologyNodeConnectionsResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+  /network-topology/router/connections:
+    get:
+      tags:
+        - NetworkTopology
+      summary: List router topology connections
+      operationId: listRouterTopologyConnections
+      security:
+        - authToken: []
+      parameters:
+        - $ref: "#/components/parameters/NetworkTopologyLimitParam"
+        - $ref: "#/components/parameters/NetworkTopologyOffsetParam"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouterTopologyConnectionListResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+  /network-topology/nats/connections:
+    get:
+      tags:
+        - NetworkTopology
+      summary: List NATS topology connections
+      operationId: listNatsTopologyConnections
+      security:
+        - authToken: []
+      parameters:
+        - $ref: "#/components/parameters/NetworkTopologyLimitParam"
+        - $ref: "#/components/parameters/NetworkTopologyOffsetParam"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NatsTopologyConnectionListResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+  /network-topology/router/subgraph:
+    get:
+      tags:
+        - NetworkTopology
+      summary: Get router topology subgraph
+      operationId: getRouterTopologySubgraph
+      security:
+        - authToken: []
+      parameters:
+        - in: query
+          name: center
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: depth
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2
+            default: 1
+        - $ref: "#/components/parameters/NetworkTopologyLimitParam"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopologySubgraphResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+  /network-topology/nats/subgraph:
+    get:
+      tags:
+        - NetworkTopology
+      summary: Get NATS topology subgraph
+      operationId: getNatsTopologySubgraph
+      security:
+        - authToken: []
+      parameters:
+        - in: query
+          name: center
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: depth
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2
+            default: 1
+        - $ref: "#/components/parameters/NetworkTopologyLimitParam"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopologySubgraphResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+  /router:
+    get:
+      tags:
+        - Router
+      summary: Gets the default network router configuration
+      operationId: getDefaultRouter
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          headers:
+            X-Timestamp:
+              description: FogController server timestamp
+              schema:
+                type: number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DefaultRouterResponse"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Default router not found
+        "500":
+          description: Internal Server Error
+    put:
+      tags:
+        - Router
+      summary: Creates or updates the default network router
+      operationId: upsertDefaultRouter
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DefaultRouterUpsertRequest"
+      responses:
+        "200":
+          description: Success
+          headers:
+            X-Timestamp:
+              description: FogController server timestamp
+              schema:
+                type: number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DefaultRouterRecordResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
   /serviceaccounts:
     get:
       tags:
@@ -7056,6 +7466,10 @@ tags:
     description: Manage RBAC roles
   - name: RoleBindings
     description: Manage RBAC role bindings
+  - name: Router
+    description: Manage the default router configuration
+  - name: NetworkTopology
+    description: Read-only router and NATS network topology for visualization
   - name: ServiceAccounts
     description: Manage RBAC service accounts
 servers:
@@ -7070,6 +7484,51 @@ components:
       type: http
       scheme: bearer
       description: Edgelet fog provisioning token (agent routes)
+  parameters:
+    NetworkTopologyLimitParam:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+        default: 100
+    NetworkTopologyOffsetParam:
+      in: query
+      name: offset
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    NetworkTopologyDeploymentTargetParam:
+      in: query
+      name: deploymentTarget
+      required: false
+      schema:
+        type: string
+        enum: [kubernetes, remote, edgelet]
+    NetworkTopologySearchParam:
+      in: query
+      name: search
+      required: false
+      schema:
+        type: string
+    NetworkTopologyRouterRoleParam:
+      in: query
+      name: role
+      required: false
+      schema:
+        type: string
+        enum: [default, edge, interior]
+    NetworkTopologyNatsRoleParam:
+      in: query
+      name: role
+      required: false
+      schema:
+        type: string
+        enum: [hub, leaf, server]
   responses:
     AuthRateLimitExceeded:
       description: Too many authentication requests from this IP address
@@ -7160,7 +7619,7 @@ components:
         codes:
           - { code: 1000, reason: Normal closure, when: Session ended cleanly }
           - { code: 1001, reason: Server draining, when: SIGTERM / k8s preStop (R85) }
-          - { code: 1008, reason: Policy violation, when: RBAC deny, exec/log quota (3 per MS), invalid tail params, pending timeout, sessionId mismatch }
+          - { code: 1008, reason: Policy violation, when: RBAC deny, exec/log quota (5 per MS), invalid tail params, pending timeout, sessionId mismatch }
           - { code: 1013, reason: Router unavailable for cross-replica session, when: AMQP router down (R84) }
     EventRecord:
       type: object
@@ -10420,3 +10879,297 @@ components:
         host:
           type: string
       additionalProperties: false
+    DefaultRouterResponse:
+      type: object
+      properties:
+        host:
+          type: string
+        messagingPort:
+          type: integer
+        edgeRouterPort:
+          type: integer
+          nullable: true
+        interRouterPort:
+          type: integer
+          nullable: true
+      required:
+        - host
+        - messagingPort
+    DefaultRouterUpsertRequest:
+      type: object
+      required:
+        - host
+      properties:
+        host:
+          type: string
+        messagingPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          description: Defaults to 5671 when omitted
+        edgeRouterPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          description: Defaults to 45671 when omitted
+        interRouterPort:
+          type: integer
+          minimum: 1
+          maximum: 65535
+          description: Defaults to 55671 when omitted
+      additionalProperties: true
+    DefaultRouterRecordResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        isEdge:
+          type: boolean
+        messagingPort:
+          type: integer
+        edgeRouterPort:
+          type: integer
+          nullable: true
+        interRouterPort:
+          type: integer
+          nullable: true
+        host:
+          type: string
+        isDefault:
+          type: boolean
+        iofogUuid:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - isEdge
+        - messagingPort
+        - host
+        - isDefault
+    NetworkTopologyDeploymentTarget:
+      type: string
+      enum: [kubernetes, remote, edgelet]
+    NetworkTopologyConnection:
+      type: object
+      properties:
+        id:
+          type: integer
+        source:
+          type: string
+        dest:
+          type: string
+      required: [id, source, dest]
+    NetworkTopologyNodeBase:
+      type: object
+      properties:
+        id:
+          type: string
+        iofogUuid:
+          type: string
+          nullable: true
+        fogName:
+          type: string
+          nullable: true
+        host:
+          type: string
+          nullable: true
+        deploymentTarget:
+          $ref: "#/components/schemas/NetworkTopologyDeploymentTarget"
+        displayName:
+          type: string
+        role:
+          type: string
+        mode:
+          type: string
+      required: [id, deploymentTarget, displayName, role, mode]
+    RouterTopologyNode:
+      allOf:
+        - $ref: "#/components/schemas/NetworkTopologyNodeBase"
+    NatsTopologyNode:
+      allOf:
+        - $ref: "#/components/schemas/NetworkTopologyNodeBase"
+    RouterTopologyNodeDetail:
+      allOf:
+        - $ref: "#/components/schemas/RouterTopologyNode"
+        - type: object
+          properties:
+            messagingPort:
+              type: integer
+            edgeRouterPort:
+              type: integer
+              nullable: true
+            interRouterPort:
+              type: integer
+              nullable: true
+            isDefault:
+              type: boolean
+    NatsTopologyNodeDetail:
+      allOf:
+        - $ref: "#/components/schemas/NatsTopologyNode"
+        - type: object
+          properties:
+            serverPort:
+              type: integer
+              nullable: true
+            leafPort:
+              type: integer
+              nullable: true
+            clusterPort:
+              type: integer
+              nullable: true
+            mqttPort:
+              type: integer
+              nullable: true
+            httpPort:
+              type: integer
+              nullable: true
+            jsStorageSize:
+              type: string
+              nullable: true
+            jsMemoryStoreSize:
+              type: string
+              nullable: true
+            isHub:
+              type: boolean
+    NetworkTopologySummaryResponse:
+      type: object
+      properties:
+        controlPlane:
+          type: string
+          enum: [kubernetes, remote]
+        router:
+          type: object
+          properties:
+            totalNodes:
+              type: integer
+            totalConnections:
+              type: integer
+            byRole:
+              type: object
+              additionalProperties:
+                type: integer
+        nats:
+          type: object
+          properties:
+            totalNodes:
+              type: integer
+            totalConnections:
+              type: integer
+            byRole:
+              type: object
+              additionalProperties:
+                type: integer
+    TopologySpokeGroup:
+      type: object
+      properties:
+        upstreamOf:
+          type: string
+        role:
+          type: string
+        count:
+          type: integer
+      required: [upstreamOf, role, count]
+    RouterTopologyOverviewResponse:
+      type: object
+      properties:
+        defaultNode:
+          $ref: "#/components/schemas/RouterTopologyNode"
+          nullable: true
+        interiorNodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouterTopologyNode"
+        spokeGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopologySpokeGroup"
+    NatsTopologyOverviewResponse:
+      type: object
+      properties:
+        defaultNode:
+          $ref: "#/components/schemas/NatsTopologyNode"
+          nullable: true
+        serverNodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/NatsTopologyNode"
+        spokeGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopologySpokeGroup"
+    PaginatedListMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+      required: [total, limit, offset]
+    RouterTopologyNodeListResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedListMeta"
+        - type: object
+          properties:
+            nodes:
+              type: array
+              items:
+                $ref: "#/components/schemas/RouterTopologyNode"
+    NatsTopologyNodeListResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedListMeta"
+        - type: object
+          properties:
+            nodes:
+              type: array
+              items:
+                $ref: "#/components/schemas/NatsTopologyNode"
+    RouterTopologyConnectionListResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedListMeta"
+        - type: object
+          properties:
+            connections:
+              type: array
+              items:
+                $ref: "#/components/schemas/NetworkTopologyConnection"
+    NatsTopologyConnectionListResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedListMeta"
+        - type: object
+          properties:
+            connections:
+              type: array
+              items:
+                $ref: "#/components/schemas/NetworkTopologyConnection"
+    TopologyNodeConnectionsResponse:
+      type: object
+      properties:
+        upstream:
+          type: array
+          items:
+            $ref: "#/components/schemas/NetworkTopologyConnection"
+        downstream:
+          type: array
+          items:
+            $ref: "#/components/schemas/NetworkTopologyConnection"
+    TopologySubgraphResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/RouterTopologyNode"
+              - $ref: "#/components/schemas/NatsTopologyNode"
+        connections:
+          type: array
+          items:
+            $ref: "#/components/schemas/NetworkTopologyConnection"

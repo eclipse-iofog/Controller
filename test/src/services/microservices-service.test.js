@@ -22,6 +22,7 @@ const MicroserviceCdiDevManager = require('../../../src/data/managers/microservi
 const MicroserviceCapAddManager = require('../../../src/data/managers/microservice-cap-add-manager')
 const MicroserviceCapDropManager = require('../../../src/data/managers/microservice-cap-drop-manager')
 const MicroserviceHealthCheckManager = require('../../../src/data/managers/microservice-healthcheck-manager')
+const VolumeMountService = require('../../../src/services/volume-mount-service')
 const RbacRoleManager = require('../../../src/data/managers/rbac-role-manager')
 const RbacServiceAccountManager = require('../../../src/data/managers/rbac-service-account-manager')
 const NatsAuthService = require('../../../src/services/nats-auth-service')
@@ -343,6 +344,45 @@ describe('Microservices Service', () => {
       it('rejects updates', () => expect($subject).to.be.rejectedWith(Errors.ValidationError))
     })
 
+    context('when disabling natsAccess via natsConfig', () => {
+      const natsEnabled = buildMicroserviceRecord({
+        uuid: msvcUuid,
+        name: 'immutable-name',
+        catalogItem: null,
+        natsAccess: true,
+        natsCredsSecretName: 'nats-creds-msvc'
+      })
+
+      def('updateData', () => ({ natsConfig: { natsAccess: false } }))
+
+      beforeEach(() => {
+        MicroserviceManager.findOne.resolves(natsEnabled)
+        MicroserviceManager.findOneWithCategory.resolves({
+          ...natsEnabled,
+          catalogItem: null,
+          getPorts: () => Promise.resolve([]),
+          getImages: () => Promise.resolve([])
+        })
+        MicroserviceManager.updateAndFind.resolves({ ...natsEnabled, natsAccess: false })
+        $sandbox.stub(NatsAuthService, 'revokeMicroserviceUser').resolves()
+        $sandbox.stub(NatsAuthService, 'reissueUserForMicroservice').resolves()
+        $sandbox.stub(NatsAuthService, 'ensureUserForMicroservice').resolves()
+        $sandbox.stub(MicroserviceEnvManager, 'delete').resolves()
+        $sandbox.stub(VolumeMountService, 'unlinkVolumeMountEndpoint').resolves()
+        $sandbox.stub(MicroserviceManager, 'update').resolves()
+      })
+
+      it('revokes credentials and does not reissue when disabling', async () => {
+        await $subject
+
+        expect(NatsAuthService.revokeMicroserviceUser).to.have.been.calledOnceWith(msvcUuid, transaction)
+        expect(NatsAuthService.reissueUserForMicroservice).to.not.have.been.called
+        expect(NatsAuthService.ensureUserForMicroservice).to.not.have.been.called
+        expect(MicroserviceEnvManager.delete).to.have.been.calledOnce
+        expect(VolumeMappingManager.delete).to.have.been.calledOnce
+      })
+    })
+
     context('when volumeMappings include a system serviceAccount volume', () => {
       const userVolume = {
         hostDestination: 'nats-creds-data',
@@ -521,7 +561,7 @@ describe('Microservices Service', () => {
       const result = await $subject
       expect(Validator.validate).to.have.been.calledWith(portMappingData, Validator.schemas.portsCreate)
       expect(MicroserviceManager.findMicroserviceOnGet).to.have.been.calledWith({ uuid: msvcUuid }, transaction)
-      expect(MicroservicePortService.validatePortMapping).to.have.been.calledWith(agent, portMappingData, {}, transaction)
+      expect(MicroservicePortService.validatePortMapping).to.have.been.calledWith(agent, portMappingData, transaction)
       expect(MicroservicePortService.createPortMapping).to.have.been.calledWith(microservice, portMappingData, transaction)
       expect(result).to.equal(createdMapping)
     })

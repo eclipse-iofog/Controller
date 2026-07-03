@@ -13,7 +13,7 @@ const logger = require('../logger')
 const FogManager = require('../data/managers/iofog-manager')
 const TagsManager = require('../data/managers/tags-manager')
 const ChangeTrackingService = require('./change-tracking-service')
-const ServicePlatformReconcileTaskManager = require('../data/managers/service-platform-reconcile-task-manager')
+const ReconcileOutboxManager = require('../data/managers/reconcile-outbox-manager')
 const ApplicationManager = require('../data/managers/application-manager')
 const {
   ensureSystemApplication,
@@ -22,7 +22,6 @@ const {
 const { getServiceAnnotationTag, getComponentLabelKey, getAppLabelKey } = require('../config/flavor')
 // const { Op } = require('sequelize')
 
-const K8S_ROUTER_CONFIG_MAP = 'iofog-router'
 const EDGELET_BRIDGE_CONNECTOR_HOST = 'edgelet.default.svc.bridge.local'
 const INTERIOR_BRIDGE_CONNECTOR_HOST = '127.0.0.1'
 
@@ -42,7 +41,7 @@ async function _setTags (serviceModel, tagsArray, transaction) {
       }
       tags.push(tagModel)
     }
-    await serviceModel.setTags(tags)
+    await serviceModel.setTags(tags, { transaction })
   }
 }
 
@@ -83,8 +82,23 @@ function _mergeServiceFieldsForSnapshot (base, patch, snapshotTags) {
   })
 }
 
+function _serviceToSpecSnapshotFields (service) {
+  return {
+    name: service.name,
+    type: service.type,
+    resource: service.resource,
+    defaultBridge: service.defaultBridge,
+    bridgePort: service.bridgePort,
+    targetPort: service.targetPort,
+    servicePort: service.servicePort,
+    k8sType: service.k8sType,
+    serviceEndpoint: service.serviceEndpoint,
+    tags: _mapTags(service)
+  }
+}
+
 async function _enqueueServiceReconcileTask (serviceName, reason, specSnapshot, transaction) {
-  await ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask({
+  await ReconcileOutboxManager.enqueueServicePlatform({
     serviceName,
     reason,
     specSnapshot
@@ -442,22 +456,6 @@ async function _getRouterMicroservice (fogNodeUuid, transaction) {
   return routerMicroservice
 }
 
-// Helper function to update router config in Kubernetes environment
-async function _updateK8sRouterConfig (config) {
-  const configMap = await K8sClient.getConfigMap(K8S_ROUTER_CONFIG_MAP)
-  if (!configMap) {
-    throw new Errors.NotFoundError(`ConfigMap not found: ${K8S_ROUTER_CONFIG_MAP}`)
-  }
-
-  const patchData = {
-    data: {
-      'skrouterd.json': JSON.stringify(config)
-    }
-  }
-
-  await K8sClient.patchConfigMap(K8S_ROUTER_CONFIG_MAP, patchData)
-}
-
 // Helper function to update router microservice config
 async function _updateRouterMicroserviceConfig (fogNodeUuid, config, transaction) {
   const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
@@ -473,455 +471,6 @@ async function _updateRouterMicroserviceConfig (fogNodeUuid, config, transaction
   await ChangeTrackingService.update(fogNodeUuid, ChangeTrackingService.events.microserviceConfig, transaction)
 }
 
-// Helper function to add tcpConnector to router config
-async function _addTcpConnector (serviceConfig, transaction) {
-  const isK8s = await checkKubernetesEnvironment()
-  const targetRouterNode = await _determineConnectorSiteId(serviceConfig, transaction)
-  const connector = await _buildTcpConnector(serviceConfig, transaction)
-
-  if (targetRouterNode === 'default-router') {
-    if (isK8s) {
-      // Update K8s router config
-      logger.debug('Updating K8s router config')
-      const configMap = await K8sClient.getConfigMap(K8S_ROUTER_CONFIG_MAP)
-      if (!configMap) {
-        logger.error('ConfigMap not found:' + K8S_ROUTER_CONFIG_MAP)
-        throw new Errors.NotFoundError(`ConfigMap not found: ${K8S_ROUTER_CONFIG_MAP}`)
-      }
-
-      const routerConfig = JSON.parse(configMap.data['skrouterd.json'])
-      // Add new connector to the array
-      routerConfig.push(['tcpConnector', connector])
-
-      await _updateK8sRouterConfig(routerConfig)
-    } else {
-      // Update default router microservice config
-      const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-      if (!defaultRouter) {
-        logger.error('Default router not found')
-        throw new Errors.NotFoundError('Default router not found')
-      }
-      const fogNodeUuid = defaultRouter.iofogUuid
-      const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
-      const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-
-      if (!currentConfig.bridges) {
-        currentConfig.bridges = {}
-      }
-      if (!currentConfig.bridges.tcpConnectors) {
-        currentConfig.bridges.tcpConnectors = {}
-      }
-      currentConfig.bridges.tcpConnectors[connector.name] = connector
-
-      await _updateRouterMicroserviceConfig(fogNodeUuid, currentConfig, transaction)
-    }
-  } else {
-    // Update specific router microservice config
-    const fogNodeUuid = targetRouterNode
-    const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
-    const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-
-    if (!currentConfig.bridges) {
-      currentConfig.bridges = {}
-    }
-    if (!currentConfig.bridges.tcpConnectors) {
-      currentConfig.bridges.tcpConnectors = {}
-    }
-    currentConfig.bridges.tcpConnectors[connector.name] = connector
-
-    await _updateRouterMicroserviceConfig(fogNodeUuid, currentConfig, transaction)
-  }
-}
-
-// Helper function to add tcpListener to router config
-async function _addTcpListener (serviceConfig, transaction) {
-  const isK8s = await checkKubernetesEnvironment()
-
-  // First handle K8s case if we're in K8s environment
-  if (isK8s) {
-    const k8sListener = _buildTcpListener(serviceConfig)
-    const configMap = await K8sClient.getConfigMap(K8S_ROUTER_CONFIG_MAP)
-    if (!configMap) {
-      logger.error('ConfigMap not found:' + K8S_ROUTER_CONFIG_MAP)
-      throw new Errors.NotFoundError(`ConfigMap not found: ${K8S_ROUTER_CONFIG_MAP}`)
-    }
-
-    const routerConfig = JSON.parse(configMap.data['skrouterd.json'])
-    // Add new listener to the array
-    routerConfig.push(['tcpListener', k8sListener])
-
-    await _updateK8sRouterConfig(routerConfig)
-  }
-
-  // Handle distributed router microservice cases
-  // Get list of fog nodes that need this listener
-  const fogNodeUuids = await handleServiceDistribution(serviceConfig.tags, transaction)
-
-  // If not in K8s environment, always include default router
-  if (!isK8s) {
-    if (serviceConfig.defaultBridge === 'default-router') {
-      const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-      if (!defaultRouter) {
-        logger.error('Default router not found')
-        throw new Errors.NotFoundError('Default router not found')
-      }
-      // Add default router if not already in the list
-      if (!fogNodeUuids.includes(defaultRouter.iofogUuid)) {
-        fogNodeUuids.push(defaultRouter.iofogUuid)
-      }
-    } else {
-      if (!fogNodeUuids.includes(serviceConfig.defaultBridge)) {
-        fogNodeUuids.push(serviceConfig.defaultBridge)
-      }
-    }
-  }
-  // else if (!fogNodeUuids || fogNodeUuids.length === 0) {
-  //   // If in K8s and no fog nodes found, add default router
-  //   const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-  //   if (!defaultRouter) {
-  //     logger.error('Default router not found')
-  //     throw new Errors.NotFoundError('Default router not found')
-  //   }
-  //   fogNodeUuids.push(defaultRouter.iofogUuid)
-  // }
-
-  // Add listener to each router microservice
-  for (const fogNodeUuid of fogNodeUuids) {
-    try {
-      const listener = _buildTcpListener(serviceConfig)
-      const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
-      const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-      if (!currentConfig.bridges) currentConfig.bridges = {}
-      if (!currentConfig.bridges.tcpListeners) currentConfig.bridges.tcpListeners = {}
-      currentConfig.bridges.tcpListeners[listener.name] = listener
-      await _updateRouterMicroserviceConfig(fogNodeUuid, currentConfig, transaction)
-    } catch (err) {
-      if (err instanceof Errors.NotFoundError) {
-        logger.info(`Router microservice not found for fogNodeUuid ${fogNodeUuid}, skipping.`)
-        continue
-      }
-      throw err
-    }
-  }
-}
-
-// Helper function to update tcpConnector in router config
-async function _updateTcpConnector (serviceConfig, transaction) {
-  const isK8s = await checkKubernetesEnvironment()
-  const targetRouterNode = await _determineConnectorSiteId(serviceConfig, transaction)
-  const connector = await _buildTcpConnector(serviceConfig, transaction)
-
-  if (targetRouterNode === 'default-router') {
-    if (isK8s) {
-      // Update K8s router config
-      const configMap = await K8sClient.getConfigMap(K8S_ROUTER_CONFIG_MAP)
-      if (!configMap) {
-        throw new Errors.NotFoundError(`ConfigMap not found: ${K8S_ROUTER_CONFIG_MAP}`)
-      }
-
-      const routerConfig = JSON.parse(configMap.data['skrouterd.json'])
-      // Find and update the existing connector
-      const connectorIndex = routerConfig.findIndex(item =>
-        item[0] === 'tcpConnector' && item[1].name === connector.name
-      )
-      if (connectorIndex !== -1) {
-        routerConfig[connectorIndex] = ['tcpConnector', connector]
-      }
-
-      await _updateK8sRouterConfig(routerConfig)
-    } else {
-      // Update default router microservice config
-      const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-      if (!defaultRouter) {
-        throw new Errors.NotFoundError('Default router not found')
-      }
-      const fogNodeUuid = defaultRouter.iofogUuid
-      const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
-      const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-
-      if (!currentConfig.bridges) {
-        currentConfig.bridges = {}
-      }
-      if (!currentConfig.bridges.tcpConnectors) {
-        currentConfig.bridges.tcpConnectors = {}
-      }
-      // Update the connector with the same name
-      currentConfig.bridges.tcpConnectors[connector.name] = connector
-
-      await _updateRouterMicroserviceConfig(fogNodeUuid, currentConfig, transaction)
-    }
-  } else {
-    // Update specific router microservice config
-    const fogNodeUuid = targetRouterNode
-    const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
-    const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-
-    if (!currentConfig.bridges) {
-      currentConfig.bridges = {}
-    }
-    if (!currentConfig.bridges.tcpConnectors) {
-      currentConfig.bridges.tcpConnectors = {}
-    }
-    // Update the connector with the same name
-    currentConfig.bridges.tcpConnectors[connector.name] = connector
-
-    await _updateRouterMicroserviceConfig(fogNodeUuid, currentConfig, transaction)
-  }
-}
-
-// // Helper function to update tcpListener in router config
-// async function _updateTcpListener (serviceConfig, transaction) {
-//   const isK8s = await checkKubernetesEnvironment()
-
-//   // First handle K8s case if we're in K8s environment
-//   if (isK8s) {
-//     const k8sListener = await _buildTcpListener(serviceConfig, null) // null for K8s case
-//     const configMap = await K8sClient.getConfigMap(K8S_ROUTER_CONFIG_MAP)
-//     if (!configMap) {
-//       throw new Errors.NotFoundError(`ConfigMap not found: ${K8S_ROUTER_CONFIG_MAP}`)
-//     }
-
-//     const routerConfig = JSON.parse(configMap.data['skrouterd.json'])
-//     // Update the listener in the array
-//     const listenerIndex = routerConfig.findIndex(item =>
-//       item[0] === 'tcpListener' && item[1].name === k8sListener.name
-//     )
-//     if (listenerIndex !== -1) {
-//       routerConfig[listenerIndex] = ['tcpListener', k8sListener]
-//     } else {
-//       routerConfig.push(['tcpListener', k8sListener])
-//     }
-
-//     await _updateK8sRouterConfig(routerConfig)
-//   }
-
-//   // Handle distributed router microservice cases
-//   // Get list of fog nodes that need this listener
-//   const fogNodeUuids = await handleServiceDistribution(serviceConfig.tags, transaction)
-//   // If not in K8s environment, always include default router
-//   if (!isK8s) {
-//     const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-//     if (!defaultRouter) {
-//       throw new Errors.NotFoundError('Default router not found')
-//     }
-//     // Add default router if not already in the list
-//     if (!fogNodeUuids.includes(defaultRouter.iofogUuid)) {
-//       fogNodeUuids.push(defaultRouter.iofogUuid)
-//     }
-//   }
-//   // else if (!fogNodeUuids || fogNodeUuids.length === 0) {
-//   //   // If in K8s and no fog nodes found, add default router
-//   //   const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-//   //   if (!defaultRouter) {
-//   //     throw new Errors.NotFoundError('Default router not found')
-//   //   }
-//   //   fogNodeUuids.push(defaultRouter.iofogUuid)
-//   // }
-
-//   // Update listener in each router microservice
-//   for (const fogNodeUuid of fogNodeUuids) {
-//     try {
-//       const listener = await _buildTcpListener(serviceConfig, fogNodeUuid)
-//       const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
-//       const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-
-//       if (!currentConfig.bridges) {
-//         currentConfig.bridges = {}
-//       }
-//       if (!currentConfig.bridges.tcpListeners) {
-//         currentConfig.bridges.tcpListeners = {}
-//       }
-//       // Update listener with its name as key
-//       currentConfig.bridges.tcpListeners[listener.name] = listener
-
-//       await _updateRouterMicroserviceConfig(fogNodeUuid, currentConfig, transaction)
-//     } catch (err) {
-//       if (err instanceof Errors.NotFoundError) {
-//         logger.info(`Router microservice not found for fogNodeUuid ${fogNodeUuid}, skipping.`)
-//         continue
-//       }
-//       throw err
-//     }
-//   }
-// }
-
-// Helper function to delete tcpConnector from router config
-async function _deleteTcpConnector (serviceName, transaction) {
-  logger.debug('_deleteTcpConnector: start', { serviceName })
-  const isK8s = await checkKubernetesEnvironment()
-  const connectorName = `${serviceName}-connector`
-
-  // Get service to determine if it's using default router
-  const service = await ServiceManager.findOne({ name: serviceName }, transaction)
-  if (!service) {
-    throw new Errors.NotFoundError(`Service not found: ${serviceName}`)
-  }
-  logger.debug('_deleteTcpConnector: service', { type: service.type, resource: service.resource, defaultBridge: service.defaultBridge })
-
-  const isDefaultRouter = service.defaultBridge === 'default-router'
-  let microserviceSource = null
-  if (service.type === 'microservice') {
-    microserviceSource = await MicroserviceManager.findOne({ uuid: service.resource }, transaction)
-  }
-  let fogSource = null
-  if (service.type === 'agent') {
-    fogSource = await FogManager.findOne({ uuid: service.resource }, transaction)
-    if (!fogSource) {
-      fogSource = await FogManager.findOne({ name: service.resource }, transaction)
-    }
-  }
-
-  if (isDefaultRouter && (!microserviceSource || !fogSource)) {
-    logger.debug('_deleteTcpConnector: updating default router config')
-    if (isK8s) {
-      // Update K8s router config
-      const configMap = await K8sClient.getConfigMap(K8S_ROUTER_CONFIG_MAP)
-      if (!configMap) {
-        throw new Errors.NotFoundError(`ConfigMap not found: ${K8S_ROUTER_CONFIG_MAP}`)
-      }
-
-      const routerConfig = JSON.parse(configMap.data['skrouterd.json'])
-      // Remove the connector from the array
-      const updatedConfig = routerConfig.filter(item =>
-        !(item[0] === 'tcpConnector' && item[1].name === connectorName)
-      )
-
-      await _updateK8sRouterConfig(updatedConfig)
-    } else {
-      // Update default router microservice config
-      const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-      if (!defaultRouter) {
-        throw new Errors.NotFoundError('Default router not found')
-      }
-      const fogNodeUuid = defaultRouter.iofogUuid
-      const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
-      const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-
-      if (currentConfig.bridges && currentConfig.bridges.tcpConnectors) {
-        delete currentConfig.bridges.tcpConnectors[connectorName]
-      }
-
-      await _updateRouterMicroserviceConfig(fogNodeUuid, currentConfig, transaction)
-    }
-    logger.debug('_deleteTcpConnector: done (default router updated)')
-    return
-  }
-
-  let fogNodeUuid = null
-  if (!isDefaultRouter && (!microserviceSource || !fogSource)) {
-    fogNodeUuid = service.defaultBridge
-  }
-  if (microserviceSource) {
-    fogNodeUuid = microserviceSource.iofogUuid
-  }
-  if (fogSource) {
-    fogNodeUuid = fogSource.uuid
-  }
-  logger.debug('_deleteTcpConnector: fogNodeUuid for non-default', { fogNodeUuid })
-  const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
-  const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-
-  if (currentConfig.bridges && currentConfig.bridges.tcpConnectors) {
-    delete currentConfig.bridges.tcpConnectors[connectorName]
-  }
-
-  logger.debug('_deleteTcpConnector: updating router config', { fogNodeUuid })
-  await _updateRouterMicroserviceConfig(fogNodeUuid, currentConfig, transaction)
-  logger.debug('_deleteTcpConnector: done')
-}
-
-// Helper function to delete tcpListener from router config
-async function _deleteTcpListener (serviceName, transaction) {
-  logger.debug('_deleteTcpListener: start', { serviceName })
-  const isK8s = await checkKubernetesEnvironment()
-  const listenerName = `${serviceName}-listener`
-
-  // First handle K8s case if we're in K8s environment
-  if (isK8s) {
-    const configMap = await K8sClient.getConfigMap(K8S_ROUTER_CONFIG_MAP)
-    if (!configMap) {
-      throw new Errors.NotFoundError(`ConfigMap not found: ${K8S_ROUTER_CONFIG_MAP}`)
-    }
-
-    const routerConfig = JSON.parse(configMap.data['skrouterd.json'])
-    // Remove the listener from the array
-    const updatedConfig = routerConfig.filter(item =>
-      !(item[0] === 'tcpListener' && item[1].name === listenerName)
-    )
-
-    await _updateK8sRouterConfig(updatedConfig)
-  }
-
-  // Get service to determine its tags for distribution
-  const service = await ServiceManager.findOneWithTags({ name: serviceName }, transaction)
-  if (!service) {
-    throw new Errors.NotFoundError(`Service not found: ${serviceName}`)
-  }
-  logger.debug('_deleteTcpListener: service', { type: service.type, hasTags: !!service.tags, tagsIsArray: Array.isArray(service.tags) })
-
-  let microserviceSource = null
-  if (service.type === 'microservice') {
-    microserviceSource = await MicroserviceManager.findOne({ uuid: service.resource }, transaction)
-  }
-  // Handle distributed router microservice cases
-  // Get list of fog nodes that need this listener removed
-  const serviceTags = (service.tags && Array.isArray(service.tags)) ? service.tags.map(tag => tag.value) : []
-  logger.debug('_deleteTcpListener: calling handleServiceDistribution', { serviceTagsLength: serviceTags.length, serviceTagsSample: serviceTags.slice(0, 3) })
-  const fogNodeUuids = await handleServiceDistribution(serviceTags, transaction)
-  logger.debug('_deleteTcpListener: handleServiceDistribution returned', { fogNodeUuidsLength: fogNodeUuids ? fogNodeUuids.length : 'null/undefined', isArray: Array.isArray(fogNodeUuids) })
-
-  if (microserviceSource) {
-    if (!fogNodeUuids.includes(microserviceSource.iofogUuid)) {
-      fogNodeUuids.push(microserviceSource.iofogUuid)
-    }
-  }
-  // If not in K8s environment, always include default router
-  if (!isK8s) {
-    const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-    if (!defaultRouter) {
-      throw new Errors.NotFoundError('Default router not found')
-    }
-    // Add default router if not already in the list
-    if (!fogNodeUuids.includes(defaultRouter.iofogUuid)) {
-      fogNodeUuids.push(defaultRouter.iofogUuid)
-    }
-  }
-  // else if (!fogNodeUuids || fogNodeUuids.length === 0) {
-  //   // If in K8s and no fog nodes found, add default router
-  //   const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-  //   if (!defaultRouter) {
-  //     throw new Errors.NotFoundError('Default router not found')
-  //   }
-  //   fogNodeUuids.push(defaultRouter.iofogUuid)
-  // }
-
-  // Remove listener from each router microservice
-  const fogList = Array.isArray(fogNodeUuids) ? fogNodeUuids : []
-  logger.debug('_deleteTcpListener: iterating router configs', { count: fogList.length })
-  for (const fogNodeUuid of fogList) {
-    try {
-      const routerMicroservice = await _getRouterMicroservice(fogNodeUuid, transaction)
-      const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-      if (currentConfig.bridges && currentConfig.bridges.tcpListeners) {
-        delete currentConfig.bridges.tcpListeners[listenerName]
-      }
-      await _updateRouterMicroserviceConfig(fogNodeUuid, currentConfig, transaction)
-    } catch (err) {
-      if (err instanceof Errors.NotFoundError) {
-        logger.info('_deleteTcpListener: router microservice not found, skipping', { fogNodeUuid })
-        continue
-      }
-      logger.error({
-        err,
-        msg: '_deleteTcpListener: error updating router config',
-        fogNodeUuid
-      })
-      throw err
-    }
-  }
-  logger.debug('_deleteTcpListener: done')
-}
-
 // Common labels for Kubernetes services created by the controller
 function _getK8sServiceLabels () {
   const componentLabelKey = getComponentLabelKey()
@@ -935,11 +484,11 @@ function _getK8sServiceLabels () {
   }
 }
 
-// Helper function to create Kubernetes service
-async function _createK8sService (serviceConfig, transaction) {
-  const normalizedTags = serviceConfig.tags.map(tag => tag.includes(':') ? tag : `${tag}:`)
+// Helper function to build Kubernetes Service spec for create
+function _buildK8sServiceSpec (serviceConfig) {
+  const normalizedTags = (serviceConfig.tags || []).map(tag => tag.includes(':') ? tag : `${tag}:`)
   const componentLabelKey = getComponentLabelKey()
-  const serviceSpec = {
+  return {
     apiVersion: 'v1',
     kind: 'Service',
     metadata: {
@@ -964,72 +513,88 @@ async function _createK8sService (serviceConfig, transaction) {
       }]
     }
   }
+}
 
-  const service = await K8sClient.createService(serviceSpec)
+function _buildK8sServicePatchData (serviceConfig) {
+  const normalizedTags = (serviceConfig.tags || []).map(tag => tag.includes(':') ? tag : `${tag}:`)
+  const componentLabelKey = getComponentLabelKey()
+  return {
+    metadata: {
+      labels: _getK8sServiceLabels(),
+      annotations: normalizedTags.reduce((acc, tag) => {
+        const [key, value] = tag.split(':')
+        acc[key] = (value || '').trim()
+        return acc
+      }, {})
+    },
+    spec: {
+      type: serviceConfig.k8sType,
+      selector: {
+        [componentLabelKey]: 'router'
+      },
+      ports: [{
+        name: 'iofog-service',
+        port: parseInt(serviceConfig.servicePort),
+        targetPort: parseInt(serviceConfig.bridgePort),
+        protocol: 'TCP'
+      }]
+    }
+  }
+}
 
-  // If LoadBalancer type, wait for and set the external IP
-  if (serviceConfig.k8sType === 'LoadBalancer') {
-    const loadBalancerIP = await K8sClient.watchLoadBalancerIP(serviceConfig.name)
-    if (loadBalancerIP) {
-      await ServiceManager.update(
-        { name: serviceConfig.name },
-        { serviceEndpoint: loadBalancerIP },
-        transaction
-      )
+// Helper function to create or update a Kubernetes service resource (I/O only; no DB).
+// Returns LoadBalancer IP when assigned, otherwise null.
+async function _syncK8sServiceResource (serviceConfig) {
+  const existingService = await K8sClient.getService(serviceConfig.name, { ignoreNotFound: true })
+  const serviceSpec = _buildK8sServiceSpec(serviceConfig)
+
+  if (!existingService) {
+    logger.debug(`Service not found: ${serviceConfig.name}, creating new service`)
+    await K8sClient.createService(serviceSpec)
+  } else {
+    const patchData = _buildK8sServicePatchData(serviceConfig)
+    logger.debug(`Updating service: ${serviceConfig.name}`)
+    try {
+      await K8sClient.updateService(serviceConfig.name, patchData)
+    } catch (error) {
+      if (K8sClient.isK8sNotFound(error)) {
+        logger.warn(`Service ${serviceConfig.name} missing during update, creating new service`)
+        await K8sClient.createService(serviceSpec)
+      } else {
+        throw error
+      }
     }
   }
 
-  return service
+  if (serviceConfig.k8sType === 'LoadBalancer') {
+    return K8sClient.watchLoadBalancerIP(serviceConfig.name)
+  }
+
+  return null
+}
+
+// Helper function to create Kubernetes service
+async function _createK8sService (serviceConfig, transaction) {
+  const loadBalancerIP = await _syncK8sServiceResource(serviceConfig)
+  if (loadBalancerIP) {
+    await ServiceManager.update(
+      { name: serviceConfig.name },
+      { serviceEndpoint: loadBalancerIP },
+      transaction
+    )
+  }
+  return loadBalancerIP
 }
 
 // Helper function to update Kubernetes service
 async function _updateK8sService (serviceConfig, transaction) {
-  const existingService = await K8sClient.getService(serviceConfig.name)
-  if (!existingService) {
-    logger.debug(`Service not found: ${serviceConfig.name}, creating new service`)
-    const service = await _createK8sService(serviceConfig, transaction)
-    return service
-  } else {
-    const normalizedTags = serviceConfig.tags.map(tag => tag.includes(':') ? tag : `${tag}:`)
-    const componentLabelKey = getComponentLabelKey()
-    const patchData = {
-      metadata: {
-        labels: _getK8sServiceLabels(),
-        annotations: normalizedTags.reduce((acc, tag) => {
-          const [key, value] = tag.split(':')
-          acc[key] = (value || '').trim()
-          return acc
-        }, {})
-      },
-      spec: {
-        type: serviceConfig.k8sType,
-        selector: {
-          [componentLabelKey]: 'router'
-        },
-        ports: [{
-          name: 'iofog-service',
-          port: parseInt(serviceConfig.servicePort),
-          targetPort: parseInt(serviceConfig.bridgePort),
-          protocol: 'TCP'
-        }]
-      }
-    }
-
-    logger.debug(`Updating service: ${serviceConfig.name}`)
-    const updatedService = await K8sClient.updateService(serviceConfig.name, patchData)
-
-    // If LoadBalancer type, wait for and set the external IP
-    if (serviceConfig.k8sType === 'LoadBalancer') {
-      const loadBalancerIP = await K8sClient.watchLoadBalancerIP(serviceConfig.name)
-      if (loadBalancerIP) {
-        await ServiceManager.update(
-          { name: serviceConfig.name },
-          { serviceEndpoint: loadBalancerIP },
-          transaction
-        )
-      }
-    }
-    return updatedService
+  const loadBalancerIP = await _syncK8sServiceResource(serviceConfig)
+  if (loadBalancerIP) {
+    await ServiceManager.update(
+      { name: serviceConfig.name },
+      { serviceEndpoint: loadBalancerIP },
+      transaction
+    )
   }
 }
 
@@ -1226,10 +791,7 @@ async function deleteServiceEndpoint (serviceName, transaction) {
   }
   logger.debug('deleteServiceEndpoint: existingService', { type: existingService.type, defaultBridge: existingService.defaultBridge })
 
-  const specSnapshot = _buildServiceSpecSnapshot({
-    ...existingService,
-    tags: _mapTags(existingService)
-  })
+  const specSnapshot = _buildServiceSpecSnapshot(_serviceToSpecSnapshotFields(existingService))
   await _enqueueServiceReconcileTask(serviceName, 'delete', specSnapshot, transaction)
 
   logger.debug('deleteServiceEndpoint: deleting service from DB')
@@ -1255,10 +817,7 @@ async function reconcileServiceEndpoint (serviceName, transaction) {
     service.provisioningError = null
   }
 
-  const specSnapshot = _buildServiceSpecSnapshot({
-    ...service,
-    tags: _mapTags(service)
-  })
+  const specSnapshot = _buildServiceSpecSnapshot(_serviceToSpecSnapshotFields(service))
   await _enqueueServiceReconcileTask(serviceName, 'manual-retry', specSnapshot, transaction)
 
   return {
@@ -1365,6 +924,7 @@ module.exports = {
   _mapTags,
   _setTags: TransactionDecorator.generateTransaction(_setTags),
   _createK8sService,
+  _syncK8sServiceResource,
   _updateK8sService,
   _deleteK8sService,
   createServiceEndpoint: TransactionDecorator.generateTransaction(createServiceEndpoint),
@@ -1378,10 +938,5 @@ module.exports = {
   _determineConnectorSiteId,
   _buildTcpConnector,
   _buildTcpListener,
-  _addTcpConnector,
-  _addTcpListener,
-  _updateTcpConnector,
-  _deleteTcpConnector,
-  _deleteTcpListener,
   _resolveFogRouterMode
 }

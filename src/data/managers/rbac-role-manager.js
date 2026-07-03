@@ -104,8 +104,7 @@ class RbacRoleManager extends BaseManager {
         resourceNames: rule.resourceNames || null
       }))
 
-      const bulkCreateOptions = transaction.fakeTransaction ? {} : { transaction }
-      await RbacRoleRule.bulkCreate(rules, bulkCreateOptions)
+      await RbacRoleRule.bulkCreate(rules, { transaction })
     }
 
     // Increment cache version to invalidate caches on all instances
@@ -145,10 +144,10 @@ class RbacRoleManager extends BaseManager {
     // Update rules if provided
     if (roleData.rules && Array.isArray(roleData.rules)) {
       // Delete existing rules
-      const destroyOptions = transaction.fakeTransaction
-        ? { where: { roleId: role.id } }
-        : { where: { roleId: role.id }, transaction }
-      await RbacRoleRule.destroy(destroyOptions)
+      await RbacRoleRule.destroy({
+        where: { roleId: role.id },
+        transaction
+      })
 
       // Create new rules
       const rules = roleData.rules.map(rule => ({
@@ -159,8 +158,7 @@ class RbacRoleManager extends BaseManager {
         resourceNames: rule.resourceNames || null
       }))
 
-      const bulkCreateOptions = transaction.fakeTransaction ? {} : { transaction }
-      await RbacRoleRule.bulkCreate(rules, bulkCreateOptions)
+      await RbacRoleRule.bulkCreate(rules, { transaction })
     }
 
     // Increment cache version to invalidate caches on all instances
@@ -215,10 +213,10 @@ class RbacRoleManager extends BaseManager {
       return null
     }
 
-    const findAllOptions = transaction.fakeTransaction
-      ? { where: { roleId: role.id } }
-      : { where: { roleId: role.id }, transaction }
-    const rules = await RbacRoleRule.findAll(findAllOptions)
+    const rules = await RbacRoleRule.findAll({
+      where: { roleId: role.id },
+      transaction
+    })
 
     return {
       id: role.id,

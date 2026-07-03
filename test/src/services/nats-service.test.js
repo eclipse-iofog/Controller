@@ -5,6 +5,7 @@ const NatsService = require('../../../src/services/nats-service')
 const NatsInstanceManager = require('../../../src/data/managers/nats-instance-manager')
 const NatsConnectionManager = require('../../../src/data/managers/nats-connection-manager')
 const NatsAccountManager = require('../../../src/data/managers/nats-account-manager')
+const NatsAccountRuleManager = require('../../../src/data/managers/nats-account-rule-manager')
 const NatsUserManager = require('../../../src/data/managers/nats-user-manager')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const VolumeMappingManager = require('../../../src/data/managers/volume-mapping-manager')
@@ -26,7 +27,7 @@ describe('NATS Service', () => {
     const natsInstance = { id: 77, isLeaf: true, isHub: false }
     const microservices = [{ uuid: 'ms-1' }]
 
-    def('subject', () => NatsService.cleanupNatsForFog(fog, transaction))
+    def('subject', () => NatsService.cleanupNatsForFogDb(fog, transaction))
 
     beforeEach(() => {
       $sandbox.stub(NatsInstanceManager, 'findByFog').returns(Promise.resolve(natsInstance))
@@ -219,6 +220,182 @@ describe('NATS Service', () => {
       const payload = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString('utf8'))
       expect(payload.nats).to.include({ account_server_url: 'https://hub:4222', system_account: 'ACTPUBKEY123' })
       expect(payload.nats.operator_service_urls).to.eql(['https://hub:4222'])
+    })
+  })
+
+  describe('K8s I/O outside transactions (R-04–R-06)', () => {
+    const k8sClient = require('../../../src/utils/k8s-client')
+    const config = require('../../../src/config')
+
+    function loadNatsServiceWithTxStub (runInTransactionImpl) {
+      const txRunnerPath = require.resolve('../../../src/helpers/transaction-runner')
+      const natsPath = require.resolve('../../../src/services/nats-service')
+      delete require.cache[natsPath]
+      delete require.cache[txRunnerPath]
+      const transactionRunner = require('../../../src/helpers/transaction-runner')
+      $sandbox.stub(transactionRunner, 'runInTransaction').callsFake(runInTransactionImpl)
+      return require('../../../src/services/nats-service')
+    }
+
+    function stubKubernetesControlPlane () {
+      $sandbox.stub(config, 'get').callsFake((key, defaultValue) => {
+        if (key === 'app.ControlPlane') return 'kubernetes'
+        if (key === 'nats.enabled') return false
+        return defaultValue
+      })
+    }
+
+    function stubCleanupDb (NatsServiceFresh, natsInstance) {
+      $sandbox.stub(NatsInstanceManager, 'findByFog').resolves(natsInstance)
+      $sandbox.stub(NatsInstanceManager, 'findAll').resolves([])
+      $sandbox.stub(NatsAccountManager, 'findOne').resolves({ id: 1, isSystem: true })
+      $sandbox.stub(NatsUserManager, 'findOne').resolves({ credsSecretName: 'nats-creds-sys-admin' })
+      $sandbox.stub(NatsConnectionManager, 'delete').resolves()
+      $sandbox.stub(NatsInstanceManager, 'delete').resolves()
+      $sandbox.stub(NatsAuthService, 'deleteServerSysUserForFog').resolves()
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+      $sandbox.stub(VolumeMappingManager, 'delete').resolves()
+      $sandbox.stub(VolumeMountService, 'unlinkVolumeMountEndpoint').resolves()
+      $sandbox.stub(VolumeMountService, 'findVolumeMountedFogNodes').resolves([])
+      $sandbox.stub(VolumeMountService, 'deleteVolumeMountEndpoint').resolves()
+      $sandbox.stub(ConfigMapService, 'deleteConfigMapEndpoint').resolves()
+      $sandbox.stub(SecretService, 'deleteSecretEndpoint').resolves()
+      return NatsServiceFresh
+    }
+
+    it('cleanupNatsForFog applies K8s patch and rollout after runInTransaction', async () => {
+      stubKubernetesControlPlane()
+      const fog = { uuid: 'fog-1', name: 'local-agent' }
+      const natsInstance = { id: 77, isLeaf: false, isHub: false }
+      const callOrder = []
+      const txLabels = []
+
+      const NatsServiceFresh = loadNatsServiceWithTxStub(async (fn, runOptions = {}) => {
+        if (runOptions.label) {
+          txLabels.push(runOptions.label)
+        }
+        callOrder.push('tx-start')
+        const result = await fn({})
+        callOrder.push('tx-end')
+        return result
+      })
+      stubCleanupDb(NatsServiceFresh, natsInstance)
+      $sandbox.stub(k8sClient, 'getConfigMap').callsFake(async () => {
+        callOrder.push('k8s-get')
+        return { data: { 'server.conf': 'routes: []' } }
+      })
+      $sandbox.stub(k8sClient, 'patchConfigMap').callsFake(async () => {
+        callOrder.push('k8s-patch')
+      })
+      $sandbox.stub(k8sClient, 'rolloutStatefulSet').callsFake(async () => {
+        callOrder.push('k8s-rollout')
+      })
+
+      await NatsServiceFresh.cleanupNatsForFog(fog)
+
+      expect(txLabels).to.deep.equal(['nats.cleanupForFog'])
+      expect(callOrder).to.deep.equal(['tx-start', 'tx-end', 'k8s-get', 'k8s-patch', 'k8s-rollout'])
+    })
+
+    it('cleanupNatsForFog reuses parent transaction when provided', async () => {
+      const fog = { uuid: 'fog-1', name: 'local-agent' }
+      const parentTx = {
+        commit: $sandbox.stub(),
+        rollback: $sandbox.stub(),
+        afterCommit: $sandbox.stub()
+      }
+      const txLabels = []
+      const natsInstance = { id: 77, isLeaf: false, isHub: false }
+
+      const NatsServiceFresh = loadNatsServiceWithTxStub(async (fn, runOptions = {}) => {
+        if (runOptions.label) {
+          txLabels.push(runOptions.label)
+        }
+        return fn({})
+      })
+      stubCleanupDb(NatsServiceFresh, natsInstance)
+
+      await NatsServiceFresh.cleanupNatsForFog(fog, parentTx)
+
+      expect(txLabels).to.deep.equal([])
+      expect(parentTx.afterCommit).to.have.been.calledOnce
+    })
+
+    it('ensureNatsForFog uses phased cert-prep, auth-prep, and topology transaction labels', async () => {
+      const txLabels = []
+
+      const NatsServiceFresh = loadNatsServiceWithTxStub(async (fn, runOptions = {}) => {
+        if (runOptions.label) {
+          txLabels.push(runOptions.label)
+        }
+        if (runOptions.label === 'nats.ensure.certPrep') {
+          return {
+            serverCertName: 'nats-server-local-agent',
+            mqttCertName: 'nats-mqtt-server-local-agent',
+            jetstreamKey: { secretName: 'jsk', jsk: 'key' }
+          }
+        }
+        if (runOptions.label === 'nats.ensure.authPrep') {
+          return {
+            mode: 'leaf',
+            isHub: false,
+            isLeaf: true,
+            serverPort: 4222,
+            leafPort: 7422,
+            clusterPort: 6222,
+            mqttPort: 1883,
+            httpPort: 8222,
+            configMapName: 'nats-server-conf-local-agent',
+            configKey: 'server.conf',
+            template: 'leaf',
+            jwtBundleConfigMapName: 'nats-jwt-bundle-local-agent',
+            sysCredsSecretName: null
+          }
+        }
+        if (runOptions.label === 'nats.ensure.topology') {
+          return { microservice: { uuid: 'ms-1' }, k8sHubPatch: null }
+        }
+        return fn({})
+      })
+
+      await NatsServiceFresh.ensureNatsForFog(
+        { uuid: 'fog-1', name: 'local-agent' },
+        { mode: 'leaf' }
+      )
+
+      expect(txLabels).to.deep.equal(['nats.ensure.certPrep', 'nats.ensure.authPrep', 'nats.ensure.topology'])
+    })
+
+    it('reconcileResolverArtifacts applies JWT bundle K8s patch after runInTransaction', async () => {
+      stubKubernetesControlPlane()
+      const callOrder = []
+
+      const NatsServiceFresh = loadNatsServiceWithTxStub(async (fn) => {
+        callOrder.push('tx-start')
+        const result = await fn({})
+        callOrder.push('tx-end')
+        return result
+      })
+
+      $sandbox.stub(require('../../../src/data/managers/iofog-manager'), 'findAll').resolves([])
+      $sandbox.stub(require('../../../src/data/managers/application-manager'), 'findAll').resolves([])
+      $sandbox.stub(NatsInstanceManager, 'findAll').resolves([])
+      $sandbox.stub(NatsAccountRuleManager, 'findOne').resolves({ id: 1, name: 'default-account' })
+      $sandbox.stub(NatsAccountManager, 'findOne').resolves({ id: 1, isSystem: true })
+      $sandbox.stub(require('../../../src/services/nats-auth-service'), 'ensureSystemAccount').resolves()
+      $sandbox.stub(ConfigMapManager, 'getConfigMap').resolves(null)
+      $sandbox.stub(ConfigMapService, 'createConfigMapEndpoint').resolves({ name: 'iofog-nats-jwt-bundle' })
+      $sandbox.stub(k8sClient, 'getConfigMap').callsFake(async () => {
+        callOrder.push('k8s-get')
+        return null
+      })
+      $sandbox.stub(k8sClient, 'patchConfigMap').callsFake(async () => {
+        callOrder.push('k8s-patch')
+      })
+
+      await NatsServiceFresh.reconcileResolverArtifacts({ fogUuids: [] })
+
+      expect(callOrder).to.deep.equal(['tx-start', 'tx-end', 'k8s-get', 'k8s-patch'])
     })
   })
 })

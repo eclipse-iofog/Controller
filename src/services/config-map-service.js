@@ -120,7 +120,6 @@ async function deleteConfigMapEndpoint (configMapName, transaction) {
 
   await ConfigMapManager.deleteConfigMap(configMapName, transaction)
   await _deleteVolumeMountsUsingConfigMap(configMapName, transaction)
-  // Vault deletion is handled by ConfigMapManager.deleteConfigMap()
   return {}
 }
 

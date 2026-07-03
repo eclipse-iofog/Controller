@@ -8,11 +8,6 @@ class RbacCacheVersionManager extends BaseManager {
     return RbacCacheVersion
   }
 
-  /**
-   * Get current cache version
-   * @param {Object} transaction - Database transaction
-   * @returns {Promise<number>} Current version number
-   */
   async getVersion (transaction) {
     const cacheVersion = await this.findOne({ id: 1 }, transaction)
     if (!cacheVersion) {
@@ -22,9 +17,7 @@ class RbacCacheVersionManager extends BaseManager {
   }
 
   _getModelOptions (transaction) {
-    return transaction && transaction.fakeTransaction
-      ? {}
-      : { transaction }
+    return { transaction }
   }
 
   _extractAffectedRows (updateResult) {
@@ -79,12 +72,6 @@ class RbacCacheVersionManager extends BaseManager {
     }
   }
 
-  /**
-   * Increment cache version
-   * This should be called whenever any RBAC resource (Role, RoleBinding, ServiceAccount) is modified
-   * @param {Object} transaction - Database transaction
-   * @returns {Promise<void>}
-   */
   async incrementVersion (transaction) {
     try {
       const updateResult = await this._incrementVersionAtomic(transaction)
@@ -113,16 +100,9 @@ class RbacCacheVersionManager extends BaseManager {
     }
   }
 
-  /**
-   * Initialize cache version row if it doesn't exist
-   * This is called on server startup to ensure the row exists
-   * @param {Object} transaction - Database transaction (optional)
-   * @returns {Promise<void>}
-   */
   async initializeVersion (transaction) {
     const cacheVersion = await this.findOne({ id: 1 }, transaction)
     if (!cacheVersion) {
-      // Create initial version row
       await this.create({ id: 1, version: 1 }, transaction)
     }
   }

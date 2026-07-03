@@ -50,7 +50,7 @@ const FogPublicKeyManager = require('../data/managers/iofog-public-key-manager')
 const { getServiceAnnotationTag } = require('../config/flavor')
 const FogPlatformSpecManager = require('../data/managers/fog-platform-spec-manager')
 const FogPlatformStatusManager = require('../data/managers/fog-platform-status-manager')
-const FogPlatformReconcileTaskManager = require('../data/managers/fog-platform-reconcile-task-manager')
+const ReconcileOutboxManager = require('../data/managers/reconcile-outbox-manager')
 const {
   buildPlatformSpecFromFogData,
   mergePlatformSpecPatch
@@ -413,14 +413,19 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
 
   let defaultRouter
   if (fogData.routerMode === 'none') {
-    const networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter)
+    const networkRouter = await RouterService.getNetworkRouter(fogData.networkRouter, transaction)
     if (!networkRouter) {
       throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, !fogData.networkRouter ? Constants.DEFAULT_ROUTER_NAME : fogData.networkRouter))
     }
     createFogData.routerId = networkRouter.id
   } else {
     defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-    await RouterService.validateAndReturnUpstreamRouters(fogData.upstreamRouters, fogData.isSystem, defaultRouter)
+    await RouterService.validateAndReturnUpstreamRouters(
+      fogData.upstreamRouters,
+      fogData.isSystem,
+      defaultRouter,
+      transaction
+    )
   }
 
   const fog = await FogManager.create(createFogData, transaction)
@@ -431,7 +436,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
   const platformSpec = buildPlatformSpecFromFogData(fogData, { applyCreateDefaults: true })
   const { generation } = await FogPlatformSpecManager.upsertSpec(fog.uuid, platformSpec, transaction)
   await FogPlatformStatusManager.ensurePending(fog.uuid, transaction)
-  await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
+  await ReconcileOutboxManager.enqueueFogPlatform({
     fogUuid: fog.uuid,
     reason: 'spec-changed',
     specGeneration: generation
@@ -450,7 +455,7 @@ async function _setTags (fogModel, tagsArray, transaction) {
       }
       tags.push(tagModel)
     }
-    await fogModel.setTags(tags)
+    await fogModel.setTags(tags, { transaction })
   }
 }
 
@@ -562,10 +567,12 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
   await FogManager.update(queryFogData, updateFogData, transaction)
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.config, transaction)
 
-  const mergedSpec = mergePlatformSpecPatch(parsedSpec ? parsedSpec.spec : {}, fogData)
+  const existingSpec = parsedSpec ? parsedSpec.spec : {}
+  const mergedSpec = mergePlatformSpecPatch(existingSpec, fogData)
+
   const { generation } = await FogPlatformSpecManager.upsertSpec(fogData.uuid, mergedSpec, transaction)
   await FogPlatformStatusManager.ensurePending(fogData.uuid, transaction)
-  await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
+  await ReconcileOutboxManager.enqueueFogPlatform({
     fogUuid: fogData.uuid,
     reason: 'spec-changed',
     specGeneration: generation
@@ -659,7 +666,7 @@ async function deleteFogEndPoint (fogData, isCLI, transaction) {
   }
 
   await FogPlatformStatusManager.setPhase(fogData.uuid, 'Deleting', {}, transaction)
-  await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
+  await ReconcileOutboxManager.enqueueFogPlatform({
     fogUuid: fogData.uuid,
     reason: 'delete'
   }, transaction)
@@ -679,7 +686,7 @@ async function reconcileFogEndpoint (fogData, transaction) {
   }
 
   const parsedSpec = await FogPlatformSpecManager.getParsedSpec(fogData.uuid, transaction)
-  await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
+  await ReconcileOutboxManager.enqueueFogPlatform({
     fogUuid: fogData.uuid,
     reason: 'manual-retry',
     specGeneration: parsedSpec ? parsedSpec.generation : null
@@ -1063,6 +1070,8 @@ function _filterFogs (fogs, filters) {
 }
 
 async function _processDeleteCommand (fog, transaction) {
+  await NatsService.cleanupNatsForFog(fog, transaction)
+
   const microservices = await MicroserviceManager.findAll({ iofogUuid: fog.uuid }, transaction)
   for (const microservice of microservices) {
     await MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction)
@@ -1091,7 +1100,6 @@ async function _processDeleteCommand (fog, transaction) {
       await SecretManager.delete({ name: secretName }, transaction)
     }
   }
-  await NatsService.cleanupNatsForFog(fog, transaction)
   const fogPublicKey = await FogPublicKeyManager.findByFogUuid(fog.uuid, transaction)
   if (fogPublicKey) {
     await FogKeyService.deletePublicKey(fog.uuid, transaction)
@@ -1527,13 +1535,11 @@ async function _updateImages (images, microserviceUuid, transaction) {
   return _createMicroserviceImages({ uuid: microserviceUuid }, images, transaction)
 }
 
-const bypassOptions = { bypassQueue: true }
-
 module.exports = {
-  createFogEndPoint: TransactionDecorator.generateTransaction(createFogEndPoint, bypassOptions),
-  updateFogEndPoint: TransactionDecorator.generateTransaction(updateFogEndPoint, bypassOptions),
-  deleteFogEndPoint: TransactionDecorator.generateTransaction(deleteFogEndPoint, bypassOptions),
-  reconcileFogEndpoint: TransactionDecorator.generateTransaction(reconcileFogEndpoint, bypassOptions),
+  createFogEndPoint: TransactionDecorator.generateTransaction(createFogEndPoint),
+  updateFogEndPoint: TransactionDecorator.generateTransaction(updateFogEndPoint),
+  deleteFogEndPoint: TransactionDecorator.generateTransaction(deleteFogEndPoint),
+  reconcileFogEndpoint: TransactionDecorator.generateTransaction(reconcileFogEndpoint),
   getFogEndPoint: TransactionDecorator.generateTransaction(getFogEndPoint),
   getFogListEndPoint: TransactionDecorator.generateTransaction(getFogListEndPoint),
   generateProvisioningKeyEndPoint: TransactionDecorator.generateTransaction(generateProvisioningKeyEndPoint),
@@ -1547,21 +1553,21 @@ module.exports = {
   enableNodeExecEndPoint: TransactionDecorator.generateTransaction(enableNodeExecEndPoint),
   disableNodeExecEndPoint: TransactionDecorator.generateTransaction(disableNodeExecEndPoint),
   _extractServiceTags,
-  _findMatchingServices: TransactionDecorator.generateTransaction(_findMatchingServices),
+  _findMatchingServices,
   _buildTcpListenerForFog,
-  _getRouterMicroserviceConfig: TransactionDecorator.generateTransaction(_getRouterMicroserviceConfig),
-  _extractExistingTcpConnectors: TransactionDecorator.generateTransaction(_extractExistingTcpConnectors),
+  _getRouterMicroserviceConfig,
+  _extractExistingTcpConnectors,
   _mergeTcpConnector,
   _mergeTcpListener,
   checkKubernetesEnvironment,
-  _handleRouterCertificates: TransactionDecorator.generateTransaction(_handleRouterCertificates),
-  _deleteFogRouter: TransactionDecorator.generateTransaction(_deleteFogRouter),
-  _processDeleteCommand: TransactionDecorator.generateTransaction(_processDeleteCommand),
-  _reconcileNatsCertificatesOnHostChange: TransactionDecorator.generateTransaction(_reconcileNatsCertificatesOnHostChange),
-  _deleteNatsMicroserviceByFog: TransactionDecorator.generateTransaction(_deleteNatsMicroserviceByFog),
-  _createHalMicroserviceForFog: TransactionDecorator.generateTransaction(_createHalMicroserviceForFog),
-  _deleteHalMicroserviceByFog: TransactionDecorator.generateTransaction(_deleteHalMicroserviceByFog),
-  _createBluetoothMicroserviceForFog: TransactionDecorator.generateTransaction(_createBluetoothMicroserviceForFog),
-  _deleteBluetoothMicroserviceByFog: TransactionDecorator.generateTransaction(_deleteBluetoothMicroserviceByFog),
-  _updateMicroserviceExtraHosts: TransactionDecorator.generateTransaction(_updateMicroserviceExtraHosts)
+  _handleRouterCertificates,
+  _deleteFogRouter,
+  _processDeleteCommand,
+  _reconcileNatsCertificatesOnHostChange,
+  _deleteNatsMicroserviceByFog,
+  _createHalMicroserviceForFog,
+  _deleteHalMicroserviceByFog,
+  _createBluetoothMicroserviceForFog,
+  _deleteBluetoothMicroserviceByFog,
+  _updateMicroserviceExtraHosts
 }

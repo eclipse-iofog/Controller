@@ -10,7 +10,7 @@
  *   node test/load/ws-pairing-load.js --pairs 500
  *   node test/load/ws-pairing-load.js --multi-ms 100
  *
- * --multi-ms N: create 3 exec sessions per microservice (Plan 17 quota) for N microservices.
+ * --multi-ms N: create 5 exec sessions per microservice (concurrency quota) for N microservices.
  *
  * Exit 0 when p99 < 5000ms; exit 1 otherwise.
  */
@@ -29,7 +29,7 @@ function parseArg (name, fallback) {
 
 const PAIR_COUNT = parseInt(parseArg('pairs', '500'), 10)
 const MULTI_MS_COUNT = parseInt(parseArg('multi-ms', '0'), 10)
-const SESSIONS_PER_MS = 3
+const SESSIONS_PER_MS = 5
 
 const FAST_CONFIG = {
   session: {

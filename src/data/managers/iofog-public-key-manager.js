@@ -7,71 +7,40 @@ class FogPublicKeyManager extends BaseManager {
     return FogPublicKey
   }
 
-  // Find public key by fog UUID
   findByFogUuid (fogUuid, transaction) {
-    const options = transaction.fakeTransaction
-      ? {
-          where: {
-            iofogUuid: fogUuid
-          }
-        }
-      : {
-          where: {
-            iofogUuid: fogUuid
-          },
-          transaction
-        }
-
-    return FogPublicKey.findOne(options)
-  }
-
-  // Update or create public key for a fog
-  updateOrCreate (fogUuid, publicKey, transaction) {
-    const options = transaction.fakeTransaction
-      ? {
-          where: {
-            iofogUuid: fogUuid
-          }
-        }
-      : {
-          where: {
-            iofogUuid: fogUuid
-          },
-          transaction
-        }
-
-    return FogPublicKey.findOne(options).then((existingKey) => {
-      if (existingKey) {
-        const updateOptions = transaction.fakeTransaction
-          ? {
-              where: {
-                iofogUuid: fogUuid
-              }
-            }
-          : {
-              where: {
-                iofogUuid: fogUuid
-              },
-              transaction
-            }
-
-        return FogPublicKey.update({
-          publicKey
-        }, updateOptions)
-      } else {
-        const createOptions = transaction.fakeTransaction
-          ? {}
-          : { transaction }
-
-        return FogPublicKey.create({
-          iofogUuid: fogUuid,
-          publicKey
-        }, createOptions)
-      }
+    return FogPublicKey.findOne({
+      where: {
+        iofogUuid: fogUuid
+      },
+      transaction
     })
   }
 
-  // Delete public key by fog UUID
+  updateOrCreate (fogUuid, publicKey, transaction) {
+    return FogPublicKey.findOne({
+      where: {
+        iofogUuid: fogUuid
+      },
+      transaction
+    }).then((existingKey) => {
+      if (existingKey) {
+        return FogPublicKey.update({
+          publicKey
+        }, {
+          where: {
+            iofogUuid: fogUuid
+          },
+          transaction
+        })
+      }
+
+      return FogPublicKey.create({
+        iofogUuid: fogUuid,
+        publicKey
+      }, { transaction })
+    })
+  }
+
   deleteByFogUuid (fogUuid, transaction) {
     return this.delete({ iofogUuid: fogUuid }, transaction)
   }

@@ -108,8 +108,44 @@ describe('Fog platform reconcile task enqueue', () => {
     expect(task).to.eql(created)
   })
 
-  it('supersedes pending work with delete reason', async () => {
+  it('preempts in_progress tasks when delete is enqueued', async () => {
     const existing = { id: 9, fogUuid: 'fog-3', reason: 'spec-changed', status: 'in_progress' }
+    const entity = {
+      findOne: $sandbox.stub().resolves(existing),
+      update: $sandbox.stub().resolves([1])
+    }
+    const preempted = {
+      id: 9,
+      fogUuid: 'fog-3',
+      reason: 'delete',
+      status: 'pending',
+      leaderUuid: null,
+      claimedAt: null
+    }
+
+    $sandbox.stub(FogPlatformReconcileTaskManager, 'getEntity').returns(entity)
+    $sandbox.stub(FogPlatformReconcileTaskManager, 'findOne').resolves(preempted)
+
+    const task = await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
+      fogUuid: 'fog-3',
+      reason: 'delete'
+    }, transaction)
+
+    expect(entity.update).to.have.been.calledOnceWith({
+      reason: 'delete',
+      specGeneration: null,
+      status: 'pending',
+      leaderUuid: null,
+      claimedAt: null,
+      nextAttemptAt: null,
+      attempts: 0,
+      lastError: null
+    }, sinon.match.has('where', { id: 9 }))
+    expect(task).to.eql(preempted)
+  })
+
+  it('updates pending tasks to delete without resetting claim state', async () => {
+    const existing = { id: 10, fogUuid: 'fog-4', reason: 'spec-changed', status: 'pending' }
     const entity = {
       findOne: $sandbox.stub().resolves(existing),
       update: $sandbox.stub().resolves([1])
@@ -119,14 +155,13 @@ describe('Fog platform reconcile task enqueue', () => {
     $sandbox.stub(FogPlatformReconcileTaskManager, 'findOne').resolves({ ...existing, reason: 'delete' })
 
     await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask({
-      fogUuid: 'fog-3',
+      fogUuid: 'fog-4',
       reason: 'delete'
     }, transaction)
 
-    expect(entity.update).to.have.been.calledWithMatch(
-      { reason: 'delete' },
-      sinon.match.has('where', { id: 9 })
-    )
+    const updateArg = entity.update.getCall(0).args[0]
+    expect(updateArg.reason).to.equal('delete')
+    expect(updateArg.status).to.be.undefined
   })
 })
 

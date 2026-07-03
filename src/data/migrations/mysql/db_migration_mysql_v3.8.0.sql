@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS Fogs (
     deployment_type VARCHAR(36),
     active_volume_mounts BIGINT DEFAULT 0,
     volume_mount_last_update BIGINT DEFAULT 0,
-    warning_message TEXT DEFAULT 'HEALTHY',
+    warning_message TEXT,
     gps_device VARCHAR(36),
     gps_scan_frequency INT DEFAULT 60,
     edge_guard_frequency INT DEFAULT 0,
@@ -646,7 +646,7 @@ CREATE INDEX idx_microservice_exec_status_microservice_uuid ON MicroserviceExecS
 CREATE TABLE IF NOT EXISTS MicroserviceHealthChecks (
     id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     test TEXT,
-    interval BIGINT,
+    `interval` BIGINT,
     timeout BIGINT,
     start_period BIGINT,
     start_interval BIGINT,
@@ -707,7 +707,7 @@ CREATE INDEX idx_microservice_log_status_session_id ON MicroserviceLogStatuses (
 CREATE TABLE IF NOT EXISTS MicroserviceExecSessions (
     id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
     microservice_uuid VARCHAR(36) NOT NULL,
-    session_id TEXT UNIQUE NOT NULL,
+    session_id VARCHAR(255) UNIQUE NOT NULL,
     status TEXT,
     user_connected BOOLEAN DEFAULT false,
     agent_connected BOOLEAN DEFAULT false,
@@ -738,8 +738,8 @@ CREATE INDEX idx_fog_log_status_session_id ON FogLogStatuses (session_id);
 
 CREATE TABLE IF NOT EXISTS RbacRoles (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    kind TEXT DEFAULT 'Role',
+    name TEXT NOT NULL,
+    kind TEXT,
     created_at DATETIME,
     updated_at DATETIME,
     UNIQUE KEY unique_name (name(255))
@@ -759,8 +759,8 @@ CREATE TABLE IF NOT EXISTS RbacRoleRules (
 
 CREATE TABLE IF NOT EXISTS RbacRoleBindings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL,
-    kind TEXT DEFAULT 'RoleBinding',
+    name TEXT NOT NULL,
+    kind TEXT,
     role_ref TEXT NOT NULL,
     subjects TEXT NOT NULL,
     created_at DATETIME,
@@ -800,7 +800,7 @@ CREATE INDEX idx_rbac_role_bindings_role_id ON RbacRoleBindings (role_id);
 
 CREATE INDEX idx_rbac_service_accounts_role_id ON RbacServiceAccounts (role_id);
 CREATE UNIQUE INDEX idx_rbac_service_accounts_microservice_uuid_unique ON RbacServiceAccounts (microservice_uuid);
-CREATE UNIQUE INDEX idx_rbac_service_accounts_application_id_name_unique ON RbacServiceAccounts (application_id, name);
+CREATE UNIQUE INDEX idx_rbac_service_accounts_application_id_name_unique ON RbacServiceAccounts (application_id, name(255));
 
 CREATE TABLE IF NOT EXISTS ClusterControllers (
     uuid VARCHAR(36) PRIMARY KEY NOT NULL,
@@ -1213,6 +1213,19 @@ CREATE TABLE IF NOT EXISTS ServicePlatformReconcileTasks (
 CREATE INDEX idx_service_platform_reconcile_tasks_name_status ON ServicePlatformReconcileTasks (service_name(255), status);
 CREATE INDEX idx_service_platform_reconcile_tasks_status_claimed ON ServicePlatformReconcileTasks (status, claimed_at);
 CREATE INDEX idx_service_platform_reconcile_tasks_next_attempt ON ServicePlatformReconcileTasks (next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS ReconcileOutbox (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    kind VARCHAR(32) NOT NULL,
+    payload TEXT NOT NULL,
+    idempotency_key VARCHAR(255) NOT NULL,
+    created_at DATETIME,
+    processed_at DATETIME,
+    last_error TEXT,
+    UNIQUE KEY uk_reconcile_outbox_idempotency_key (idempotency_key)
+);
+
+CREATE INDEX idx_reconcile_outbox_unprocessed ON ReconcileOutbox (processed_at, id);
 
 CREATE TABLE IF NOT EXISTS HubRouterConfigLocks (
     id INT PRIMARY KEY,

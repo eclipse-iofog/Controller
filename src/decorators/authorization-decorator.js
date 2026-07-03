@@ -3,6 +3,7 @@ const FogManager = require('../data/managers/iofog-manager')
 const FogKeyService = require('../services/iofog-key-service')
 const Errors = require('../helpers/errors')
 const { isTest } = require('../helpers/app-helper')
+const { runInTransaction } = require('../helpers/transaction-runner')
 
 function checkFogToken (f) {
   return async function (...fArgs) {
@@ -18,7 +19,6 @@ function checkFogToken (f) {
       throw new Errors.AuthenticationError('authorization failed')
     }
 
-    // Extract token from Bearer scheme
     const [scheme, token] = authHeader.split(' ')
     if (scheme.toLowerCase() !== 'bearer' || !token) {
       logger.error('Invalid authorization scheme')
@@ -26,10 +26,8 @@ function checkFogToken (f) {
     }
 
     try {
-      // Debug log for JWT
       logger.debug({ token }, 'Received JWT')
 
-      // First, decode the JWT without verification to get the fog UUID
       const tokenParts = token.split('.')
       if (tokenParts.length !== 3) {
         logger.error('Invalid JWT format')
@@ -46,22 +44,24 @@ function checkFogToken (f) {
         throw new Errors.AuthenticationError('authorization failed')
       }
 
-      // Get the fog with transaction
-      const fog = await FogManager.findOne({
-        uuid: fogUuid
-      }, { fakeTransaction: true })
+      const fog = await runInTransaction(async (transaction) => {
+        const foundFog = await FogManager.findOne({ uuid: fogUuid }, transaction)
+        if (!foundFog) {
+          return null
+        }
+
+        await FogKeyService.verifyJWT(token, fogUuid, transaction)
+
+        const timestamp = Date.now()
+        await FogManager.updateLastActive(foundFog.uuid, timestamp, transaction)
+
+        return foundFog
+      }, { label: 'checkFogToken' })
 
       if (!fog) {
         logger.error(`Fog with UUID ${fogUuid} not found`)
         throw new Errors.AuthenticationError('authorization failed')
       }
-
-      // Verify the JWT with transaction
-      await FogKeyService.verifyJWT(token, fogUuid, { fakeTransaction: true })
-
-      // Update last active timestamp with transaction
-      const timestamp = Date.now()
-      await FogManager.updateLastActive(fog.uuid, timestamp, { fakeTransaction: true })
 
       fArgs.push(fog)
 

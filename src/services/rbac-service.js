@@ -87,6 +87,19 @@ async function createRoleEndpoint (roleData, transaction) {
   }
 }
 
+/**
+ * Build roleRef with the canonical role name after a role update (handles rename).
+ * @param {Object|null|undefined} existingRef - Existing roleRef from binding or service account
+ * @param {string} updatedRoleName - Canonical role name post-update
+ * @returns {Object} roleRef object
+ */
+function refreshedRoleRef (existingRef, updatedRoleName) {
+  return {
+    kind: (existingRef && existingRef.kind) || 'Role',
+    name: updatedRoleName
+  }
+}
+
 async function updateRoleEndpoint (name, roleData, transaction) {
   // Validate schema
   await Validator.validate(roleData, Validator.schemas.roleUpdate)
@@ -123,9 +136,9 @@ async function updateRoleEndpoint (name, roleData, transaction) {
     // Find all role bindings that reference this role using roleId for efficient querying
     const bindings = await RbacRoleBindingManager.findAll({ roleId }, transaction)
     for (const binding of bindings) {
-      // Trigger update to refresh cache and ensure roleId is set
+      // Trigger update to refresh cache, roleId, and roleRef.name (including on rename)
       await RbacRoleBindingManager.updateRoleBinding(binding.name, {
-        roleRef: binding.roleRef
+        roleRef: refreshedRoleRef(binding.roleRef, updatedRoleName)
       }, transaction)
     }
 
@@ -136,7 +149,7 @@ async function updateRoleEndpoint (name, roleData, transaction) {
       const appName = application ? application.name : null
       if (appName) {
         await RbacServiceAccountManager.updateServiceAccount(appName, sa.name, {
-          roleRef: sa.roleRef
+          roleRef: refreshedRoleRef(sa.roleRef, updatedRoleName)
         }, transaction)
       }
     }

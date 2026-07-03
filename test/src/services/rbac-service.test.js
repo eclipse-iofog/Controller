@@ -68,6 +68,7 @@ describe('Rbac Service', () => {
     describe('.updateRoleEndpoint()', () => {
       const roleName = 'custom-role'
       const roleId = 99
+      const roleRef = { kind: 'Role', name: roleName }
       const roleData = {
         rules: [{
           apiGroups: ['edgelet.iofog.org/v1'],
@@ -87,11 +88,14 @@ describe('Rbac Service', () => {
           .onFirstCall().resolves({ id: roleId, name: roleName })
           .onSecondCall().resolves({ id: roleId, name: roleName })
         $sandbox.stub(RbacRoleManager, 'updateRole').resolves({ name: roleName })
-        $sandbox.stub(RbacRoleBindingManager, 'findAll').resolves([])
+        $sandbox.stub(RbacRoleBindingManager, 'findAll').resolves([
+          { name: 'binding1', roleRef: roleRef }
+        ])
+        $sandbox.stub(RbacRoleBindingManager, 'updateRoleBinding').resolves({})
         $sandbox.stub(RbacServiceAccountManager, 'findAll').resolves([
-          { name: 'sa1', microserviceUuid: 'msvc-1', applicationId: 1, roleRef: roleName },
-          { name: 'sa2', microserviceUuid: 'msvc-2', applicationId: 1, roleRef: roleName },
-          { name: 'sa3', microserviceUuid: 'msvc-3', applicationId: 2, roleRef: roleName }
+          { name: 'sa1', microserviceUuid: 'msvc-1', applicationId: 1, roleRef },
+          { name: 'sa2', microserviceUuid: 'msvc-2', applicationId: 1, roleRef },
+          { name: 'sa3', microserviceUuid: 'msvc-3', applicationId: 2, roleRef }
         ])
         $sandbox.stub(ApplicationManager, 'findOne')
           .withArgs({ id: 1 }).resolves({ name: 'app1' })
@@ -117,6 +121,50 @@ describe('Rbac Service', () => {
           ChangeTrackingService.events.microserviceList,
           transaction
         )
+      })
+
+      it('refreshes roleRef.name on linked bindings and service accounts', async () => {
+        await $subject
+        expect(RbacRoleBindingManager.updateRoleBinding).to.have.been.calledOnceWith(
+          'binding1',
+          { roleRef: { kind: 'Role', name: roleName } },
+          transaction
+        )
+        expect(RbacServiceAccountManager.updateServiceAccount).to.have.been.calledWith(
+          'app1',
+          'sa1',
+          { roleRef: { kind: 'Role', name: roleName } },
+          transaction
+        )
+      })
+
+      context('when the role is renamed', () => {
+        const renamedRole = 'custom-role-v2'
+        const renameRoleData = { name: renamedRole }
+
+        def('subject', () => RbacService.updateRoleEndpoint(roleName, renameRoleData, transaction))
+
+        beforeEach(() => {
+          RbacRoleManager.findOne.restore()
+          $sandbox.stub(RbacRoleManager, 'findOne')
+            .onFirstCall().resolves({ id: roleId, name: roleName })
+            .onSecondCall().resolves({ id: roleId, name: renamedRole })
+        })
+
+        it('rewrites roleRef.name on linked bindings and service accounts', async () => {
+          await $subject
+          expect(RbacRoleBindingManager.updateRoleBinding).to.have.been.calledOnceWith(
+            'binding1',
+            { roleRef: { kind: 'Role', name: renamedRole } },
+            transaction
+          )
+          expect(RbacServiceAccountManager.updateServiceAccount).to.have.been.calledWith(
+            'app2',
+            'sa3',
+            { roleRef: { kind: 'Role', name: renamedRole } },
+            transaction
+          )
+        })
       })
     })
 

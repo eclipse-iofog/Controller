@@ -205,13 +205,22 @@ async function _updateRouterPorts (routerMicroserviceUuid, router, transaction) 
   }
 }
 
-async function updateConfig (routerID, containerEngine, transaction) {
-  const router = await RouterManager.findOne({ id: routerID }, transaction)
+function _upstreamConnectorsFingerprint (connectors) {
+  if (!connectors || typeof connectors !== 'object') {
+    return ''
+  }
+  return Object.keys(connectors).sort().map((name) => {
+    const connector = connectors[name]
+    return `${name}:${connector.host}:${connector.port}:${connector.role}:${connector.sslProfile || ''}`
+  }).join('|')
+}
+
+async function buildFreshRouterMicroserviceConfig (routerID, containerEngine, transaction, routerArg = null) {
+  const router = routerArg || await RouterManager.findOne({ id: routerID }, transaction)
   if (!router) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, routerID))
   }
 
-  // Get current configuration
   const routerCatalog = await CatalogService.getRouterCatalogItem(transaction)
   const routerMicroservice = await MicroserviceManager.findOne({
     catalogItemId: routerCatalog.id,
@@ -223,8 +232,6 @@ async function updateConfig (routerID, containerEngine, transaction) {
   }
 
   const currentConfig = JSON.parse(routerMicroservice.config || '{}')
-
-  // Generate new configuration
   const newConfig = await _getRouterMicroserviceConfig(
     router.isEdge,
     router.iofogUuid,
@@ -235,7 +242,6 @@ async function updateConfig (routerID, containerEngine, transaction) {
     transaction
   )
 
-  // Add connectors for upstream routers
   const upstreamRoutersConnections = await RouterConnectionManager.findAllWithRouters(
     { sourceRouter: router.id },
     transaction
@@ -251,11 +257,41 @@ async function updateConfig (routerID, containerEngine, transaction) {
     newConfig.connectors[connectorConfig.name] = connectorConfig
   }
 
+  // Service platform owns bridges.tcpConnectors/tcpListeners; fog recompute rebuilds listeners.
+  if (currentConfig.bridges) {
+    newConfig.bridges = JSON.parse(JSON.stringify(currentConfig.bridges))
+  }
+
+  return newConfig
+}
+
+async function updateConfig (routerID, containerEngine, transaction) {
+  const router = await RouterManager.findOne({ id: routerID }, transaction)
+  if (!router) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, routerID))
+  }
+
+  const routerCatalog = await CatalogService.getRouterCatalogItem(transaction)
+  const routerMicroservice = await MicroserviceManager.findOne({
+    catalogItemId: routerCatalog.id,
+    iofogUuid: router.iofogUuid
+  }, transaction)
+
+  if (!routerMicroservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, router.id))
+  }
+
+  const currentConfig = JSON.parse(routerMicroservice.config || '{}')
+  const newConfig = await buildFreshRouterMicroserviceConfig(routerID, containerEngine, transaction, router)
+
   await _ensureRouterTlsVolumeMountsAndMappings(router.iofogUuid, routerMicroservice.uuid, transaction, true)
   await ChangeTrackingService.update(router.iofogUuid, ChangeTrackingService.events.microserviceConfig, transaction)
 
+  const upstreamFingerprintChanged = _upstreamConnectorsFingerprint(currentConfig.connectors) !==
+    _upstreamConnectorsFingerprint(newConfig.connectors)
+
   // Check if configuration needs update
-  if (JSON.stringify(currentConfig) !== JSON.stringify(newConfig)) {
+  if (JSON.stringify(currentConfig) !== JSON.stringify(newConfig) || upstreamFingerprintChanged) {
     await MicroserviceManager.update(
       { uuid: routerMicroservice.uuid },
       { config: JSON.stringify(newConfig) },
@@ -669,6 +705,7 @@ async function findOne (option, transaction) {
 }
 
 module.exports = {
+  buildFreshRouterMicroserviceConfig: TransactionDecorator.generateTransaction(buildFreshRouterMicroserviceConfig),
   createRouterForFog: TransactionDecorator.generateTransaction(createRouterForFog),
   updateConfig: TransactionDecorator.generateTransaction(updateConfig),
   updateRouter: TransactionDecorator.generateTransaction(updateRouter),

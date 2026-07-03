@@ -40,7 +40,7 @@ describe('WebSocket exec activation fail-fast', () => {
     $sandbox.stub(logger, 'warn')
     $sandbox.stub(logger, 'debug')
     $sandbox.stub(wsServer, 'sendMessageToAgent').resolves(false)
-    $sandbox.stub(wsServer, 'cleanupExecSession').resolves()
+    $sandbox.stub(wsServer, '_cleanupExecSessionInTransaction').resolves()
   })
 
   afterEach(() => {
@@ -62,7 +62,7 @@ describe('WebSocket exec activation fail-fast', () => {
       transaction
     )
 
-    await wsServer.setupExecMessageForwarding(sessionId, transaction)
+    await wsServer.setupExecMessageForwarding(sessionId)
     await delay(20)
 
     const setupCompleteCalls = logger.info.getCalls().filter((call) => {

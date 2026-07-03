@@ -110,6 +110,27 @@ class NatsRelayTransportImpl {
     return this.execBridges.has(execId)
   }
 
+  setExecUserDeliveryHook (execId, hook) {
+    const bridge = this.execBridges.get(execId)
+    if (bridge) {
+      bridge.onUserRelayDelivery = hook
+    }
+  }
+
+  setExecAgentDeliveryHook (execId, hook) {
+    const bridge = this.execBridges.get(execId)
+    if (bridge) {
+      bridge.onAgentRelayDelivery = hook
+    }
+  }
+
+  setLogUserDeliveryHook (sessionId, hook) {
+    const bridge = this.logBridges.get(sessionId)
+    if (bridge) {
+      bridge.onUserRelayDelivery = hook
+    }
+  }
+
   async publishToAgent (execId, buffer, options = {}) {
     await this._publishExec(execId, execAgentSubject(execId), buffer, options)
   }
@@ -391,6 +412,26 @@ class NatsRelayTransportImpl {
         side,
         messageSize: body.length
       })
+      if (side === 'user' && currentBridge.onUserRelayDelivery) {
+        try {
+          currentBridge.onUserRelayDelivery(body)
+        } catch (error) {
+          logger.warn('[NATS][RELAY] Exec user relay delivery hook failed', {
+            execId: bridge.execId,
+            error: error.message
+          })
+        }
+      }
+      if (side === 'agent' && currentBridge.onAgentRelayDelivery) {
+        try {
+          currentBridge.onAgentRelayDelivery(body)
+        } catch (error) {
+          logger.warn('[NATS][RELAY] Exec agent relay delivery hook failed', {
+            execId: bridge.execId,
+            error: error.message
+          })
+        }
+      }
     } else {
       logger.debug('[NATS][RELAY] No socket available for exec delivery', {
         execId: bridge.execId,
@@ -413,6 +454,10 @@ class NatsRelayTransportImpl {
       closeAck
     })
 
+    if (closeAck) {
+      return
+    }
+
     if (ws && ws.readyState === WebSocket.OPEN) {
       try {
         const reason = closeInitiator === 'agent' ? 'Agent closed connection' : 'User closed connection'
@@ -424,9 +469,18 @@ class NatsRelayTransportImpl {
           error: error.message
         })
       }
+    } else if (bridge && bridge.cleanupCallback) {
+      try {
+        await bridge.cleanupCallback(execId)
+      } catch (error) {
+        logger.error('[NATS][RELAY] Error in cleanup callback during CLOSE handling', {
+          execId,
+          error: error.message
+        })
+      }
     }
 
-    if (!closeAck && this.execBridges.has(execId)) {
+    if (this.execBridges.has(execId)) {
       const ackSide = side === 'user' ? 'agent' : 'user'
       try {
         const hdrs = natsHeaders()
@@ -438,17 +492,6 @@ class NatsRelayTransportImpl {
         logger.warn('[NATS][RELAY] Failed to send CLOSE acknowledgement', {
           execId,
           ackSide,
-          error: error.message
-        })
-      }
-    }
-
-    if (bridge && bridge.cleanupCallback) {
-      try {
-        await bridge.cleanupCallback(execId)
-      } catch (error) {
-        logger.error('[NATS][RELAY] Error in cleanup callback during CLOSE handling', {
-          execId,
           error: error.message
         })
       }
@@ -525,6 +568,16 @@ class NatsRelayTransportImpl {
       ws.send(body, { binary: true })
       currentBridge.pendingBytes = Math.max(0, currentBridge.pendingBytes - body.length)
       currentBridge.pendingMessages = Math.max(0, currentBridge.pendingMessages - 1)
+      if (currentBridge.onUserRelayDelivery) {
+        try {
+          currentBridge.onUserRelayDelivery(body)
+        } catch (error) {
+          logger.warn('[NATS][RELAY] Log user relay delivery hook failed', {
+            sessionId: bridge.sessionId,
+            error: error.message
+          })
+        }
+      }
     } else {
       currentBridge.pendingBytes = Math.max(0, currentBridge.pendingBytes - body.length)
       currentBridge.pendingMessages = Math.max(0, currentBridge.pendingMessages - 1)

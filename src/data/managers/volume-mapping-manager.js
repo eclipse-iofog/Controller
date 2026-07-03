@@ -10,8 +10,9 @@ class VolumeMappingManager extends BaseManager {
   findAll (where, transaction) {
     return VolumeMapping.findAll({
       where,
-      attributes: ['hostDestination', 'containerDestination', 'accessMode', 'id', 'type']
-    }, { transaction })
+      attributes: ['hostDestination', 'containerDestination', 'accessMode', 'id', 'type'],
+      transaction
+    })
   }
 }
 
