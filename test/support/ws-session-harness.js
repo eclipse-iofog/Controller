@@ -301,6 +301,17 @@ function waitForSent (ws, minCount = 1, timeoutMs = 2000) {
   })
 }
 
+async function waitUntil (predicate, timeoutMs = 2000, intervalMs = 10) {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    if (predicate()) {
+      return
+    }
+    await delay(intervalMs)
+  }
+  throw new Error(`Timed out after ${timeoutMs}ms waiting for condition`)
+}
+
 module.exports = {
   MESSAGE_TYPES,
   WS_CLOSE_CODES,
@@ -318,5 +329,6 @@ module.exports = {
   buildFakeJwt,
   newTestIds,
   lastSentBinary,
-  waitForSent
+  waitForSent,
+  waitUntil
 }

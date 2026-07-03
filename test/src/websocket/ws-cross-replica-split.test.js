@@ -20,6 +20,7 @@ const {
   resetWebSocketServerSingleton,
   newTestIds,
   waitForSent,
+  waitUntil,
   delay
 } = require('../../support/ws-session-harness')
 const { resetTransportForTests } = require('../../../src/services/ws-relay-transport-factory')
@@ -431,7 +432,9 @@ describe('WebSocket exec/log — split replica pairing', () => {
     MicroserviceExecSessionManager.deleteBySessionId.resetHistory()
 
     userWs.close()
-    await delay(50)
+    await waitUntil(
+      () => serverA.execSessionManager.getExecSession($ids.sessionId) === null
+    )
 
     expect(MicroserviceExecSessionManager.deleteBySessionId).to.not.have.been.called
     expect(execRow.userConnected).to.equal(false)
