@@ -1,5 +1,5 @@
 # Local Docker build — mirrors CI/release build-args (see .github/actions/set-build-env).
-# Override any variable: make build FLAVOR=iofog EDGEOPS_CONSOLE_VERSION=v1.0.6
+# Override any variable: make build FLAVOR=iofog EDGEOPS_CONSOLE_VERSION=v1.0.7
 
 FLAVOR ?= datasance
 IMAGE_NAME ?= controller
@@ -25,7 +25,7 @@ else
   $(error FLAVOR must be "datasance" or "iofog", got "$(FLAVOR)")
 endif
 
-EDGEOPS_CONSOLE_VERSION ?= v1.0.6
+EDGEOPS_CONSOLE_VERSION ?= v1.0.7
 
 IMAGE_REF = $(IMAGE_REGISTRY)/$(IMAGE_NAME):$(DOCKER_TAG)
 
