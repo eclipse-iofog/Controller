@@ -1,7 +1,9 @@
 const ClusterControllerService = require('../services/cluster-controller-service')
+const { parseBoolean } = require('../config/parse-boolean')
 
 const listClusterControllersEndPoint = async function (req) {
-  return ClusterControllerService.listClusterControllers()
+  const includeInactive = parseBoolean(req.query && req.query.includeInactive, false)
+  return ClusterControllerService.listClusterControllers(includeInactive)
 }
 
 const getClusterControllerEndPoint = async function (req) {

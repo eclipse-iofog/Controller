@@ -726,10 +726,20 @@ paths:
     get:
       tags:
         - Cluster
-      summary: Lists all cluster controllers
+      summary: Lists cluster controllers (active replicas by default)
       operationId: listClusterControllers
       security:
         - authToken: []
+      parameters:
+        - in: query
+          name: includeInactive
+          description: >-
+            When true, include inactive controller rows (historical replicas from
+            past rollouts). Default false returns only active replicas.
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         "200":
           description: Success

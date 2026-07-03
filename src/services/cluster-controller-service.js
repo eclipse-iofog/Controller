@@ -85,8 +85,9 @@ async function updateHeartbeat (uuid, transaction) {
   )
 }
 
-async function listClusterControllers (transaction) {
-  const controllers = await ClusterControllerManager.findAll({}, transaction)
+async function listClusterControllers (includeInactive, transaction) {
+  const where = includeInactive ? {} : { isActive: true }
+  const controllers = await ClusterControllerManager.findAll(where, transaction)
   return controllers.map(controller => ({
     uuid: controller.uuid,
     host: controller.host,
