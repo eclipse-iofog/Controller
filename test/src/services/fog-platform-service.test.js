@@ -112,9 +112,16 @@ describe('Fog platform service', () => {
       $sandbox.stub(NatsService, 'ensureNatsForFogPhased').resolves({})
       $sandbox.stub(NatsService, 'cleanupNatsForFogPhased').resolves()
       $sandbox.stub(ReconcileOutboxManager, 'enqueueNats').resolves()
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueFogPlatform').resolves()
       $sandbox.stub(RouterService, 'validateAndReturnUpstreamRouters').resolves([])
-      $sandbox.stub(RouterService, 'updateRouter').resolves(router)
-      $sandbox.stub(IofogService, '_getRouterMicroserviceConfig').resolves({ bridges: { tcpListeners: {}, tcpConnectors: {} } })
+      $sandbox.stub(RouterService, 'updateRouter').resolves({
+        host: 'localhost',
+        messagingPort: router.messagingPort
+      })
+      $sandbox.stub(RouterService, 'buildFreshRouterMicroserviceConfig').resolves({
+        connectors: { 'default-router': { name: 'default-router', host: '10.0.0.1', port: '55671', role: 'edge' } },
+        bridges: { tcpListeners: {}, tcpConnectors: {} }
+      })
       $sandbox.stub(ServiceBridgeConfig, 'recomputeServiceBridgeConfig').resolves({ bridges: { tcpListeners: {}, tcpConnectors: {} } })
       $sandbox.stub(ChangeTrackingService, 'create').resolves()
       $sandbox.stub(ChangeTrackingService, 'update').resolves()
@@ -136,6 +143,11 @@ describe('Fog platform service', () => {
       expect(IofogService._handleRouterCertificates).to.have.been.calledOnce
       expect(NatsService.ensureNatsForFogPhased).to.have.been.calledOnce
       expect(RouterService.updateRouter).to.have.been.calledOnce
+      expect(RouterService.buildFreshRouterMicroserviceConfig).to.have.been.calledOnceWith(
+        router.id,
+        spec.containerEngine,
+        transaction
+      )
       expect(ServiceBridgeConfig.recomputeServiceBridgeConfig).to.have.been.calledOnce
       expect(FogPlatformStatusManager.setPhase).to.have.been.calledWith(
         fogUuid,
@@ -156,6 +168,7 @@ describe('Fog platform service', () => {
       await FogPlatformService.reconcileFog(fogUuid)
 
       expect(RouterService.updateRouter).to.have.been.calledTwice
+      expect(RouterService.buildFreshRouterMicroserviceConfig).to.have.been.calledTwice
       expect(ServiceBridgeConfig.recomputeServiceBridgeConfig).to.have.been.calledTwice
     })
 
@@ -211,6 +224,59 @@ describe('Fog platform service', () => {
         reason: 'cluster-routes-changed',
         fogUuids: [fogUuid]
       }, transaction)
+    })
+
+    context('when persisted router endpoints change during reconcile', () => {
+      const mutableRouter = {
+        id: 11,
+        iofogUuid: fogUuid,
+        isEdge: true,
+        host: '10.0.0.1',
+        messagingPort: 5671,
+        interRouterPort: null,
+        edgeRouterPort: null
+      }
+
+      beforeEach(() => {
+        const hostChangedSpec = {
+          ...spec,
+          host: '10.0.0.2'
+        }
+        FogPlatformSpecManager.getParsedSpec.resolves({
+          fogUuid,
+          generation: 2,
+          spec: hostChangedSpec
+        })
+        FogManager.findOneWithTags.resolves({ ...fog, host: '10.0.0.2' })
+        RouterManager.findOne.callsFake((query) => {
+          if (query && query.isDefault) {
+            return Promise.resolve({ id: 1, iofogUuid: 'default', isDefault: true })
+          }
+          return Promise.resolve(mutableRouter)
+        })
+        RouterService.updateRouter.callsFake(async (_router, updates) => {
+          Object.assign(mutableRouter, updates)
+          return mutableRouter
+        })
+        RouterConnectionManager.findAllWithRouters.callsFake((query) => {
+          if (query && query.destRouter === mutableRouter.id) {
+            return Promise.resolve([{ source: { iofogUuid: 'edge-downstream' } }])
+          }
+          if (query && query.sourceRouter === mutableRouter.id) {
+            return Promise.resolve([])
+          }
+          return Promise.resolve([])
+        })
+      })
+
+      it('enqueues downstream fog platform reconcile after upstream finalize', async () => {
+        await FogPlatformService.reconcileFog(fogUuid)
+
+        expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.been.calledWith({
+          fogUuid: 'edge-downstream',
+          reason: 'spec-changed'
+        }, transaction)
+      })
     })
 
     context('when upstreamRouters is omitted from spec', () => {
@@ -278,6 +344,75 @@ describe('Fog platform service', () => {
           transaction
         )
       })
+    })
+
+    context('when upstreamNatsServers is omitted from spec', () => {
+      it('preserves existing NATS upstream connections during reconcile prepare', async () => {
+        NatsInstanceManager.findOne.resolves({ id: 1, isHub: true, iofogUuid: 'hub' })
+        NatsInstanceManager.findByFog.resolves({ id: 5, isLeaf: true, iofogUuid: fogUuid })
+        NatsConnectionManager.findAllWithNats.resolves([
+          { dest: { id: 1, isHub: true, iofogUuid: 'hub' } }
+        ])
+
+        await FogPlatformService.reconcileFog(fogUuid)
+
+        expect(NatsService.ensureNatsForFogPhased).to.have.been.calledWith(
+          sinon.match.any,
+          sinon.match.has('upstreamNatsServers', ['default-nats-hub'])
+        )
+      })
+    })
+  })
+
+  describe('.getDownstreamFogUuidsForUpstream()', () => {
+    it('returns downstream fogs connected via router and NATS upstream', async () => {
+      $sandbox.stub(RouterManager, 'findOne').resolves({ id: 10, iofogUuid: fogUuid })
+      $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').resolves([
+        { source: { iofogUuid: 'edge-downstream' } }
+      ])
+      $sandbox.stub(NatsInstanceManager, 'findByFog').resolves({ id: 20, iofogUuid: fogUuid })
+      $sandbox.stub(NatsConnectionManager, 'findAllWithNats').resolves([
+        { source: { iofogUuid: 'leaf-downstream' } }
+      ])
+
+      const result = await FogPlatformService.getDownstreamFogUuidsForUpstream(fogUuid, transaction)
+
+      expect(result).to.have.members(['edge-downstream', 'leaf-downstream'])
+    })
+  })
+
+  describe('.endpointsChanged()', () => {
+    it('detects host and port drift', () => {
+      expect(FogPlatformService.endpointsChanged(
+        { host: '10.0.0.1', routerHost: '10.0.0.1', messagingPort: '5671' },
+        { host: '10.0.0.2', routerHost: '10.0.0.2', messagingPort: '5671' }
+      )).to.equal(true)
+      expect(FogPlatformService.endpointsChanged(
+        { host: '10.0.0.1', routerHost: '10.0.0.1', messagingPort: '5671' },
+        { host: '10.0.0.2', routerHost: '10.0.0.1', messagingPort: '5671' }
+      )).to.equal(true)
+      expect(FogPlatformService.endpointsChanged(
+        { host: '10.0.0.1', routerHost: '10.0.0.1', messagingPort: '5671' },
+        { host: '10.0.0.1', routerHost: '10.0.0.1', messagingPort: '5671' }
+      )).to.equal(false)
+    })
+  })
+
+  describe('.resolveNatsConfigFromSpec()', () => {
+    it('preserves existing NATS upstream connections when spec omits upstreamNatsServers', async () => {
+      $sandbox.stub(NatsInstanceManager, 'findOne').resolves({ id: 1, isHub: true, iofogUuid: 'hub' })
+      $sandbox.stub(NatsInstanceManager, 'findByFog').resolves({ id: 5, iofogUuid: fogUuid, isLeaf: true })
+      $sandbox.stub(NatsConnectionManager, 'findAllWithNats').resolves([
+        { dest: { id: 1, iofogUuid: 'hub', isHub: true } }
+      ])
+
+      const result = await FogPlatformService.resolveNatsConfigFromSpec(
+        fogUuid,
+        { natsMode: 'leaf' },
+        transaction
+      )
+
+      expect(result.upstreamNatsServers).to.eql(['default-nats-hub'])
     })
   })
 

@@ -567,7 +567,9 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
   await FogManager.update(queryFogData, updateFogData, transaction)
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.config, transaction)
 
-  const mergedSpec = mergePlatformSpecPatch(parsedSpec ? parsedSpec.spec : {}, fogData)
+  const existingSpec = parsedSpec ? parsedSpec.spec : {}
+  const mergedSpec = mergePlatformSpecPatch(existingSpec, fogData)
+
   const { generation } = await FogPlatformSpecManager.upsertSpec(fogData.uuid, mergedSpec, transaction)
   await FogPlatformStatusManager.ensurePending(fogData.uuid, transaction)
   await ReconcileOutboxManager.enqueueFogPlatform({

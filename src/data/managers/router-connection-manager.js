@@ -22,8 +22,9 @@ class RouterConnectionManager extends BaseManager {
           required: true
         }
       ],
-      where
-    }, { transaction })
+      where,
+      transaction
+    })
   }
 }
 

@@ -124,6 +124,88 @@ function topologyChanged (before, after) {
     before.upstreamNatsServers !== after.upstreamNatsServers
 }
 
+function serializeEndpointSnapshot (snapshot) {
+  return JSON.stringify(snapshot || {})
+}
+
+function endpointsChanged (before, after) {
+  return serializeEndpointSnapshot(before) !== serializeEndpointSnapshot(after)
+}
+
+async function captureEndpointSnapshot (fogUuid, fog, spec, transaction) {
+  const router = await RouterManager.findOne({ iofogUuid: fogUuid }, transaction)
+  const nats = await NatsInstanceManager.findByFog(fogUuid, transaction)
+  const host = spec.host != null ? spec.host : (fog ? fog.host : null)
+
+  return {
+    host: host || '',
+    routerHost: router ? (router.host || '') : '',
+    natsHost: nats ? (nats.host || '') : '',
+    messagingPort: String(spec.messagingPort ?? (router ? router.messagingPort : '')),
+    interRouterPort: String(spec.interRouterPort ?? (router ? router.interRouterPort : '')),
+    edgeRouterPort: String(spec.edgeRouterPort ?? (router ? router.edgeRouterPort : '')),
+    natsServerPort: String(spec.natsServerPort ?? (nats ? nats.serverPort : '')),
+    natsLeafPort: String(spec.natsLeafPort ?? (nats ? nats.leafPort : '')),
+    natsClusterPort: String(spec.natsClusterPort ?? (nats ? nats.clusterPort : '')),
+    natsMqttPort: String(spec.natsMqttPort ?? (nats ? nats.mqttPort : '')),
+    natsHttpPort: String(spec.natsHttpPort ?? (nats ? nats.httpPort : ''))
+  }
+}
+
+async function getDownstreamFogUuidsForUpstream (fogUuid, transaction) {
+  const downstreamUuids = new Set()
+
+  const upstreamRouter = await RouterManager.findOne({ iofogUuid: fogUuid }, transaction)
+  if (upstreamRouter) {
+    const downstreamConnections = await RouterConnectionManager.findAllWithRouters(
+      { destRouter: upstreamRouter.id },
+      transaction
+    )
+    for (const connection of downstreamConnections || []) {
+      if (connection.source && connection.source.iofogUuid) {
+        downstreamUuids.add(connection.source.iofogUuid)
+      }
+    }
+  }
+
+  const upstreamNats = await NatsInstanceManager.findByFog(fogUuid, transaction)
+  if (upstreamNats) {
+    const downstreamConnections = await NatsConnectionManager.findAllWithNats(
+      { destNats: upstreamNats.id },
+      transaction
+    )
+    for (const connection of downstreamConnections || []) {
+      if (connection.source && connection.source.iofogUuid) {
+        downstreamUuids.add(connection.source.iofogUuid)
+      }
+    }
+  }
+
+  return [...downstreamUuids]
+}
+
+async function resolveNatsConfigFromSpec (fogUuid, spec, transaction) {
+  const natsConfig = buildNatsConfig(spec)
+  if (spec.upstreamNatsServers !== undefined) {
+    return natsConfig
+  }
+
+  const defaultHub = await NatsInstanceManager.findOne({ isHub: true }, transaction)
+  const nats = await NatsInstanceManager.findByFog(fogUuid, transaction)
+  if (!nats) {
+    return natsConfig
+  }
+
+  const connections = await NatsConnectionManager.findAllWithNats({ sourceNats: nats.id }, transaction)
+  if (connections && connections.length > 0) {
+    natsConfig.upstreamNatsServers = connections.map(
+      (connection) => _getNatsUuid(connection.dest, defaultHub)
+    )
+  }
+
+  return natsConfig
+}
+
 function truncateErrorMessage (errorMessage, maxLength = 200) {
   return errorMessage.length > maxLength ? errorMessage.slice(0, maxLength) : errorMessage
 }
@@ -174,6 +256,7 @@ async function reconcileFogPrepare (fogUuid, transaction) {
   const spec = parsedSpec.spec
   const fogData = buildFogDataFromSpecAndFog(fog, spec)
   const topologyBefore = await captureTopologySnapshot(fogUuid, transaction)
+  const endpointsBefore = await captureEndpointSnapshot(fogUuid, fog, spec, transaction)
 
   await FogPlatformStatusManager.setPhase(fogUuid, 'Progressing', { lastError: null }, transaction)
   validateSystemFogInvariants(fog, spec)
@@ -191,9 +274,10 @@ async function reconcileFogPrepare (fogUuid, transaction) {
     fogData,
     generation,
     topologyBefore,
+    endpointsBefore,
     shouldRecreateCerts,
     isHostChanged,
-    natsConfig: buildNatsConfig(spec),
+    natsConfig: await resolveNatsConfigFromSpec(fogUuid, spec, transaction),
     isFirstReconcile: !status || status.observedGeneration === 0,
     router
   }
@@ -292,7 +376,12 @@ async function reconcileFogPlatform (fogUuid, prep, transaction) {
       }, upstreamRouters, spec.containerEngine || fog.containerEngine, transaction)
     }
 
-    const baseRouterConfig = await IofogService._getRouterMicroserviceConfig(fogUuid, transaction)
+    const activeRouterId = networkRouter.id ?? router.id
+    const baseRouterConfig = await RouterService.buildFreshRouterMicroserviceConfig(
+      activeRouterId,
+      spec.containerEngine || fog.containerEngine,
+      transaction
+    )
     await ServiceBridgeConfig.recomputeServiceBridgeConfig(fogUuid, baseRouterConfig, transaction)
   }
 
@@ -338,6 +427,17 @@ async function reconcileFogFinalize (fogUuid, prep, platformResult, transaction)
     }, transaction)
   }
 
+  const endpointsAfter = await captureEndpointSnapshot(fogUuid, prep.fog, prep.spec, transaction)
+  if (endpointsChanged(prep.endpointsBefore, endpointsAfter)) {
+    const downstreamUuids = await getDownstreamFogUuidsForUpstream(fogUuid, transaction)
+    for (const downstreamUuid of downstreamUuids) {
+      await ReconcileOutboxManager.enqueueFogPlatform({
+        fogUuid: downstreamUuid,
+        reason: 'spec-changed'
+      }, transaction)
+    }
+  }
+
   await FogPlatformStatusManager.setPhase(fogUuid, 'Ready', {
     observedGeneration: generation,
     lastError: null,
@@ -347,7 +447,7 @@ async function reconcileFogFinalize (fogUuid, prep, platformResult, transaction)
   await FogManager.update({ uuid: fogUuid }, { warningMessage: 'HEALTHY' }, transaction)
 
   return {
-    networkRouterId: platformResult.networkRouter ? platformResult.networkRouter.id : null
+    networkRouterId: (platformResult.networkRouter && platformResult.networkRouter.id) || (routerAfter && routerAfter.id) || null
   }
 }
 
@@ -449,6 +549,10 @@ module.exports = {
   buildFogDataFromSpecAndFog,
   validateSystemFogInvariants,
   captureTopologySnapshot,
+  captureEndpointSnapshot,
+  endpointsChanged,
+  getDownstreamFogUuidsForUpstream,
+  resolveNatsConfigFromSpec,
   topologyChanged,
   markReconcileFailed,
   reconcileFogPrepare,

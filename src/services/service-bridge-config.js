@@ -46,6 +46,7 @@ async function _resolveFogTagValues (fogUuid, transaction) {
 }
 
 async function recomputeServiceBridgeConfig (fogUuid, baseConfig, transaction) {
+  // baseConfig must be freshly built from router DB state (connectors/upstreams), not stale MS JSON.
   let config = stripServiceDerivedBridges(baseConfig)
 
   const tagValues = await _resolveFogTagValues(fogUuid, transaction)

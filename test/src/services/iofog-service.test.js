@@ -114,6 +114,8 @@ function stubUpdateFogDeps (sandbox, oldFog) {
   sandbox.stub(FogPlatformSpecManager, 'upsertSpec').resolves({ fogUuid: oldFog.uuid, generation: 2 })
   sandbox.stub(FogPlatformStatusManager, 'ensurePending').resolves()
   sandbox.stub(ReconcileOutboxManager, 'enqueueFogPlatform').resolves()
+  sandbox.stub(NatsInstanceManager, 'findByFog').resolves(null)
+  sandbox.stub(NatsConnectionManager, 'findAllWithNats').resolves([])
 }
 
 describe('ioFog Service', () => {
@@ -313,6 +315,44 @@ describe('ioFog Service', () => {
       const renamed = { ...fogData, name: 'new-name' }
       return expect(ioFogService.updateFogEndPoint(renamed, isCLI, transaction))
         .to.be.rejectedWith('Agent Resource Name is immutable')
+    })
+
+    context('when upstream endpoint changes', () => {
+      beforeEach(() => {
+        RouterManager.findOne.callsFake((query) => {
+          if (query && query.iofogUuid === uuid) {
+            return Promise.resolve({ id: 10, iofogUuid: uuid, messagingPort: 5671, host: '1.2.3.4' })
+          }
+          return Promise.resolve({ id: 1, isDefault: true })
+        })
+        RouterConnectionManager.findAllWithRouters.callsFake((query) => {
+          if (query && query.destRouter === 10) {
+            return Promise.resolve([{ source: { iofogUuid: 'edge-downstream' } }])
+          }
+          return Promise.resolve([])
+        })
+        NatsInstanceManager.findByFog.resolves({ id: 20, iofogUuid: uuid, serverPort: 4222 })
+        NatsConnectionManager.findAllWithNats.resolves([])
+        FogPlatformSpecManager.getParsedSpec.resolves({
+          fogUuid: uuid,
+          generation: 1,
+          spec: {
+            routerMode: 'edge',
+            natsMode: 'leaf',
+            host: '1.2.3.4',
+            messagingPort: 5671
+          }
+        })
+      })
+
+      it('does not enqueue downstream platform reconcile on PATCH', async () => {
+        await $subject
+
+        expect(ReconcileOutboxManager.enqueueFogPlatform).to.not.have.been.calledWith({
+          fogUuid: 'edge-downstream',
+          reason: 'spec-changed'
+        }, transaction)
+      })
     })
 
     context('when fog is not found', () => {
