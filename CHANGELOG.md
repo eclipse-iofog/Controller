@@ -1,6 +1,7 @@
 # Changelog
 
-## [v3.8.0] - 2026-06-17
+
+## [v3.8.0] - 2026-07-03
 
 Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is **no upgrade path** from v3.7: use a fresh database and redeploy Controller + Edgelet together.
 
@@ -127,6 +128,7 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - **WebSocket exec/log session cleanup race (postgres / NATS relay)** — concurrent teardown paths (pending timeout + disconnect, NATS CLOSE + CLOSE ack, relay callback + `ws.on('close')`) reused one Sequelize transaction via AsyncLocalStorage, causing `commit has been called on this transaction` on session row delete. Exec and log cleanup are deduplicated per `sessionId`, use fresh background transactions, pending timeouts only close sockets, and relay CLOSE acks no longer trigger DB teardown.
 - **WebSocket exec/log cross-replica pairing** — pending timeouts no longer require a local `session.agent`; user pods mark `remoteAgentPaired` via relay delivery hooks and DB fallback (`agentConnected`). Agent pods publish **ACTIVATION** (exec) and **LOG_LINE** user notifications via NATS/AMQP relay when the user is on another replica. Same-replica log “agent connected” notify uses **LOG_LINE** (not `LOG_START` + embedded message). **`ws_pending_pairings`** and **`ws_pairing_duration_ms`** metrics are recorded from user connect through pairing completion or timeout. Cross-replica paired sessions use **max/idle duration** (not pending timeout) in periodic cleanup; agent disconnect on an agent-only pod relays **CLOSE** (exec) or **LOG_LINE** (log) to the user pod and detaches local state without deleting the DB row.
 - **WebSocket cross-replica exec activation** — `setupExecMessageForwarding` read `shouldUseRelay` before `enableForSession`, so agent-only pods skipped relay **ACTIVATION** and user notify on first connect (log setup was already correct). Info logs added for log session user/agent disconnect, full cleanup, and local detach.
+- **WebSocket exec/log orphan session cleanup (multi-replica HA)** — agent partial disconnect no longer triggers solely because relay is enabled; teardown uses DB `userConnected` (not stale `remoteUserPaired`). Full DB delete when both sides are gone. Concurrency limits and `GET /agent/logs/sessions` / `GET /agent/exec/sessions` count or list only `userConnected: true` rows. Reconcile job immediately removes rows with both flags false. Same-replica user disconnect still full-cleans when the agent socket is local.
 - **Volume mount manager transaction propagation** — `VolumeMountingManager.findOne` / `findAll` passed `transaction` as a second Sequelize argument instead of inside the options object, so NATS fog reconcile could create a volume mount in an open transaction then fail to link it (`nats-server-conf-* not found`). Reads now honor the parent transaction like `BaseManager`.
 - **Volume mount service transaction propagation** — `VolumeMountService.linkVolumeMountEndpoint` / `unlinkVolumeMountEndpoint` passed `transaction` as a second Sequelize argument to `getFogs` / `addVolumeMount` / `removeVolumeMount` instead of inside the options object, causing NATS fog reconcile to hang when linking volume mounts after auth bootstrap.
 - **Fog platform reconcile stale errors** — `reconcileFogPrepare` clears `lastError` when entering `Progressing` so prior `SQLITE_BUSY` does not mask current reconcile state.
@@ -166,6 +168,14 @@ Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is *
 - Dual writers to router microservice bridge config from fog create/update and service create/update/delete — single full-recompute path on fog reconcile.
 - SQLite startup lock contention on single-controller deployments — WAL + `busy_timeout` pragmas on connect, `withDbBusyRetry` on fog/service/NATS task claims, staggered reconcile-heavy job startup.
 - **`reconcileFog` transaction parameter** — removed unused `options` argument so worker-decorated calls receive the transaction correctly.
+- **NATS auth post-commit orchestration** — account/user rule reissue and application NATS orchestration run in background `PRIORITY_BACKGROUND` transactions after API commit; no longer inherit committed ALS transactions (`commit has been called on this transaction`).
+- **NATS resolver bundle ordering** — hub + leaf JWT bundles rebuild only after reissue/revocation commits; outbox enqueue removed from eager `scheduleReissueFor*` paths.
+- **Application NATS rule / disable** — `_scheduleApplicationNatsOrchestration` post-commit with guaranteed outbox enqueue on success (R139).
+- **Microservice NATS PATCH** — normalized `natsConfig` gates enable/disable/rule change; resolver bundle uses fresh account JWT reads; idempotency keys include `authGeneration` / `microserviceUuid` (R137, R140, R142).
+- **User rule fan-out** — `reissueForUserRule` covers all `NatsUserManager` rows by rule id including Bearer users; revocations propagate (R143).
+- **Fog router MS upstream** — router microservice config built from live router DB + connections, not stale persisted JSON; upstream topology change forces persist (R144, R145).
+- **Downstream fog fan-out** — upstream interior-router or server-NATS host/port change enqueues downstream platform reconcile (R146).
+- **`upstreamNatsServers` preserve-on-omit** — PATCH omitting `upstreamNatsServers` preserves existing NATS upstream connections (R147).
 
 ### Changed
 
