@@ -261,7 +261,7 @@ describe('RBAC middleware without bearer token', () => {
 
   it('returns 401 when no authentication information is present', async () => {
     const authorizer = require('../../../src/lib/rbac/authorizer')
-    $sandbox.stub(authorizer, 'authorize').resolves(true)
+    $sandbox.stub(authorizer, 'authorizeRequest').resolves({ allowed: true })
 
     const rbacMiddleware = require('../../../src/lib/rbac/middleware')
     const req = {

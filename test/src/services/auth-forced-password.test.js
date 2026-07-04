@@ -98,7 +98,7 @@ describe('Forced password change (CLI + RBAC)', () => {
     }, false)
 
     const authorizer = require('../../../src/lib/rbac/authorizer')
-    $sandbox.stub(authorizer, 'authorize').resolves({ allowed: true })
+    $sandbox.stub(authorizer, 'authorizeRequest').resolves({ allowed: true })
 
     const rbacMiddleware = require('../../../src/lib/rbac/middleware')
     const profileReq = {

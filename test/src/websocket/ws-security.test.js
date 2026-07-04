@@ -29,7 +29,7 @@ describe('WebSocket session security', () => {
       const req = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)
       req.headers.authorization = 'Bearer denied-token'
 
-      $sandbox.stub(authorizer, 'authorize').resolves({
+      $sandbox.stub(authorizer, 'authorizeRequest').resolves({
         allowed: false,
         reason: 'Access denied: insufficient permissions'
       })
@@ -49,7 +49,7 @@ describe('WebSocket session security', () => {
       const token = buildFakeJwt()
       req.headers.authorization = token
 
-      $sandbox.stub(authorizer, 'authorize').resolves({ allowed: true })
+      $sandbox.stub(authorizer, 'authorizeRequest').resolves({ allowed: true })
 
       const handlerCalled = sinon.stub().resolves()
       const protectedHandler = rbacMiddleware.protectWebSocket(handlerCalled)

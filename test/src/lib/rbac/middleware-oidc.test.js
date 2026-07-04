@@ -148,7 +148,7 @@ describe('RBAC middleware OIDC integration', () => {
         }
       })
 
-      $sandbox.stub(authorizer, 'authorize').resolves({ allowed: true })
+      $sandbox.stub(authorizer, 'authorizeRequest').resolves({ allowed: true })
 
       const req = {
         method: 'GET',
@@ -158,13 +158,13 @@ describe('RBAC middleware OIDC integration', () => {
 
       await rbacMiddleware.protect()(req, $res, $callback)
 
-      expect(authorizer.authorize).to.have.been.calledOnce
+      expect(authorizer.authorizeRequest).to.have.been.calledOnce
       expect($callback).to.have.been.calledOnce
       expect($res.statusCode).to.equal(null)
     })
 
     it('returns 403 when authorizer denies access', async () => {
-      $sandbox.stub(authorizer, 'authorize').resolves({
+      $sandbox.stub(authorizer, 'authorizeRequest').resolves({
         allowed: false,
         reason: 'insufficient permissions'
       })

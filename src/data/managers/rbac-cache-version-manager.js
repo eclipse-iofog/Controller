@@ -16,6 +16,14 @@ class RbacCacheVersionManager extends BaseManager {
     return cacheVersion.version || 0
   }
 
+  async getVersionWithoutTransaction () {
+    const cacheVersion = await this.getEntity().findOne({ where: { id: 1 } })
+    if (!cacheVersion) {
+      return 0
+    }
+    return cacheVersion.version || 0
+  }
+
   _getModelOptions (transaction) {
     return { transaction }
   }

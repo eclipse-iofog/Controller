@@ -1,17 +1,19 @@
 const RbacRoleBindingManager = require('../../data/managers/rbac-role-binding-manager')
 const RbacRoleManager = require('../../data/managers/rbac-role-manager')
 const RbacCacheVersionManager = require('../../data/managers/rbac-cache-version-manager')
+const transactionRunner = require('../../helpers/transaction-runner')
 const logger = require('../../logger')
-
 
 // Simple in-memory cache for authorization decisions
 // Key format: `${subjectKind}:${subjectName}:${apiGroup}:${resource}:${verb}:${resourceName}`
 const authCache = new Map()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 const MAX_CACHE_SIZE = 10000
+const VERSION_CHECK_INTERVAL_MS = 1000
 
 // Track last known cache version to detect changes across instances
 let lastKnownVersion = null
+let lastVersionCheckAt = 0
 
 /**
  * Check if a value matches a pattern (supports wildcard *)
@@ -36,6 +38,44 @@ function matchesArray (value, array) {
     return false
   }
   return array.some(item => matchesPattern(value, item))
+}
+
+function buildCacheKey (subjects, apiGroup, resource, verb, resourceName) {
+  return `${JSON.stringify(subjects)}:${apiGroup}:${resource}:${verb}:${resourceName || ''}`
+}
+
+function getCachedResult (cacheKey) {
+  const cached = authCache.get(cacheKey)
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.result
+  }
+  return null
+}
+
+function storeCachedResult (cacheKey, result) {
+  if (authCache.size < MAX_CACHE_SIZE) {
+    authCache.set(cacheKey, { result, timestamp: Date.now() })
+  }
+}
+
+function isVersionCheckFresh () {
+  return lastKnownVersion !== null &&
+    (Date.now() - lastVersionCheckAt) < VERSION_CHECK_INTERVAL_MS
+}
+
+async function ensureVersionFresh () {
+  try {
+    const currentVersion = await RbacCacheVersionManager.getVersionWithoutTransaction()
+    if (lastKnownVersion !== null && currentVersion !== lastKnownVersion) {
+      logger.info('Cache version changed - clearing cache')
+      authCache.clear()
+    }
+    lastKnownVersion = currentVersion
+  } catch (error) {
+    logger.warn(`Error checking cache version: ${error.message}`)
+  } finally {
+    lastVersionCheckAt = Date.now()
+  }
 }
 
 /**
@@ -92,39 +132,18 @@ function evaluateRule (rule, apiGroup, resource, verb, resourceName) {
 }
 
 /**
- * Authorize a request
- * @param {Array} subjects - Array of subjects {kind, name}
- * @param {string} apiGroup - API group (empty string for core)
- * @param {string} resource - Resource name (e.g., 'microservices')
- * @param {string} verb - Verb (e.g., 'get', 'create', 'patch')
- * @param {string} resourceName - Optional resource instance name (e.g., microservice UUID)
- * @param {Object} transaction - Database transaction
- * @returns {Promise<{allowed: boolean, reason?: string}>}
+ * Full authorization path (requires a database transaction).
+ * Used on cache miss after a cheap version check.
  */
 async function authorize (subjects, apiGroup, resource, verb, resourceName, transaction) {
   if (!subjects || !Array.isArray(subjects) || subjects.length === 0) {
     return { allowed: false, reason: 'No subjects provided' }
   }
 
-  // Check if cache version has changed (for multi-instance cache invalidation)
-  try {
-    const currentVersion = await RbacCacheVersionManager.getVersion(transaction)
-    if (lastKnownVersion !== null && currentVersion !== lastKnownVersion) {
-      // Cache version changed - clear local cache
-      logger.info('Cache version changed - clearing cache')
-      authCache.clear()
-    }
-    lastKnownVersion = currentVersion
-  } catch (error) {
-    // Log error but continue - if version check fails, we'll just skip cache version check
-    logger.warn(`Error checking cache version: ${error.message}`)
-  }
-
-  // Check cache
-  const cacheKey = `${JSON.stringify(subjects)}:${apiGroup}:${resource}:${verb}:${resourceName || ''}`
-  const cached = authCache.get(cacheKey)
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return cached.result
+  const cacheKey = buildCacheKey(subjects, apiGroup, resource, verb, resourceName)
+  const cached = getCachedResult(cacheKey)
+  if (cached) {
+    return cached
   }
 
   // Check system roles first (Admin, SRE, Developer, Viewer)
@@ -132,7 +151,7 @@ async function authorize (subjects, apiGroup, resource, verb, resourceName, tran
   for (const subject of subjects) {
     if (subject.kind === 'Group' && subject.name) {
       const roleName = subject.name.toLowerCase()
-      
+
       // Check if it matches a system role
       if (RbacRoleManager.isSystemRole(roleName)) {
         const systemRole = RbacRoleManager.getSystemRole(roleName)
@@ -143,10 +162,7 @@ async function authorize (subjects, apiGroup, resource, verb, resourceName, tran
             try {
               if (evaluateRule(rule, apiGroup, resource, verb, resourceName)) {
                 const result = { allowed: true, reason: `${roleName} system role has permission` }
-                // Cache result
-                if (authCache.size < MAX_CACHE_SIZE) {
-                  authCache.set(cacheKey, { result, timestamp: Date.now() })
-                }
+                storeCachedResult(cacheKey, result)
                 return result
               }
             } catch (ruleError) {
@@ -191,10 +207,7 @@ async function authorize (subjects, apiGroup, resource, verb, resourceName, tran
     try {
       if (evaluateRule(rule, apiGroup, resource, verb, resourceName)) {
         const result = { allowed: true, reason: 'Rule matched' }
-        // Cache result
-        if (authCache.size < MAX_CACHE_SIZE) {
-          authCache.set(cacheKey, { result, timestamp: Date.now() })
-        }
+        storeCachedResult(cacheKey, result)
         return result
       }
     } catch (ruleError) {
@@ -213,11 +226,43 @@ async function authorize (subjects, apiGroup, resource, verb, resourceName, tran
 
   // Deny by default
   const result = { allowed: false, reason: 'Authorization denied: You do not have permission to perform this action. Please contact your administrator.' }
-  // Cache result
-  if (authCache.size < MAX_CACHE_SIZE) {
-    authCache.set(cacheKey, { result, timestamp: Date.now() })
-  }
+  storeCachedResult(cacheKey, result)
   return result
+}
+
+/**
+ * Authorize a request with cache fast path (no DB on cache hit within version window).
+ * @param {Array} subjects - Array of subjects {kind, name}
+ * @param {string} apiGroup - API group (empty string for core)
+ * @param {string} resource - Resource name (e.g., 'microservices')
+ * @param {string} verb - Verb (e.g., 'get', 'create', 'patch')
+ * @param {string} resourceName - Optional resource instance name (e.g., microservice UUID)
+ * @returns {Promise<{allowed: boolean, reason?: string}>}
+ */
+async function authorizeRequest (subjects, apiGroup, resource, verb, resourceName) {
+  if (!subjects || !Array.isArray(subjects) || subjects.length === 0) {
+    return { allowed: false, reason: 'No subjects provided' }
+  }
+
+  const cacheKey = buildCacheKey(subjects, apiGroup, resource, verb, resourceName)
+
+  if (isVersionCheckFresh()) {
+    const cached = getCachedResult(cacheKey)
+    if (cached) {
+      return cached
+    }
+  } else {
+    await ensureVersionFresh()
+    const cached = getCachedResult(cacheKey)
+    if (cached) {
+      return cached
+    }
+  }
+
+  return transactionRunner.runInTransaction(
+    (transaction) => authorize(subjects, apiGroup, resource, verb, resourceName, transaction),
+    { label: 'rbac-authorize' }
+  )
 }
 
 /**
@@ -239,13 +284,30 @@ function cleanCache () {
   }
 }
 
+function _resetStateForTests () {
+  authCache.clear()
+  lastKnownVersion = null
+  lastVersionCheckAt = 0
+}
+
+function _setVersionCheckStateForTests ({ lastKnownVersion: version, lastVersionCheckAt: checkedAt } = {}) {
+  if (version !== undefined) {
+    lastKnownVersion = version
+  }
+  if (checkedAt !== undefined) {
+    lastVersionCheckAt = checkedAt
+  }
+}
+
 // Clean cache every 10 minutes
 setInterval(cleanCache, 10 * 60 * 1000)
 
 module.exports = {
   authorize,
+  authorizeRequest,
   clearCache,
-  cleanCache
+  cleanCache,
+  _resetStateForTests,
+  _setVersionCheckStateForTests,
+  VERSION_CHECK_INTERVAL_MS
 }
-
-
