@@ -7,7 +7,6 @@ const config = require('../../config')
 const db = require('../../data/models')
 const { getOidcSettings } = require('../../config/oidc')
 const { PASSWORD_CHANGE_REQUIRED_CLAIM } = require('../../services/auth-token-service')
-const { runInTransaction } = require('../../helpers/transaction-runner')
 
 const PASSWORD_CHANGE_ALLOWLIST = [
   { method: 'GET', path: '/api/v3/user/profile' },
@@ -319,16 +318,12 @@ function requirePermission (resource, verb) {
       const finalVerb = verb || routeDef.verb
       const resourceName = routeDef.resourceName
 
-      const authResult = await runInTransaction(
-        (transaction) => authorizer.authorize(
-          subjects,
-          routeDef.apiGroup || '',
-          finalResource,
-          finalVerb,
-          resourceName,
-          transaction
-        ),
-        { label: 'rbac-authorize' }
+      const authResult = await authorizer.authorizeRequest(
+        subjects,
+        routeDef.apiGroup || '',
+        finalResource,
+        finalVerb,
+        resourceName
       )
 
       if (!authResult.allowed) {
@@ -410,16 +405,12 @@ async function authorizeWebSocket (req, token) {
       subjects: subjects
     })
 
-    const authResult = await runInTransaction(
-      (transaction) => authorizer.authorize(
-        subjects,
-        routeDef.apiGroup || '',
-        routeDef.resource,
-        routeDef.verb,
-        routeDef.resourceName,
-        transaction
-      ),
-      { label: 'rbac-authorize-ws' }
+    const authResult = await authorizer.authorizeRequest(
+      subjects,
+      routeDef.apiGroup || '',
+      routeDef.resource,
+      routeDef.verb,
+      routeDef.resourceName
     )
 
     logger.debug(`WebSocket authorization result:`, {
@@ -571,16 +562,12 @@ function protect (_roles) {
         return callback()
       }
 
-      const authResult = await runInTransaction(
-        (transaction) => authorizer.authorize(
-          subjects,
-          routeDef.apiGroup || '',
-          routeDef.resource,
-          routeDef.verb,
-          routeDef.resourceName,
-          transaction
-        ),
-        { label: 'rbac-protect' }
+      const authResult = await authorizer.authorizeRequest(
+        subjects,
+        routeDef.apiGroup || '',
+        routeDef.resource,
+        routeDef.verb,
+        routeDef.resourceName
       )
 
       if (!authResult.allowed) {
