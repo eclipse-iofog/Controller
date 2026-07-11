@@ -278,11 +278,33 @@ initialize().then(() => {
   const hasFileBasedTLS = tlsMaterial.enabled && !tlsMaterial.isBase64
   const hasBase64TLS = tlsMaterial.enabled && tlsMaterial.isBase64
 
-  consoleApp.use(express.static(consolePath, { index: 'index.html' }))
+  function setConsoleStaticCacheHeaders (res, filePath) {
+    if (filePath.endsWith('index.html')) {
+      res.setHeader('Cache-Control', 'no-cache')
+      return
+    }
+    if (filePath.endsWith('controller-config.js')) {
+      res.setHeader('Cache-Control', 'no-store')
+      return
+    }
+    if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+      return
+    }
+    if (filePath.includes(`${path.sep}branding${path.sep}`)) {
+      res.setHeader('Cache-Control', 'public, max-age=86400')
+    }
+  }
+
+  consoleApp.use(express.static(consolePath, {
+    index: 'index.html',
+    setHeaders: setConsoleStaticCacheHeaders
+  }))
   consoleApp.get('*', (req, res, next) => {
     if (path.extname(req.path)) {
       return next()
     }
+    res.setHeader('Cache-Control', 'no-cache')
     res.sendFile(path.join(consolePath, 'index.html'), (error) => {
       if (error) {
         next(error)

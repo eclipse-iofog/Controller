@@ -194,7 +194,8 @@ const getApplicationTemplateEndPoint = async function (name, isCLI, transaction)
 const getApplicationDataFromTemplate = async function (deploymentData, isCLI, transaction) {
   await Validator.validate(deploymentData, Validator.schemas.applicationTemplateDeploy)
 
-  const applicationTemplateDBObject = await ApplicationTemplateManager.findOnePopulated({ name: deploymentData.name }, transaction)
+  const attributes = { exclude: ['created_at', 'updated_at'] }
+  const applicationTemplateDBObject = await ApplicationTemplateManager.findOnePopulated({ name: deploymentData.name }, attributes, transaction)
   if (!applicationTemplateDBObject) {
     throw new Errors.NotFoundError(ErrorMessages.INVALID_APPLICATION_TEMPLATE_NAME, deploymentData.name)
   }
