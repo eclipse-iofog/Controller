@@ -1,6 +1,30 @@
 # Changelog
 
 
+## [v3.8.1] - 2026-07-11
+
+Patch release: EdgeOps Console refresh, console caching, RBAC and upload hardening, cluster-controller list filtering, and application-template deploy cleanup.
+
+### Added
+
+- **`GET /api/v3/cluster/controllers`** — optional query param **`includeInactive=true`** returns historical inactive replica rows; default list excludes inactive controllers.
+- **`scripts/check-dockerfile-digests.sh`** — skopeo-based check that digest-pinned Dockerfile base images match current registry manifest lists (multi-arch aware).
+
+### Changed
+
+- Embedded **EdgeOps Console** default version **v1.0.9** → **v1.0.10** (Dockerfile, Makefile, CI build env, `.env.example`, `build-console-dev.js`).
+- **`multer`** upgraded to **2.2.0**; multipart uploads capped at **1** file, **10** fields, **`fieldNestingDepth: 0`**.
+- Dockerfile base image digest pins refreshed for **`node:24-bookworm`** and **`ubi9/nodejs-24-minimal`**.
+- EdgeOps Console static serving — **`Cache-Control`** policy: **`no-cache`** for `index.html` and SPA fallbacks, **`no-store`** for `controller-config.js`, **`immutable`** long cache for hashed **`assets/`**, **24h** cache for **`branding/`**.
+
+### Fixed
+
+- **RBAC authorization pool pressure** — fresh RBAC cache hits serve cached allow/deny decisions without opening a DB transaction; full auth path runs only on cache miss or stale version.
+- **Multipart upload DoS** — multer limits mitigate unbounded field nesting / file count abuse on file-upload routes.
+- **Application template deploy** — template populate excludes **`created_at`** / **`updated_at`** so deploy-from-template does not leak template metadata into the generated application payload.
+
+---
+
 ## [v3.8.0] - 2026-07-03
 
 Controller v3.8 is a **greenfield** release aligned with **Edgelet**. There is **no upgrade path** from v3.7: use a fresh database and redeploy Controller + Edgelet together.
