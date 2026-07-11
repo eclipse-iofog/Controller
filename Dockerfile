@@ -34,7 +34,7 @@ ARG PKG_VERSION
 
 WORKDIR /tmp
 
-RUN npm i -g npm
+RUN npm i -g npm@11
 
 COPY package.json .
 
