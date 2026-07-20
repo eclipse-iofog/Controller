@@ -1,6 +1,32 @@
 # Changelog
 
 
+## [v3.8.2] - Unreleased
+
+Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2).
+
+### Added
+
+- **`GET /api/v3/live`** — public **liveness** probe (process up; always 200 while HTTP server listens).
+- Structured agent fog JWT errors on **`/api/v3/agent/*`**: **`code`** + **`retryable`** on 401 (credential failure) and 503 (Controller dependency failure).
+
+### Changed
+
+- **`GET /api/v3/status`** — public **readiness** probe: verifies database, vault (if enabled), and embedded auth signing material; returns **503** with **`Retry-After: 5`** when not ready (same JSON fields as before on **200**).
+- **`checkFogToken`** — infrastructure failures map to **503** instead of generic **401**; credential failures return explicit agent auth codes (e.g. **`AGENT_JWT_ALREADY_USED`**).
+- **`iofog-controller` daemon elevation check** uses **`/api/v3/live`** instead of **`/status`**.
+
+### Fixed
+
+- **Secret PATCH** — omitted **`type`** in the update body now defaults to the existing secret type instead of **400** `Secret type mismatch` (fixes JSON PATCH and YAML secret updates that send only **`data`**).
+
+### Edgelet / ControlPlane
+
+- Kubernetes: **`livenessProbe`** → **`/api/v3/live`**, **`readinessProbe`** → **`/api/v3/status`**.
+- Edgelet must retry **503** and must not deprovision on retryable failures. See **edgelet-invariants.md** §16.
+
+---
+
 ## [v3.8.1] - 2026-07-11
 
 Patch release: EdgeOps Console refresh, console caching, RBAC and upload hardening, cluster-controller list filtering, and application-template deploy cleanup.

@@ -1,21 +1,54 @@
 openapi : "3.0.0"
 info:
-  version: 3.8.0
+  version: 3.8.2
   title: Cloud Native Controller for Edge Native Workloads
 paths:
-  /status:
+  /live:
     get:
       tags:
         - Controller
-      summary: Returns service health status
-      operationId: getServiceStatus
+      summary: Returns service liveness (process up)
+      description: >-
+        Kubernetes liveness probe. Returns 200 while the HTTP server is listening.
+        Does not verify database, vault, or authentication readiness.
+      operationId: getServiceLiveness
       responses:
         "200":
-          description: Service status
+          description: Service is alive
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServiceStatusResponse"
+        "500":
+          description: Internal Server Error
+  /status:
+    get:
+      tags:
+        - Controller
+      summary: Returns service readiness status
+      description: >-
+        Kubernetes readiness probe and Edgelet reconnect gate. Returns 200 when
+        database, vault (if enabled), and auth subsystem checks pass. Returns 503
+        with Retry-After when dependencies are not ready.
+      operationId: getServiceStatus
+      responses:
+        "200":
+          description: Service is ready for traffic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceStatusResponse"
+        "503":
+          description: Service is alive but not ready
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceReadinessFailureResponse"
         "500":
           description: Internal Server Error
   /architectures:
@@ -8003,9 +8036,39 @@ components:
       properties:
         status:
           type: string
-          example: ok
+          example: online
         timestamp:
           type: number
+        uptimeSec:
+          type: number
+        versions:
+          type: object
+          properties:
+            controller:
+              type: string
+            ecnViewer:
+              type: string
+    ServiceReadinessFailureResponse:
+      allOf:
+        - $ref: "#/components/schemas/ServiceStatusResponse"
+        - type: object
+          required:
+            - error
+            - code
+            - message
+            - retryable
+          properties:
+            error:
+              type: string
+              example: ServiceUnavailable
+            code:
+              type: string
+              example: CONTROLLER_NOT_READY
+            message:
+              type: string
+            retryable:
+              type: boolean
+              example: true
     ArchitecturesResponse:
       type: object
       properties:

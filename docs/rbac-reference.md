@@ -47,7 +47,7 @@ All other RBAC-protected routes return **403**.
 
 | Class | Auth | RBAC check | Examples |
 |-------|------|------------|----------|
-| **Public** | None | None | `GET /api/v3/status`, `GET /api/v3/architectures/` |
+| **Public** | None | None | `GET /api/v3/live`, `GET /api/v3/status`, `GET /api/v3/architectures/` |
 | **Auth-only** | Bearer JWT | Skipped (`verbs: []` in catalog) | `POST /api/v3/user/login`, OAuth BFF routes |
 | **User RBAC** | Bearer JWT | Resource + verb from catalog | Most `/api/v3/*` admin APIs |
 | **Agent wire** | Fog JWT | Separate from user RBAC | `/api/v3/agent/*` |
