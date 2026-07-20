@@ -121,8 +121,70 @@ class RateLimitExceededError extends Error {
   }
 }
 
+class AgentAuthenticationError extends Error {
+  constructor (code, message) {
+    super(message)
+    this.code = code
+    this.message = message
+    this.name = 'AgentAuthenticationError'
+    this.retryable = false
+  }
+
+  toResponseBody () {
+    return {
+      error: 'Unauthorized',
+      code: this.code,
+      message: this.message,
+      retryable: this.retryable
+    }
+  }
+}
+
+class ServiceUnavailableError extends Error {
+  constructor (code, message) {
+    super(message)
+    this.code = code
+    this.message = message
+    this.name = 'ServiceUnavailableError'
+    this.retryable = true
+  }
+
+  toResponseBody () {
+    return {
+      error: 'ServiceUnavailable',
+      code: this.code,
+      message: this.message,
+      retryable: this.retryable
+    }
+  }
+}
+
+class ReadinessNotReadyError extends Error {
+  constructor (code, message, basePayload) {
+    super(message)
+    this.code = code
+    this.message = message
+    this.name = 'ReadinessNotReadyError'
+    this.retryable = true
+    this.basePayload = basePayload
+  }
+
+  toResponseBody () {
+    return {
+      ...this.basePayload,
+      error: 'ServiceUnavailable',
+      code: this.code,
+      message: this.message,
+      retryable: this.retryable
+    }
+  }
+}
+
 module.exports = {
   AuthenticationError,
+  AgentAuthenticationError,
+  ServiceUnavailableError,
+  ReadinessNotReadyError,
   TransactionError,
   ValidationError,
   InvalidCredentialsError,

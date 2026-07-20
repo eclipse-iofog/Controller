@@ -2,6 +2,8 @@ const logger = require('../logger')
 const FogManager = require('../data/managers/iofog-manager')
 const FogKeyService = require('../services/iofog-key-service')
 const Errors = require('../helpers/errors')
+const CODES = require('../helpers/agent-auth-error-codes')
+const { classifyCheckFogTokenFailure } = require('../helpers/agent-auth-error-utils')
 const { isTest } = require('../helpers/app-helper')
 const { runInTransaction } = require('../helpers/transaction-runner')
 
@@ -16,13 +18,13 @@ function checkFogToken (f) {
 
     if (!authHeader) {
       logger.error('No authorization token provided')
-      throw new Errors.AuthenticationError('authorization failed')
+      throw new Errors.AgentAuthenticationError(CODES.AGENT_AUTH_HEADER_INVALID, 'Authorization header required')
     }
 
     const [scheme, token] = authHeader.split(' ')
     if (scheme.toLowerCase() !== 'bearer' || !token) {
       logger.error('Invalid authorization scheme')
-      throw new Errors.AuthenticationError('authorization failed')
+      throw new Errors.AgentAuthenticationError(CODES.AGENT_AUTH_HEADER_INVALID, 'Bearer authorization required')
     }
 
     try {
@@ -31,17 +33,24 @@ function checkFogToken (f) {
       const tokenParts = token.split('.')
       if (tokenParts.length !== 3) {
         logger.error('Invalid JWT format')
-        throw new Errors.AuthenticationError('authorization failed')
+        throw new Errors.AgentAuthenticationError(CODES.AGENT_JWT_MALFORMED, 'Agent JWT is malformed')
       }
 
-      const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
+      let payload
+      try {
+        payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
+      } catch (parseError) {
+        logger.error('Invalid JWT payload encoding')
+        throw new Errors.AgentAuthenticationError(CODES.AGENT_JWT_MALFORMED, 'Agent JWT payload is malformed')
+      }
+
       const fogUuid = payload.sub
       logger.debug({ payload }, 'JWT payload')
       logger.info({ iofogUUID: payload.sub })
 
       if (!fogUuid) {
         logger.error('JWT missing subject claim')
-        throw new Errors.AuthenticationError('authorization failed')
+        throw new Errors.AgentAuthenticationError(CODES.AGENT_JWT_MISSING_SUBJECT, 'Agent JWT missing subject claim')
       }
 
       const fog = await runInTransaction(async (transaction) => {
@@ -60,15 +69,16 @@ function checkFogToken (f) {
 
       if (!fog) {
         logger.error(`Fog with UUID ${fogUuid} not found`)
-        throw new Errors.AuthenticationError('authorization failed')
+        throw new Errors.AgentAuthenticationError(CODES.AGENT_FOG_NOT_FOUND, 'Agent fog not found')
       }
 
       fArgs.push(fog)
 
       return f.apply(this, fArgs)
     } catch (error) {
-      logger.error(`JWT verification failed: ${error.message}`)
-      throw new Errors.AuthenticationError('authorization failed')
+      const classified = classifyCheckFogTokenFailure(error)
+      logger.error(`Agent authentication failed: ${classified.message}`, { code: classified.code })
+      throw classified
     }
   }
 }

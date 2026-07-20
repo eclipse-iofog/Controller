@@ -21,7 +21,11 @@ module.exports = [
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -49,7 +53,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -78,7 +86,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         }
       ]
 
@@ -102,7 +114,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -131,7 +147,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -160,7 +180,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -189,7 +213,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -218,7 +246,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -247,7 +279,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         }
       ]
 
@@ -272,7 +308,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         }
       ]
 
@@ -301,7 +341,11 @@ module.exports = [
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         }
       ]
 
@@ -326,7 +370,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_FORBIDDEN,
@@ -362,7 +410,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         }
       ]
 
@@ -391,7 +443,11 @@ module.exports = [
         },
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         }
       ]
 
@@ -416,7 +472,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
@@ -445,7 +505,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -474,7 +538,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_BAD_REQUEST,
@@ -528,7 +596,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         },
         {
           code: constants.HTTP_CODE_NOT_FOUND,
@@ -556,7 +628,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         }
       ]
 
@@ -580,7 +656,11 @@ module.exports = [
       const errorCodes = [
         {
           code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AuthenticationError]
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
         }
       ]
 
