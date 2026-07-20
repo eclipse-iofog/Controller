@@ -50,6 +50,14 @@ function _secretDataHash (data) {
   return crypto.createHash('sha256').update(canonical).digest('hex')
 }
 
+function _resolveSecretUpdateType (secretName, existingType, patchType) {
+  const nextType = patchType ?? existingType
+  if (nextType !== existingType) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SECRET_TYPE_MISMATCH, secretName, existingType, patchType))
+  }
+  return nextType
+}
+
 async function createSecretEndpoint (secretData, transaction) {
   const validation = await Validator.validate(secretData, Validator.schemas.secretCreate)
   if (!validation.valid) {
@@ -84,13 +92,11 @@ async function updateSecretEndpoint (secretName, secretData, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.SECRET_NOT_FOUND, secretName))
   }
 
-  if (existingSecret.type !== secretData.type) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SECRET_TYPE_MISMATCH, secretName, existingSecret.type, secretData.type))
-  }
+  const nextType = _resolveSecretUpdateType(secretName, existingSecret.type, secretData.type)
 
-  validateSecretData(existingSecret.type, secretData.data)
+  validateSecretData(nextType, secretData.data)
 
-  const secret = await SecretManager.updateSecret(secretName, secretData.type, secretData.data, transaction)
+  const secret = await SecretManager.updateSecret(secretName, nextType, secretData.data, transaction)
   await _updateChangeTrackingForFogs(secretName, transaction)
   await _updateMicroservicesUsingSecret(secretName, transaction)
   return {
@@ -117,11 +123,9 @@ async function updateSecretEndpointIfChanged (secretName, secretData, transactio
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.SECRET_NOT_FOUND, secretName))
   }
 
-  if (existingSecret.type !== secretData.type) {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SECRET_TYPE_MISMATCH, secretName, existingSecret.type, secretData.type))
-  }
+  const nextType = _resolveSecretUpdateType(secretName, existingSecret.type, secretData.type)
 
-  validateSecretData(existingSecret.type, secretData.data)
+  validateSecretData(nextType, secretData.data)
 
   const existingData = existingSecret.data || {}
   const existingHash = _secretDataHash(existingData)
