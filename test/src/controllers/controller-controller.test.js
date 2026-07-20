@@ -10,6 +10,21 @@ describe('Controller', () => {
 
   afterEach(() => $sandbox.restore())
 
+  describe('.liveControllerEndPoint()', () => {
+    def('req', () => ({ body: {} }))
+    def('response', () => Promise.resolve({ status: 'online' }))
+    def('subject', () => $subject.liveControllerEndPoint($req))
+
+    beforeEach(() => {
+      $sandbox.stub(ControllerService, 'livenessController').returns($response)
+    })
+
+    it('calls ControllerService.livenessController with correct args', async () => {
+      await $subject
+      expect(ControllerService.livenessController).to.have.been.calledWith(false)
+    })
+  })
+
   describe('.statusControllerEndPoint()', () => {
     def('req', () => ({
       body: {},
@@ -38,8 +53,10 @@ describe('Controller', () => {
     })
 
     context('when ControllerService#statusController succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
+      def('response', () => Promise.resolve({ status: 'online' }))
+
+      it('returns the readiness payload', () => {
+        return expect($subject).to.eventually.deep.equal({ status: 'online' })
       })
     })
   })

@@ -230,7 +230,7 @@ function getOidcMiddleware () {
       return next()
     }
 
-    // Public catalog routes (e.g. GET /api/v3/status) do not require OIDC bearer validation
+    // Public catalog routes (e.g. GET /api/v3/live, GET /api/v3/status) do not require OIDC bearer validation
     if (isPublicCatalogRoute(req.method, requestPath)) {
       return next()
     }

@@ -11,6 +11,10 @@ describe('route-catalog-utils', () => {
   })
 
   describe('isPublicCatalogRoute()', () => {
+    it('returns true for public GET /api/v3/live', () => {
+      expect(isPublicCatalogRoute('GET', '/api/v3/live')).to.equal(true)
+    })
+
     it('returns true for public GET /api/v3/status', () => {
       expect(isPublicCatalogRoute('GET', '/api/v3/status')).to.equal(true)
     })

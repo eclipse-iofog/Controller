@@ -813,6 +813,9 @@ resources:
   controller:
     basePath: /api/v3
     routes:
+      - path: /api/v3/live
+        methods:
+          GET: []
       - path: /api/v3/status
         methods:
           GET: []
