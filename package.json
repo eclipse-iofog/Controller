@@ -1,6 +1,6 @@
 {
   "name": "controller",
-  "version": "3.8.1",
+  "version": "3.8.2",
   "description": "A cloud-native operations controller for managing edge computing workloads, edgelet nodes, and deployments across Eclipse IoFog and Datasance PoT.",
   "main": "./src/main.js",
   "author": "Eclipse ioFog Project",

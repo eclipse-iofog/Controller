@@ -44,13 +44,13 @@ docker run -d --name controller \
 docker run -d --name controller \
   -p 51121:51121 \
   -p 8008:8008 \
-  ghcr.io/datasance/controller:v3.8.0
+  ghcr.io/datasance/controller:v3.8.2
 ```
 
 Verify the API:
 
 ```bash
-curl -s http://localhost:51121/api/v3/status | head
+curl -s http://localhost:51121/api/v3/live | head
 ```
 
 Open EdgeOps Console at `http://localhost:8008`. For production, set `CONTROLLER_PUBLIC_URL`, TLS, and an external database (mysql/postgres) — see [Documentation](#documentation) below.

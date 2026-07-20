@@ -9,7 +9,7 @@ const swaggerOptions = {
     openapi: '3.0.0',
     info: {
       title: 'Eclipse ioFog Controller REST API Documentation',
-      version: '3.8.0',
+      version: '3.8.2',
       description: 'A cloud-native operations controller for managing edge computing workloads, edgelet nodes, and deployments across Eclipse IoFog and Datasance PoT.'
     },
     servers: [

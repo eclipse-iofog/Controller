@@ -98,7 +98,7 @@ Used by EdgeOps Console, `potctl`, `iofogctl`, and automation.
 
 | Area | Route prefix | Notes |
 |------|--------------|-------|
-| Status & architectures | `/api/v3/status`, `/api/v3/architectures/` | Public status; architecture catalog |
+| Status & architectures | `/api/v3/live`, `/api/v3/status`, `/api/v3/architectures/` | Liveness, readiness, architecture catalog |
 | Agents (ioFog) | `/api/v3/iofog` | Provision keys, agent CRUD, config |
 | Applications | `/api/v3/application` | Replaces legacy `/api/v3/flow` |
 | Microservices & catalog | `/api/v3/microservices`, `/api/v3/catalog` | Multi-arch `images[]`, service accounts |

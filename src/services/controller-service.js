@@ -49,7 +49,7 @@ const getArchitectures = async function (isCLI, transaction) {
   }
 }
 
-const statusController = async function (isCLI) {
+function buildLivenessPayload () {
   let status
 
   if (AppHelper.isOnline()) {
@@ -69,12 +69,39 @@ const statusController = async function (isCLI) {
   }
 }
 
+const livenessController = async function (isCLI) {
+  return buildLivenessPayload()
+}
+
+const statusController = async function (isCLI) {
+  if (isCLI) {
+    return buildLivenessPayload()
+  }
+
+  const basePayload = buildLivenessPayload()
+  const readinessService = require('./controller-readiness-service')
+
+  try {
+    await readinessService.assertReadiness()
+    return basePayload
+  } catch (error) {
+    const { ReadinessNotReadyError } = require('../helpers/errors')
+    if (error instanceof ReadinessNotReadyError) {
+      error.basePayload = basePayload
+      throw error
+    }
+    throw error
+  }
+}
+
 const getVersion = async function (isCLI) {
   return `ioFog-Controller version: ${packageJson.version}`
 }
 
 module.exports = {
   getArchitectures: TransactionDecorator.generateTransaction(getArchitectures),
+  buildLivenessPayload,
+  livenessController,
   statusController,
   getVersion
 }

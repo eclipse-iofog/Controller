@@ -1,5 +1,16 @@
 const logger = require('../logger')
+const constants = require('../helpers/constants')
 const { isTest } = require('../helpers/app-helper')
+const {
+  ServiceUnavailableError
+} = require('../helpers/errors')
+
+function buildStructuredErrorBody (errorObj) {
+  if (typeof errorObj.toResponseBody === 'function') {
+    return errorObj.toResponseBody()
+  }
+  return null
+}
 
 function handleErrors (f, successCode, errorsCodes) {
   return async function (...args) {
@@ -20,6 +31,15 @@ function handleErrors (f, successCode, errorsCodes) {
         errorObj.message = err
       } else {
         errorObj = err
+      }
+
+      const structuredBody = buildStructuredErrorBody(errorObj)
+      if (structuredBody) {
+        const code = errorObj instanceof ServiceUnavailableError
+          ? constants.HTTP_CODE_SERVICE_UNAVAILABLE
+          : constants.HTTP_CODE_UNAUTHORIZED
+        responseObject = { code, body: structuredBody }
+        return responseObject
       }
 
       let code

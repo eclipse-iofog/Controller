@@ -30,7 +30,7 @@ const isDaemonElevated = async () => {
     return false
   }
   const protocol = isHTTPS() ? 'https' : 'http'
-  return getJSONFromURL(`${protocol}://localhost:${apiPort}/api/v3/status`)
+  return getJSONFromURL(`${protocol}://localhost:${apiPort}/api/v3/live`)
     .then(result => {
       // The server is running but you couldn't see it, requires administrative privileges
       if (result.status === 'online') {

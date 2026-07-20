@@ -4,6 +4,11 @@ const FogUsedTokenManager = require('../data/managers/fog-used-token-manager')
 const SecretHelper = require('../helpers/secret-helper')
 const jose = require('jose')
 const vaultManager = require('../vault/vault-manager')
+const { classifyVerifyJwtFailure } = require('../helpers/agent-auth-error-utils')
+const {
+  AgentAuthenticationError,
+  ServiceUnavailableError
+} = require('../helpers/errors')
 
 /**
  * Generate Ed25519 key pair and return as JWK strings
@@ -118,7 +123,10 @@ const verifyJWT = async function (token, fogUuid, transaction) {
 
     return payload
   } catch (error) {
-    throw new Error(`JWT verification failed: ${error.message}`)
+    if (error instanceof AgentAuthenticationError || error instanceof ServiceUnavailableError) {
+      throw error
+    }
+    throw classifyVerifyJwtFailure(error)
   }
 }
 
