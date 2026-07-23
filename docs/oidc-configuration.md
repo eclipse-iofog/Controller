@@ -102,6 +102,11 @@ Both modes use the **OAuth BFF** — the Console must not POST passwords from th
 3. **Embedded:** redirect to embedded interaction UI at `{CONSOLE_URL}/login/oauth?interaction=<uid>`
 4. Callback: `GET /api/v3/user/oauth/callback`
 5. Tokens delivered to `{CONSOLE_URL}/login#accessToken=...&refreshToken=...`
+6. OAuth errors on callback (e.g. `access_denied`) redirect to `{CONSOLE_URL}/login?oauthError=...`
+
+**Embedded authorize** sends `prompt=login` so each browser sign-in starts a fresh issuer interaction (avoids stale session after logout).
+
+**Logout:** `POST /api/v3/user/logout` revokes refresh tokens, clears embedded issuer session/grant/interaction state for the user, and destroys the BFF express-session when present. Access JWTs remain valid until TTL expiry (same as before).
 
 Register this redirect URI at the external IdP:
 

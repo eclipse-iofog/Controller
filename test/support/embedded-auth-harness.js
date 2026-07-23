@@ -294,6 +294,8 @@ function installEmbeddedAuthStore (sandbox, store) {
     }
     return [1]
   })
+
+  stubModelMethod(db, 'AuthOidcProviderState', 'findAll', sandbox, async () => [])
 }
 
 async function installEmbeddedSigningKey (sandbox) {

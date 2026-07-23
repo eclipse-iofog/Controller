@@ -238,9 +238,23 @@ module.exports = [
       const userLogoutEndPoint = ResponseDecorator.handleErrors(UserController.userLogoutEndPoint, successCode, errorCodes)
       const responseObject = await userLogoutEndPoint(req)
 
-      res
-        .status(responseObject.code)
-        .send()
+      const finish = () => {
+        res
+          .status(responseObject.code)
+          .send()
+      }
+
+      if (req.session) {
+        req.session.destroy((err) => {
+          if (err) {
+            logger.warn({ msg: 'Failed to destroy BFF session on logout', err: err.message })
+          }
+          finish()
+        })
+        return
+      }
+
+      finish()
     }
   },
   {
@@ -309,7 +323,21 @@ module.exports = [
         return
       }
 
-      const { tokens, consoleUrl } = responseObject.body
+      const body = responseObject.body
+
+      if (body.oauthError && body.consoleUrl) {
+        const params = new URLSearchParams({ oauthError: body.oauthError })
+        if (body.oauthErrorDescription) {
+          params.set('oauthErrorDescription', body.oauthErrorDescription)
+        }
+        res.redirect(302, `${body.consoleUrl}/login?${params.toString()}`)
+        logger.apiRes('GET /api/v3/user/oauth/callback', {
+          args: { statusCode: 302, oauthError: body.oauthError }
+        })
+        return
+      }
+
+      const { tokens, consoleUrl } = body
 
       if (consoleUrl) {
         const fragment = new URLSearchParams()
