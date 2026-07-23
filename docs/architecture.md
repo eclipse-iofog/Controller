@@ -467,4 +467,5 @@ Agent routes and WebSocket exec/logs for agents are **outside** OIDC — see [rb
 | [oidc-configuration.md](oidc-configuration.md) | Embedded/external auth modes and env vars |
 | [external-oidc-client-setup.md](external-oidc-client-setup.md) | External IdP client configuration |
 | [operations/database-transactions.md](operations/database-transactions.md) | Transaction runner, OTEL metrics, SQLITE_BUSY runbook |
+| [operations/sizing.md](operations/sizing.md) | Hardware sizing by fog count (K8s and Remote CP) |
 | [CONTRIBUTING](../CONTRIBUTING) | Dual-mirror CI and development |

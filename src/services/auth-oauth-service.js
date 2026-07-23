@@ -138,14 +138,20 @@ async function authorize (req) {
     createdAt: Date.now()
   }
 
-  const authorizationUrl = buildAuthorizationUrl(oidcConfig, {
+  const authorizationParams = {
     redirect_uri: getRedirectUri(),
     scope: 'openid profile email groups offline_access',
     state,
     nonce,
     code_challenge: codeChallenge,
     code_challenge_method: 'S256'
-  })
+  }
+
+  if (getAuthMode() === 'embedded') {
+    authorizationParams.prompt = 'login'
+  }
+
+  const authorizationUrl = buildAuthorizationUrl(oidcConfig, authorizationParams)
 
   return { redirectUrl: authorizationUrl.toString() }
 }
@@ -154,12 +160,34 @@ async function callback (req) {
   ensureAuthConfigured()
   ensureOauthBffReady()
 
+  const consoleUrl = getConsoleUrl()
+  const currentUrl = new URL(`${getPublicUrl()}${req.originalUrl}`)
+  const oauthError = currentUrl.searchParams.get('error')
+
+  if (oauthError) {
+    if (req.session) {
+      delete req.session[OAUTH_SESSION_KEY]
+    }
+
+    logger.warn({
+      msg: 'OAuth callback returned error from issuer',
+      error: oauthError,
+      errorDescription: currentUrl.searchParams.get('error_description') || undefined,
+      state: currentUrl.searchParams.get('state') || undefined
+    })
+
+    return {
+      oauthError,
+      oauthErrorDescription: currentUrl.searchParams.get('error_description') || undefined,
+      consoleUrl
+    }
+  }
+
   const sessionData = req.session[OAUTH_SESSION_KEY]
   ensureOauthSession(sessionData)
   delete req.session[OAUTH_SESSION_KEY]
 
   const oidcConfig = await getOauthClientConfiguration()
-  const currentUrl = new URL(`${getPublicUrl()}${req.originalUrl}`)
 
   let tokenResponse
   try {
@@ -171,8 +199,6 @@ async function callback (req) {
   } catch (error) {
     throw new Errors.AuthenticationError(error.message || 'OAuth authorization failed')
   }
-
-  const consoleUrl = getConsoleUrl()
 
   if (getAuthMode() === 'embedded') {
     return runInTransaction(async (transaction) => {
@@ -198,6 +224,7 @@ async function callback (req) {
 }
 
 module.exports = {
+  OAUTH_SESSION_KEY,
   authorize,
   callback,
   getRedirectUri,

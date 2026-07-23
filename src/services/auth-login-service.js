@@ -8,6 +8,8 @@ const AuthPolicyService = require('./auth-policy-service')
 const AuthPasswordService = require('./auth-password-service')
 const AuthTokenService = require('./auth-token-service')
 const AuthMfaService = require('./auth-mfa-service')
+const { destroyEmbeddedOidcStateForUser } = require('./auth-embedded-logout-service')
+const { OAUTH_SESSION_KEY } = require('./auth-oauth-service')
 
 async function completeLogin (authContext, transaction) {
   const { user, groupNames } = authContext
@@ -77,9 +79,14 @@ async function logout (req, transaction) {
     const claims = decodeJwt(accessToken)
     if (claims.sub) {
       await AuthTokenService.revokeAllUserRefreshTokens(claims.sub, transaction)
+      await destroyEmbeddedOidcStateForUser(claims.sub, transaction)
     }
   } catch (error) {
     // Best-effort logout
+  }
+
+  if (req.session) {
+    delete req.session[OAUTH_SESSION_KEY]
   }
 
   return { status: 'success' }

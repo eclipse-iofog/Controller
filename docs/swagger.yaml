@@ -3610,7 +3610,9 @@ paths:
 
         When `CONSOLE_URL` is configured (recommended for browser login), responds with **302** to
         `{consoleUrl}/login#accessToken=...&refreshToken=...`. EdgeOps Console `/login` parses the URL
-        fragment, stores tokens, clears the hash, and navigates to the app. When `CONSOLE_URL` is
+        fragment, stores tokens, clears the hash, and navigates to the app. When the issuer returns an
+        OAuth error (e.g. `access_denied`), responds with **302** to
+        `{consoleUrl}/login?oauthError=...` instead of JSON on the API port. When `CONSOLE_URL` is
         unset, returns JSON **200** `{ accessToken, refreshToken }` (CLI/automation only).
 
         **External forced password change** is enforced by the IdP during authorize (e.g. Keycloak
@@ -3626,7 +3628,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/LoginSuccessResponse"
         "302":
-          description: Redirect to EdgeOps Console `/login` with tokens in URL fragment
+          description: >
+            Redirect to EdgeOps Console `/login` with tokens in URL fragment on success, or
+            `?oauthError=...` when the issuer returned an OAuth error (e.g. access_denied).
         "401":
           description: OAuth session expired, state/nonce mismatch, or authorization code exchange failed
         "501":

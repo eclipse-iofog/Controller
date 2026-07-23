@@ -57,9 +57,45 @@ describe('Auth OAuth service', () => {
     expect(url.searchParams.get('code_challenge_method')).to.equal('S256')
     expect(url.searchParams.get('code_challenge')).to.be.a('string').and.not.be.empty
     expect(url.searchParams.get('scope')).to.equal('openid profile email groups offline_access')
+    expect(url.searchParams.get('prompt')).to.equal('login')
     expect(req.session.controllerOauth.codeVerifier).to.be.a('string').and.not.be.empty
     expect(req.session.controllerOauth.state).to.be.a('string').and.not.be.empty
     expect(req.session.controllerOauth.nonce).to.be.a('string').and.not.be.empty
+  })
+
+  it('does not include prompt=login in external auth mode', async () => {
+    applyExternalEnv({})
+    process.env.CONSOLE_URL = 'http://console.test'
+
+    const AuthOauthService = require('../../../src/services/auth-oauth-service')
+    const req = { session: {} }
+
+    const { redirectUrl } = await AuthOauthService.authorize(req)
+    const url = new URL(redirectUrl)
+
+    expect(url.searchParams.get('prompt')).to.be.null
+  })
+
+  it('returns oauthError payload when issuer redirects with error=access_denied', async () => {
+    const AuthOauthService = require('../../../src/services/auth-oauth-service')
+    const req = {
+      session: {
+        controllerOauth: {
+          state: 'test-state',
+          nonce: 'test-nonce',
+          codeVerifier: 'test-pkce-verifier',
+          createdAt: Date.now()
+        }
+      },
+      originalUrl: '/api/v3/user/oauth/callback?error=access_denied&state=test-state'
+    }
+
+    const result = await AuthOauthService.callback(req)
+
+    expect(result.oauthError).to.equal('access_denied')
+    expect(result.consoleUrl).to.equal('http://console.test')
+    expect(result.tokens).to.be.undefined
+    expect(req.session.controllerOauth).to.be.undefined
   })
 
   it('passes pkceCodeVerifier to authorizationCodeGrant on callback', async () => {

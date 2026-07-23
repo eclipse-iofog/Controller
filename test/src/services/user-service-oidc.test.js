@@ -149,10 +149,49 @@ describe('User service OIDC', () => {
       const result = await modules.UserService.logout({
         headers: {
           authorization: `Bearer ${loginResult.accessToken}`
+        },
+        session: {
+          controllerOauth: {
+            state: 'stale-state',
+            nonce: 'stale-nonce',
+            codeVerifier: 'stale-verifier',
+            createdAt: Date.now()
+          }
         }
       }, false)
 
       expect(result).to.deep.equal({ status: 'success' })
+    })
+
+    it('clears BFF OAuth session state on logout', async () => {
+      const { store, modules } = await $harness
+      await store.seedUser({
+        email: 'viewer@example.com',
+        groupNames: ['viewer']
+      })
+
+      const loginResult = await modules.UserService.login({
+        email: 'viewer@example.com',
+        password: DEFAULT_TEST_PASSWORD
+      }, false)
+
+      const req = {
+        headers: {
+          authorization: `Bearer ${loginResult.accessToken}`
+        },
+        session: {
+          controllerOauth: {
+            state: 'stale-state',
+            nonce: 'stale-nonce',
+            codeVerifier: 'stale-verifier',
+            createdAt: Date.now()
+          }
+        }
+      }
+
+      await modules.UserService.logout(req, false)
+
+      expect(req.session.controllerOauth).to.be.undefined
     })
   })
 

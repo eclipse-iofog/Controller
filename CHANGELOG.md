@@ -1,24 +1,31 @@
 # Changelog
 
 
-## [v3.8.2] - Unreleased
+## [v3.8.2] - 2026-07-23
 
-Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2).
+Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2). Also embedded OAuth logout/re-login hardening, EdgeOps Console **v1.0.11**, and operator sizing docs.
 
 ### Added
 
 - **`GET /api/v3/live`** — public **liveness** probe (process up; always 200 while HTTP server listens).
 - Structured agent fog JWT errors on **`/api/v3/agent/*`**: **`code`** + **`retryable`** on 401 (credential failure) and 503 (Controller dependency failure).
+- **`docs/operations/sizing.md`** — hardware sizing guide by fog count (Kubernetes and Remote ControlPlane).
 
 ### Changed
 
 - **`GET /api/v3/status`** — public **readiness** probe: verifies database, vault (if enabled), and embedded auth signing material; returns **503** with **`Retry-After: 5`** when not ready (same JSON fields as before on **200**).
 - **`checkFogToken`** — infrastructure failures map to **503** instead of generic **401**; credential failures return explicit agent auth codes (e.g. **`AGENT_JWT_ALREADY_USED`**).
 - **`iofog-controller` daemon elevation check** uses **`/api/v3/live`** instead of **`/status`**.
+- Embedded **EdgeOps Console** default version **v1.0.10** → **v1.0.11** (Dockerfile, Makefile, CI build env, `.env.example`, `build-console-dev.js`).
+- Embedded OAuth BFF authorize sends **`prompt=login`** so each browser sign-in starts a fresh issuer interaction.
+- **`POST /api/v3/user/logout`** (embedded) clears issuer Session/Grant/Interaction state and destroys the BFF express-session when present (refresh-token revocation unchanged).
+- Dependency bumps: OpenTelemetry **0.221.x**, **`body-parser` 1.20.6**, **`js-yaml` 4.3.0**, **`undici` ^7.28.0**; Dockerfile base image digest pins refreshed.
 
 ### Fixed
 
 - **Secret PATCH** — omitted **`type`** in the update body now defaults to the existing secret type instead of **400** `Secret type mismatch` (fixes JSON PATCH and YAML secret updates that send only **`data`**).
+- **Embedded OAuth re-login after logout** — stale issuer session could yield **`access_denied`** on callback; logout now tears down issuer/BFF OAuth state and authorize forces fresh login.
+- **OAuth callback errors** — issuer errors (e.g. **`access_denied`**) redirect to **`{consoleUrl}/login?oauthError=...`** instead of **401 JSON** on the API port.
 
 ### Edgelet / ControlPlane
 
