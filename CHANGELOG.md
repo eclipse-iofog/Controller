@@ -1,9 +1,9 @@
 # Changelog
 
 
-## [v3.8.2] - 2026-07-23
+## [v3.8.2] - 2026-07-25
 
-Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2). Also embedded OAuth logout/re-login hardening, EdgeOps Console **v1.0.11**, and operator sizing docs.
+Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2). Also embedded OAuth logout/re-login hardening, EdgeOps Console **v1.0.12**, and operator sizing docs.
 
 ### Added
 
@@ -16,7 +16,7 @@ Plan 21: liveness/readiness probe split and structured agent auth errors (coordi
 - **`GET /api/v3/status`** — public **readiness** probe: verifies database, vault (if enabled), and embedded auth signing material; returns **503** with **`Retry-After: 5`** when not ready (same JSON fields as before on **200**).
 - **`checkFogToken`** — infrastructure failures map to **503** instead of generic **401**; credential failures return explicit agent auth codes (e.g. **`AGENT_JWT_ALREADY_USED`**).
 - **`iofog-controller` daemon elevation check** uses **`/api/v3/live`** instead of **`/status`**.
-- Embedded **EdgeOps Console** default version **v1.0.10** → **v1.0.11** (Dockerfile, Makefile, CI build env, `.env.example`, `build-console-dev.js`).
+- Embedded **EdgeOps Console** default version **v1.0.10** → **v1.0.12** (Dockerfile, Makefile, CI build env, `.env.example`, `build-console-dev.js`).
 - Embedded OAuth BFF authorize sends **`prompt=login`** so each browser sign-in starts a fresh issuer interaction.
 - **`POST /api/v3/user/logout`** (embedded) clears issuer Session/Grant/Interaction state and destroys the BFF express-session when present (refresh-token revocation unchanged).
 - Dependency bumps: OpenTelemetry **0.221.x**, **`body-parser` 1.20.6**, **`js-yaml` 4.3.0**, **`undici` ^7.28.0**; Dockerfile base image digest pins refreshed.
