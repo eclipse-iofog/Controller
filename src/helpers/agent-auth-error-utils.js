@@ -2,7 +2,9 @@ const { isSqliteBusyError } = require('./db-busy-retry')
 const CODES = require('./agent-auth-error-codes')
 const {
   AgentAuthenticationError,
-  ServiceUnavailableError
+  ServiceUnavailableError,
+  TransactionTimeoutError,
+  QueueBackpressureError
 } = require('./errors')
 
 function isVaultInfrastructureError (error) {
@@ -18,6 +20,9 @@ function isVaultInfrastructureError (error) {
 function isDatabaseInfrastructureError (error) {
   if (!error) {
     return false
+  }
+  if (error instanceof TransactionTimeoutError || error instanceof QueueBackpressureError) {
+    return true
   }
   if (isSqliteBusyError(error)) {
     return true

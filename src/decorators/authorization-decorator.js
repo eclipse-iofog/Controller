@@ -5,7 +5,7 @@ const Errors = require('../helpers/errors')
 const CODES = require('../helpers/agent-auth-error-codes')
 const { classifyCheckFogTokenFailure } = require('../helpers/agent-auth-error-utils')
 const { isTest } = require('../helpers/app-helper')
-const { runInTransaction } = require('../helpers/transaction-runner')
+const { runInTransaction, runWithTransactionContext, PRIORITY_INTERACTIVE } = require('../helpers/transaction-runner')
 
 function checkFogToken (f) {
   return async function (...fArgs) {
@@ -53,10 +53,10 @@ function checkFogToken (f) {
         throw new Errors.AgentAuthenticationError(CODES.AGENT_JWT_MISSING_SUBJECT, 'Agent JWT missing subject claim')
       }
 
-      const fog = await runInTransaction(async (transaction) => {
+      return runInTransaction(async (transaction) => {
         const foundFog = await FogManager.findOne({ uuid: fogUuid }, transaction)
         if (!foundFog) {
-          return null
+          throw new Errors.AgentAuthenticationError(CODES.AGENT_FOG_NOT_FOUND, 'Agent fog not found')
         }
 
         await FogKeyService.verifyJWT(token, fogUuid, transaction)
@@ -64,17 +64,10 @@ function checkFogToken (f) {
         const timestamp = Date.now()
         await FogManager.updateLastActive(foundFog.uuid, timestamp, transaction)
 
-        return foundFog
+        fArgs.push(foundFog)
+
+        return runWithTransactionContext(transaction, PRIORITY_INTERACTIVE, () => f.apply(this, fArgs))
       }, { label: 'checkFogToken' })
-
-      if (!fog) {
-        logger.error(`Fog with UUID ${fogUuid} not found`)
-        throw new Errors.AgentAuthenticationError(CODES.AGENT_FOG_NOT_FOUND, 'Agent fog not found')
-      }
-
-      fArgs.push(fog)
-
-      return f.apply(this, fArgs)
     } catch (error) {
       const classified = classifyCheckFogTokenFailure(error)
       logger.error(`Agent authentication failed: ${classified.message}`, { code: classified.code })

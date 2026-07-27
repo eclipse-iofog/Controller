@@ -245,4 +245,14 @@ describe('grep gates', () => {
     expect(source).to.not.match(/findOne\(\{[\s\S]*?\}, \{ transaction \}\)/)
     expect(source).to.not.match(/findAll\(\{[\s\S]*?\}, \{ transaction \}\)/)
   })
+
+  it('runs checkFogToken handler inside runWithTransactionContext', () => {
+    const authSource = fs.readFileSync(
+      path.join(REPO_ROOT, 'src/decorators/authorization-decorator.js'),
+      'utf8'
+    )
+    expect(authSource).to.include('runWithTransactionContext')
+    expect(authSource).to.match(/runWithTransactionContext\(transaction, PRIORITY_INTERACTIVE, \(\) => f\.apply\(this, fArgs\)\)/)
+    expect(authSource).to.not.match(/return f\.apply\(this, fArgs\)\s*\n\s*\} catch/)
+  })
 })

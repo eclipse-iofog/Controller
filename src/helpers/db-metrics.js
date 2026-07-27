@@ -10,6 +10,8 @@ let busyRetries = null
 let connectionInvalidated = null
 let sqliteFogCountWarning = null
 let writeQueueDepthInteractive = null
+let transactionTimeouts = null
+let backgroundQueueShed = null
 
 function getMeter () {
   if (!meter) {
@@ -74,6 +76,13 @@ function initDbMetrics (_sequelize, _provider, queueReader) {
       result.observe(depth.background, { priority: 'background' })
     })
   }
+
+  transactionTimeouts = m.createCounter('db.transaction.timeouts', {
+    description: 'SQLite transaction timeouts by label and priority lane'
+  })
+  backgroundQueueShed = m.createCounter('db.write_queue.background_shed', {
+    description: 'Background SQLite write queue tasks shed during recovery surgery'
+  })
 }
 
 function recordTransactionDuration (attributes, durationMs) {
@@ -100,6 +109,19 @@ function recordSqliteFogCountWarning () {
   sqliteFogCountWarning?.add(1)
 }
 
+function recordTransactionTimeout (label, priority) {
+  transactionTimeouts?.add(1, {
+    label: label || 'unknown',
+    priority: priority || 'unknown'
+  })
+}
+
+function recordBackgroundQueueShed (count, reason) {
+  if (count > 0) {
+    backgroundQueueShed?.add(count, { reason: reason || 'unknown' })
+  }
+}
+
 function maybeRecordConnectionInvalidated (error, provider) {
   if (isConnectionInvalidatedError(error)) {
     recordConnectionInvalidated(provider)
@@ -114,5 +136,7 @@ module.exports = {
   recordConnectionInvalidated,
   recordSqliteFogCountWarning,
   recordTransactionDuration,
+  recordTransactionTimeout,
+  recordBackgroundQueueShed,
   recordWriteQueueWaitMs
 }
