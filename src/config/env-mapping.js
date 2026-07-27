@@ -80,6 +80,10 @@ module.exports = {
   RECONCILE_OUTBOX_DRAINER_BATCH_SIZE: 'settings.reconcileOutboxDrainerBatchSize',
   SQLITE_ENTERPRISE_FOG_WARNING_THRESHOLD: 'settings.sqliteEnterpriseFogWarningThreshold',
   DB_WRITE_QUEUE_MAX_DEPTH: 'settings.dbWriteQueueMaxDepth',
+  DB_WRITE_QUEUE_BACKPRESSURE_DEPTH: 'settings.dbWriteQueueBackpressureDepth',
+  DB_TRANSACTION_TIMEOUT_READINESS_MS: 'settings.dbTransactionTimeoutReadinessMs',
+  DB_TRANSACTION_TIMEOUT_INTERACTIVE_MS: 'settings.dbTransactionTimeoutInteractiveMs',
+  DB_TRANSACTION_TIMEOUT_BACKGROUND_MS: 'settings.dbTransactionTimeoutBackgroundMs',
   DB_BUSY_RETRY_MAX_ATTEMPTS: 'settings.dbBusyRetryMaxAttempts',
   DB_BUSY_RETRY_BASE_MS: 'settings.dbBusyRetryBaseMs',
 

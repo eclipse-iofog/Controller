@@ -98,11 +98,15 @@ settings:
   jobStartupDelaySeconds: 3                      # Delay before reconcile-heavy background jobs start (default: 3)
   reconcileOutboxDrainerIntervalSeconds: 1       # Outbox drainer poll interval in seconds (default: 1)
   reconcileOutboxDrainerBatchSize: 32            # Max outbox rows per drainer batch (default: 32)
-  wsSessionReconcileIntervalSeconds: 60          # WS exec/log stale DB row reconcile interval (R89)
-  sqliteEnterpriseFogWarningThreshold: 50        # Log + metric when sqlite fog count exceeds (R124)
-  dbWriteQueueMaxDepth: 256                      # SQLite write queue depth before error log (R123)
-  dbBusyRetryMaxAttempts: 8                      # SQLITE_BUSY retry attempts per transaction (Plan 19)
-  dbBusyRetryBaseMs: 25                          # Exponential backoff base for busy retry (Plan 19)
+  wsSessionReconcileIntervalSeconds: 60          # WS exec/log stale DB row reconcile interval
+  sqliteEnterpriseFogWarningThreshold: 50        # Log + metric when sqlite fog count exceeds
+  dbWriteQueueMaxDepth: 256                      # SQLite write queue depth before error log
+  dbWriteQueueBackpressureDepth: 32              # Shed background enqueue when total queue depth exceeds (sqlite)
+  dbTransactionTimeoutReadinessMs: 5000          # Readiness SELECT 1 timeout (sqlite, outside write queue)
+  dbTransactionTimeoutInteractiveMs: 15000       # Interactive sqlite transaction timeout
+  dbTransactionTimeoutBackgroundMs: 120000       # Background sqlite transaction timeout
+  dbBusyRetryMaxAttempts: 8                      # SQLITE_BUSY retry attempts per transaction
+  dbBusyRetryBaseMs: 25                          # Exponential backoff base for busy retry
 
 # Database Configuration
 database:
