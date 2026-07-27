@@ -5,12 +5,19 @@ const authJwks = require('../config/auth-jwks')
 const transactionRunner = require('../helpers/transaction-runner')
 const { isSqliteBusyError } = require('../helpers/db-busy-retry')
 const CODES = require('../helpers/agent-auth-error-codes')
-const { ReadinessNotReadyError } = require('../helpers/errors')
+const { ReadinessNotReadyError, TransactionTimeoutError } = require('../helpers/errors')
 
 async function checkDatabaseReady () {
+  if (transactionRunner.isSqliteProvider()) {
+    await transactionRunner.runSqliteReadOutsideQueue(async () => {
+      await databaseProvider.sequelize.query('SELECT 1')
+    }, { label: transactionRunner.READINESS_LABEL })
+    return
+  }
+
   await transactionRunner.runInTransaction(async (transaction) => {
     await databaseProvider.sequelize.query('SELECT 1', { transaction })
-  }, { label: 'readiness.database' })
+  }, { label: transactionRunner.READINESS_LABEL })
 }
 
 async function checkVaultReady () {
@@ -41,14 +48,24 @@ function buildReadinessFailure (code, message) {
   return new ReadinessNotReadyError(code, message, null)
 }
 
+function classifyDatabaseReadinessFailure (error) {
+  if (isSqliteBusyError(error)) {
+    return CODES.CONTROLLER_DB_BUSY
+  }
+  if (error instanceof TransactionTimeoutError) {
+    return CODES.CONTROLLER_DB_UNAVAILABLE
+  }
+  return CODES.CONTROLLER_DB_UNAVAILABLE
+}
+
 async function assertReadiness () {
   try {
     await checkDatabaseReady()
   } catch (error) {
-    const code = isSqliteBusyError(error)
-      ? CODES.CONTROLLER_DB_BUSY
-      : CODES.CONTROLLER_DB_UNAVAILABLE
-    throw buildReadinessFailure(code, 'Database is not ready')
+    throw buildReadinessFailure(
+      classifyDatabaseReadinessFailure(error),
+      'Database is not ready'
+    )
   }
 
   try {

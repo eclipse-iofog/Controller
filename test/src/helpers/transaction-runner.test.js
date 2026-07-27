@@ -13,9 +13,13 @@ const {
   _resetQueueForTests,
   getActiveTransactionContext,
   getWriteQueueDepth,
+  getWriteQueueBackpressureDepth,
   runInTransaction,
-  runWithTransactionContext
+  runSqliteReadOutsideQueue,
+  runWithTransactionContext,
+  shedBackgroundLane
 } = require('../../../src/helpers/transaction-runner')
+const { TransactionTimeoutError, QueueBackpressureError } = require('../../../src/helpers/errors')
 const { registerSqlitePragmas, applySqlitePragmas } = require('../../../src/helpers/sqlite-pragmas')
 
 describe('transaction-runner', () => {
@@ -284,5 +288,106 @@ describe('transaction-runner', () => {
     })
 
     expect(nestedCtx.priority).to.equal(PRIORITY_BACKGROUND)
+  })
+
+  it('rejects background enqueue when sqlite queue exceeds backpressure depth', async () => {
+    let release
+    const gate = new Promise((resolve) => {
+      release = resolve
+    })
+
+    const blocker = runInTransaction(async () => {
+      await gate
+    }, { priority: PRIORITY_INTERACTIVE, label: 'blocker', timeoutMs: 60000 })
+
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    const backpressureDepth = getWriteQueueBackpressureDepth()
+    for (let i = 0; i <= backpressureDepth; i++) {
+      runInTransaction(async () => {}, { priority: PRIORITY_BACKGROUND, label: `fill-${i}` })
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    await expect(
+      runInTransaction(async () => {}, { priority: PRIORITY_BACKGROUND, label: 'rejected' })
+    ).to.be.rejectedWith(QueueBackpressureError)
+
+    release()
+    await blocker
+  })
+
+  it('times out hung sqlite transactions and allows subsequent work', async () => {
+    let release
+    const gate = new Promise((resolve) => {
+      release = resolve
+    })
+
+    const hung = runInTransaction(async () => {
+      await gate
+    }, { priority: PRIORITY_INTERACTIVE, label: 'hung', timeoutMs: 50 })
+
+    await expect(hung).to.be.rejectedWith(TransactionTimeoutError)
+    release()
+
+    await runInTransaction(async (transaction) => {
+      await sequelize.query('INSERT INTO tx_runner_test (label) VALUES (\'after-timeout\')', { transaction })
+    }, { label: 'after-timeout' })
+
+    const [rows] = await sequelize.query('SELECT label FROM tx_runner_test')
+    expect(rows.map((row) => row.label)).to.include('after-timeout')
+  })
+
+  it('shedBackgroundLane rejects all queued background tasks', async () => {
+    let release
+    const gate = new Promise((resolve) => {
+      release = resolve
+    })
+
+    const blocker = runInTransaction(async () => {
+      await gate
+    }, { priority: PRIORITY_INTERACTIVE, label: 'blocker', timeoutMs: 60000 })
+
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    const results = []
+    for (let i = 0; i < 3; i++) {
+      runInTransaction(async () => {
+        results.push(`bg-${i}`)
+      }, { priority: PRIORITY_BACKGROUND, label: `bg-${i}` }).catch((error) => {
+        results.push(error.name)
+      })
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    const shed = shedBackgroundLane('test')
+    expect(shed).to.equal(3)
+
+    release()
+    await blocker
+
+    expect(results.filter((entry) => entry === 'QueueBackpressureError')).to.have.length(3)
+  })
+
+  it('runSqliteReadOutsideQueue executes SELECT without waiting behind queued writers', async () => {
+    let release
+    const gate = new Promise((resolve) => {
+      release = resolve
+    })
+
+    const writerBlock = runInTransaction(async () => {
+      await gate
+    }, { priority: PRIORITY_INTERACTIVE, label: 'writer-block', timeoutMs: 60000 })
+
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    const startedAt = Date.now()
+    await runSqliteReadOutsideQueue(async () => {
+      await sequelize.query('SELECT 1')
+    }, { label: 'readiness.database', timeoutMs: 5000 })
+    expect(Date.now() - startedAt).to.be.lessThan(500)
+
+    release()
+    await writerBlock
   })
 })

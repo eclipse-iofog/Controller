@@ -85,6 +85,10 @@ Phased reconcile and grep gates complement ALS: short txs for NATS/platform phas
 |---------|---------|--------------|
 | `settings.sqliteEnterpriseFogWarningThreshold` | 50 | `SQLITE_ENTERPRISE_FOG_WARNING_THRESHOLD` |
 | `settings.dbWriteQueueMaxDepth` | 256 | `DB_WRITE_QUEUE_MAX_DEPTH` |
+| `settings.dbWriteQueueBackpressureDepth` | 32 | `DB_WRITE_QUEUE_BACKPRESSURE_DEPTH` |
+| `settings.dbTransactionTimeoutReadinessMs` | 5000 | `DB_TRANSACTION_TIMEOUT_READINESS_MS` |
+| `settings.dbTransactionTimeoutInteractiveMs` | 15000 | `DB_TRANSACTION_TIMEOUT_INTERACTIVE_MS` |
+| `settings.dbTransactionTimeoutBackgroundMs` | 120000 | `DB_TRANSACTION_TIMEOUT_BACKGROUND_MS` |
 | `settings.dbBusyRetryMaxAttempts` | 8 | `DB_BUSY_RETRY_MAX_ATTEMPTS` |
 | `settings.dbBusyRetryBaseMs` | 25 | `DB_BUSY_RETRY_BASE_MS` |
 | `settings.reconcileOutboxDrainerIntervalSeconds` | 1 | `RECONCILE_OUTBOX_DRAINER_INTERVAL_SECONDS` |
@@ -97,7 +101,19 @@ See `src/config/config.yaml` and [architecture.md](../architecture.md) for pool 
 
 ## SQLite write queue backpressure
 
-When total queued work (`interactive` + `background` lanes) exceeds `settings.dbWriteQueueMaxDepth` (default **256**), Controller logs an **error** once per overflow episode. **Interactive requests are not rejected** — the queue continues to drain in priority order. Operators should investigate background job pressure or migrate to mysql/postgres.
+When total queued work (`interactive` + `background` lanes) exceeds `settings.dbWriteQueueBackpressureDepth` (default **32**), **new background enqueue attempts are rejected** with `QueueBackpressureError` (503 to callers when surfaced through agent auth). Interactive work continues to enqueue and drain in priority order.
+
+When depth exceeds `settings.dbWriteQueueMaxDepth` (default **256**), Controller logs an **error** once per overflow episode. Interactive requests are still not rejected at the alert threshold — operators should investigate background job pressure or migrate to mysql/postgres.
+
+### Self-recovery (SQLite)
+
+| Layer | Trigger | Action |
+|-------|---------|--------|
+| **L1 timeout** | Transaction exceeds lane timeout | Reject with `TransactionTimeoutError`; worker continues |
+| **L2 pool recycle** | After interactive/background timeout | Close and re-init sqlite connection pool |
+| **L3 queue surgery** | 3+ interactive timeouts in 60s **or** backpressure sustained 30s | Shed all queued background tasks with `QueueBackpressureError` |
+
+Readiness probes (`SELECT 1` for `/api/v3/status`) run **outside** the global write queue on SQLite so health checks stay responsive when the queue is wedged. Timeout defaults to `dbTransactionTimeoutReadinessMs` (5s); failures return **503** with `Retry-After`.
 
 ---
 
@@ -110,6 +126,8 @@ Instruments are registered at startup in `src/helpers/db-metrics.js` (requires `
 | `db.transaction.duration` | histogram | `label`, `priority`, `provider` | p99 spike correlated with load |
 | `db.write_queue.depth` | gauge | `priority` | **> 100 for 5 min** → investigate background pressure |
 | `db.write_queue.wait_ms` | histogram | `priority` | Sustained high wait → scale DB or reduce background load |
+| `db.transaction.timeouts` | counter | `label`, `priority` | **Any sustained rate** → stuck tx or load spike |
+| `db.write_queue.background_shed` | counter | `reason` | **Any increment** → queue surgery fired; check stuck writers |
 | `db.busy_retries` | counter | `label` | **> 10/min** → lock contention |
 | `db.connection.invalidated` | counter | `provider` | **Any increment** → investigate pool / connection errors |
 | `db.sqlite.fog_count_warning` | counter | — | Fleet exceeded sqlite recommended size |
@@ -202,6 +220,7 @@ npm test -- --grep "grep gates"
 | **Fog platform phased reconcile** | Separate `fogPlatform.*` labels; no monolithic `fogPlatform.natsEnsure` |
 | **OIDC adapter** | All adapter reads/writes through `runInTransaction` with `oidc.adapter.*` labels |
 | **JTI cleanup** | `fog-token-cleanup-job.js` routes through `runInTransaction`, not bare manager call |
+| **Agent auth ALS** | `checkFogToken` runs the handler inside `runWithTransactionContext` so nested `runInTransaction` reuses the auth tx |
 
 When a gate fails, fix the **minimal** violation (pass parent `transaction`, move I/O outside the tx body, or split phases) — do not disable the gate.
 

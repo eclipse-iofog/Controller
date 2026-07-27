@@ -1,15 +1,17 @@
 # Changelog
 
 
-## [v3.8.2] - 2026-07-25
+## [v3.8.2] - 2026-07-30
 
-Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2). Also embedded OAuth logout/re-login hardening, EdgeOps Console **v1.0.12**, and operator sizing docs.
+Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2). Also embedded OAuth logout/re-login hardening, EdgeOps Console **v1.0.12**, operator sizing docs, and **SQLite write-queue self-recovery** for long-running single-node deployments.
 
 ### Added
 
 - **`GET /api/v3/live`** — public **liveness** probe (process up; always 200 while HTTP server listens).
 - Structured agent fog JWT errors on **`/api/v3/agent/*`**: **`code`** + **`retryable`** on 401 (credential failure) and 503 (Controller dependency failure).
 - **`docs/operations/sizing.md`** — hardware sizing guide by fog count (Kubernetes and Remote ControlPlane).
+- **SQLite transaction recovery settings** — `settings.dbWriteQueueBackpressureDepth` (default **32**), `settings.dbTransactionTimeoutReadinessMs` (**5000**), `settings.dbTransactionTimeoutInteractiveMs` (**15000**), `settings.dbTransactionTimeoutBackgroundMs` (**120000**); env overrides **`DB_WRITE_QUEUE_BACKPRESSURE_DEPTH`**, **`DB_TRANSACTION_TIMEOUT_*_MS`** (see `docs/operations/database-transactions.md`).
+- **OTEL DB metrics** — `db.transaction.timeouts` and `db.write_queue.background_shed` for queue surgery and stuck-transaction visibility.
 
 ### Changed
 
@@ -20,9 +22,15 @@ Plan 21: liveness/readiness probe split and structured agent auth errors (coordi
 - Embedded OAuth BFF authorize sends **`prompt=login`** so each browser sign-in starts a fresh issuer interaction.
 - **`POST /api/v3/user/logout`** (embedded) clears issuer Session/Grant/Interaction state and destroys the BFF express-session when present (refresh-token revocation unchanged).
 - Dependency bumps: OpenTelemetry **0.221.x**, **`body-parser` 1.20.6**, **`js-yaml` 4.3.0**, **`undici` ^7.28.0**; Dockerfile base image digest pins refreshed.
+- **SQLite write queue backpressure** — when total queued depth exceeds **`dbWriteQueueBackpressureDepth`**, new **background** enqueue is rejected (`QueueBackpressureError` → **503** when surfaced through agent auth); **`dbWriteQueueMaxDepth`** (**256**) remains alert-only.
+- **SQLite transaction timeouts** — per-lane timeouts abort stuck work, recycle the sqlite pool, and allow the queue worker to continue (interactive **15s**, background **120s**).
+- **`checkFogToken` transaction scope** — agent handler runs inside the auth transaction via **`runWithTransactionContext`**, so nested **`runInTransaction()`** reuses the parent writer instead of enqueueing a second sqlite transaction.
+- **Readiness database probe (SQLite)** — **`SELECT 1`** for **`GET /api/v3/status`** runs outside the global write queue with a **5s** timeout, so health checks stay responsive under write-queue pressure.
 
 ### Fixed
 
+- **SQLite ControlPlane freeze after multi-day uptime** — a hung sqlite transaction could block the global write queue indefinitely (queue depth > **256**, console/potctl and **`/api/v3/status`** unresponsive until restart). Self-recovery: transaction timeouts, pool recycle, and background queue shedding under sustained backpressure.
+- **Agent auth nested-transaction deadlock (SQLite)** — **`checkFogToken`** authenticated in one transaction then invoked the handler outside ALS, allowing nested writes to deadlock the single-connection pool on hot agent routes (e.g. status/config polling).
 - **Secret PATCH** — omitted **`type`** in the update body now defaults to the existing secret type instead of **400** `Secret type mismatch` (fixes JSON PATCH and YAML secret updates that send only **`data`**).
 - **Embedded OAuth re-login after logout** — stale issuer session could yield **`access_denied`** on callback; logout now tears down issuer/BFF OAuth state and authorize forces fresh login.
 - **OAuth callback errors** — issuer errors (e.g. **`access_denied`**) redirect to **`{consoleUrl}/login?oauthError=...`** instead of **401 JSON** on the API port.

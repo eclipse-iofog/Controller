@@ -9,7 +9,7 @@ const vaultManager = require('../../../src/vault/vault-manager')
 const oidcConfig = require('../../../src/config/oidc')
 const authJwks = require('../../../src/config/auth-jwks')
 const CODES = require('../../../src/helpers/agent-auth-error-codes')
-const { ReadinessNotReadyError } = require('../../../src/helpers/errors')
+const { ReadinessNotReadyError, TransactionTimeoutError } = require('../../../src/helpers/errors')
 
 describe('controller readiness', () => {
   def('sandbox', () => sinon.createSandbox())
@@ -18,7 +18,8 @@ describe('controller readiness', () => {
 
   describe('assertReadiness()', () => {
     it('passes when database, vault, and auth checks succeed', async () => {
-      $sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn) => fn({}))
+      $sandbox.stub(transactionRunner, 'isSqliteProvider').returns(true)
+      $sandbox.stub(transactionRunner, 'runSqliteReadOutsideQueue').callsFake(async (fn) => fn())
       $sandbox.stub(databaseProvider.sequelize, 'query').resolves([[1]])
       $sandbox.stub(vaultManager, 'isEnabled').returns(false)
       $sandbox.stub(oidcConfig, 'isAuthConfigured').returns(false)
@@ -26,8 +27,22 @@ describe('controller readiness', () => {
       await readinessService.assertReadiness()
     })
 
+    it('uses sqlite read path outside the write queue for database readiness', async () => {
+      $sandbox.stub(transactionRunner, 'isSqliteProvider').returns(true)
+      const readOutside = $sandbox.stub(transactionRunner, 'runSqliteReadOutsideQueue').callsFake(async (fn) => fn())
+      $sandbox.stub(databaseProvider.sequelize, 'query').resolves([[1]])
+      $sandbox.stub(vaultManager, 'isEnabled').returns(false)
+      $sandbox.stub(oidcConfig, 'isAuthConfigured').returns(false)
+
+      await readinessService.assertReadiness()
+
+      expect(readOutside).to.have.been.calledOnce
+      expect(readOutside.firstCall.args[1]).to.deep.include({ label: transactionRunner.READINESS_LABEL })
+    })
+
     it('throws ReadinessNotReadyError when database check fails', async () => {
-      $sandbox.stub(transactionRunner, 'runInTransaction').rejects(new Error('SQLITE_BUSY: database is locked'))
+      $sandbox.stub(transactionRunner, 'isSqliteProvider').returns(true)
+      $sandbox.stub(transactionRunner, 'runSqliteReadOutsideQueue').rejects(new Error('SQLITE_BUSY: database is locked'))
 
       try {
         await readinessService.assertReadiness()
@@ -39,8 +54,25 @@ describe('controller readiness', () => {
       }
     })
 
+    it('throws ReadinessNotReadyError when database readiness times out', async () => {
+      $sandbox.stub(transactionRunner, 'isSqliteProvider').returns(true)
+      $sandbox.stub(transactionRunner, 'runSqliteReadOutsideQueue').rejects(
+        new TransactionTimeoutError('readiness.database', 'interactive', 5000)
+      )
+
+      try {
+        await readinessService.assertReadiness()
+        throw new Error('expected failure')
+      } catch (error) {
+        expect(error).to.be.instanceOf(ReadinessNotReadyError)
+        expect(error.code).to.equal(CODES.CONTROLLER_DB_UNAVAILABLE)
+        expect(error.retryable).to.equal(true)
+      }
+    })
+
     it('throws ReadinessNotReadyError when vault check fails', async () => {
-      $sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn) => fn({}))
+      $sandbox.stub(transactionRunner, 'isSqliteProvider').returns(true)
+      $sandbox.stub(transactionRunner, 'runSqliteReadOutsideQueue').callsFake(async (fn) => fn())
       $sandbox.stub(databaseProvider.sequelize, 'query').resolves([[1]])
       $sandbox.stub(vaultManager, 'isEnabled').returns(true)
       $sandbox.stub(vaultManager, 'getProvider').returns({
@@ -57,7 +89,8 @@ describe('controller readiness', () => {
     })
 
     it('throws ReadinessNotReadyError when embedded auth is not ready', async () => {
-      $sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (fn) => fn({}))
+      $sandbox.stub(transactionRunner, 'isSqliteProvider').returns(true)
+      $sandbox.stub(transactionRunner, 'runSqliteReadOutsideQueue').callsFake(async (fn) => fn())
       $sandbox.stub(databaseProvider.sequelize, 'query').resolves([[1]])
       $sandbox.stub(vaultManager, 'isEnabled').returns(false)
       $sandbox.stub(oidcConfig, 'isAuthConfigured').returns(true)

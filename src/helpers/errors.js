@@ -159,6 +159,26 @@ class ServiceUnavailableError extends Error {
   }
 }
 
+class TransactionTimeoutError extends Error {
+  constructor (label, priority, timeoutMs) {
+    const message = `Database transaction timed out after ${timeoutMs}ms (${label || 'unknown'}, ${priority || 'unknown'})`
+    super(message)
+    this.name = 'TransactionTimeoutError'
+    this.label = label || 'unknown'
+    this.priority = priority || 'unknown'
+    this.timeoutMs = timeoutMs
+    this.retryable = true
+  }
+}
+
+class QueueBackpressureError extends Error {
+  constructor (message = 'SQLite write queue backpressure active') {
+    super(message)
+    this.name = 'QueueBackpressureError'
+    this.retryable = true
+  }
+}
+
 class ReadinessNotReadyError extends Error {
   constructor (code, message, basePayload) {
     super(message)
@@ -184,6 +204,8 @@ module.exports = {
   AuthenticationError,
   AgentAuthenticationError,
   ServiceUnavailableError,
+  TransactionTimeoutError,
+  QueueBackpressureError,
   ReadinessNotReadyError,
   TransactionError,
   ValidationError,
