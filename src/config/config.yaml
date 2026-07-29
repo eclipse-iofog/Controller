@@ -98,6 +98,7 @@ settings:
   jobStartupDelaySeconds: 3                      # Delay before reconcile-heavy background jobs start (default: 3)
   reconcileOutboxDrainerIntervalSeconds: 1       # Outbox drainer poll interval in seconds (default: 1)
   reconcileOutboxDrainerBatchSize: 32            # Max outbox rows per drainer batch (default: 32)
+  agentPropagationFogNotifyBatchSize: 100      # Fogs per agent_propagation notify chunk (default: 100)
   wsSessionReconcileIntervalSeconds: 60          # WS exec/log stale DB row reconcile interval
   sqliteEnterpriseFogWarningThreshold: 50        # Log + metric when sqlite fog count exceeds
   dbWriteQueueMaxDepth: 256                      # SQLite write queue depth before error log

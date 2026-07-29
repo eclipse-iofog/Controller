@@ -4,9 +4,8 @@ const sinon = require('sinon')
 const RegistryManager = require('../../../src/data/managers/registry-manager')
 const RegistryService = require('../../../src/services/registry-service')
 const Validator = require('../../../src/schemas')
+const ReconcileOutboxManager = require('../../../src/data/managers/reconcile-outbox-manager')
 const AppHelper = require('../../../src/helpers/app-helper')
-const FogManager = require('../../../src/data/managers/iofog-manager')
-const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const SecretHelper = require('../../../src/helpers/secret-helper')
 const vaultManager = require('../../../src/vault/vault-manager')
@@ -28,9 +27,8 @@ function buildRegistryRecord (fields = {}) {
   }
 }
 
-function stubChangeTrackingDeps (sandbox, { fogUuid = 'fog-uuid' } = {}) {
-  sandbox.stub(FogManager, 'findAll').resolves([{ uuid: fogUuid }])
-  sandbox.stub(ChangeTrackingService, 'update').resolves()
+function stubAgentPropagation (sandbox) {
+  sandbox.stub(ReconcileOutboxManager, 'enqueueAgentPropagation').resolves()
 }
 
 describe('Registry Service', () => {
@@ -58,10 +56,10 @@ describe('Registry Service', () => {
       $sandbox.stub(SecretHelper, 'encryptSecretInternal').resolves('encrypted-password')
       $sandbox.stub(SecretHelper, 'encryptSecret').resolves('vault-ref')
       $sandbox.stub(RegistryManager, 'update').resolves()
-      stubChangeTrackingDeps($sandbox)
+      stubAgentPropagation($sandbox)
     })
 
-    it('validates input, encrypts password internally in tx, and returns registry id', async () => {
+    it('validates input, encrypts password internally in tx, enqueues propagation, and returns registry id', async () => {
       const result = await $subject
       expect(Validator.validate).to.have.been.calledWith(registryData, Validator.schemas.registryCreate)
       expect(RegistryManager.create).to.have.been.calledWithMatch({
@@ -74,11 +72,11 @@ describe('Registry Service', () => {
         'registry-16'
       )
       expect(SecretHelper.encryptSecret).to.not.have.been.called
-      expect(ChangeTrackingService.update).to.have.been.calledWith(
-        'fog-uuid',
-        ChangeTrackingService.events.registries,
-        transaction
-      )
+      expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledOnceWith({
+        scope: 'registry',
+        reason: 'created',
+        actions: ['notify_registries']
+      }, transaction)
       expect(result).to.eql({ id: 16 })
     })
 
@@ -135,13 +133,17 @@ describe('Registry Service', () => {
       $sandbox.stub(RegistryManager, 'findOne').resolves(registry)
       $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').resolves([])
       $sandbox.stub(RegistryManager, 'delete').resolves()
-      stubChangeTrackingDeps($sandbox)
+      stubAgentPropagation($sandbox)
     })
 
-    it('deletes an unused registry', async () => {
+    it('deletes an unused registry and enqueues propagation', async () => {
       await $subject
       expect(RegistryManager.delete).to.have.been.calledWith({ id: registryId }, transaction)
-      expect(ChangeTrackingService.update).to.have.been.called
+      expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledOnceWith({
+        scope: 'registry',
+        reason: 'deleted',
+        actions: ['notify_registries']
+      }, transaction)
     })
 
     it('rejects system registry ids', () => {
@@ -178,22 +180,28 @@ describe('Registry Service', () => {
       $sandbox.stub(RegistryManager, 'findOne').resolves(existing)
       $sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((value) => value)
       $sandbox.stub(RegistryManager, 'update').resolves()
-      $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').resolves([])
-      stubChangeTrackingDeps($sandbox)
+      stubAgentPropagation($sandbox)
     })
 
-    it('updates registry metadata', async () => {
+    it('updates registry metadata and enqueues global registries propagation', async () => {
       await $subject
       expect(RegistryManager.update).to.have.been.calledWith(
         { id: registryId },
         sinon.match({ url: updateData.url, username: updateData.username }),
         transaction
       )
-      expect(ChangeTrackingService.update).to.have.been.calledWith(
-        'fog-uuid',
-        ChangeTrackingService.events.registries,
-        transaction
-      )
+      expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledTwice
+      expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledWith({
+        scope: 'registry',
+        reason: 'updated',
+        registryId,
+        actions: ['rebuild', 'notify_microservices']
+      }, transaction)
+      expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledWith({
+        scope: 'registry',
+        reason: 'updated',
+        actions: ['notify_registries']
+      }, transaction)
     })
 
     it('rejects system registry ids', () => {
@@ -210,25 +218,25 @@ describe('Registry Service', () => {
     })
 
     context('when microservices use the registry', () => {
-      const microservice = { uuid: 'msvc-uuid', iofogUuid: 'fog-uuid' }
-
       beforeEach(() => {
-        MicroserviceManager.findAllWithStatuses.resolves([microservice])
-        $sandbox.stub(MicroserviceManager, 'updateAndFind').resolves(microservice)
+        $sandbox.stub(MicroserviceManager, 'updateAndFind').resolves()
       })
 
-      it('marks microservices for rebuild and updates change tracking', async () => {
+      it('enqueues two outbox rows without sync microservice fan-out', async () => {
         await $subject
-        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
-          { uuid: microservice.uuid },
-          { rebuild: true },
-          transaction
-        )
-        expect(ChangeTrackingService.update).to.have.been.calledWith(
-          microservice.iofogUuid,
-          ChangeTrackingService.events.microserviceCommon,
-          transaction
-        )
+        expect(MicroserviceManager.updateAndFind).to.not.have.been.called
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledTwice
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledWith({
+          scope: 'registry',
+          reason: 'updated',
+          registryId,
+          actions: ['rebuild', 'notify_microservices']
+        }, transaction)
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledWith({
+          scope: 'registry',
+          reason: 'updated',
+          actions: ['notify_registries']
+        }, transaction)
       })
     })
 

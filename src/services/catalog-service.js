@@ -12,8 +12,8 @@ const Op = require('sequelize').Op
 const Validator = require('../schemas/index')
 const RegistryManager = require('../data/managers/registry-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
+const ReconcileOutboxManager = require('../data/managers/reconcile-outbox-manager')
 // const MicroseriveStates = require('../enums/microservice-state')
-const ChangeTrackingService = require('./change-tracking-service')
 
 const createCatalogItemEndPoint = async function (data, transaction) {
   await Validator.validate(data, Validator.schemas.catalogItemCreate)
@@ -272,6 +272,12 @@ const _createCatalogItemOutputType = async function (data, catalogItem, transact
 }
 
 const _updateCatalogItem = async function (data, where, transaction) {
+  const item = await _checkIfItemExists(where, transaction)
+
+  if (item.category === 'SYSTEM') {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_UPDATE, data.id))
+  }
+
   let catalogItem = {
     name: data.name,
     description: data.description,
@@ -286,26 +292,27 @@ const _updateCatalogItem = async function (data, where, transaction) {
   }
 
   catalogItem = AppHelper.deleteUndefinedFields(catalogItem)
+
+  if (data.registryId == null) {
+    delete catalogItem.registryId
+  }
+
+  if (catalogItem.registryId != null && catalogItem.registryId !== item.registryId) {
+    const registry = await RegistryManager.findOne({ id: catalogItem.registryId }, transaction)
+    if (!registry) {
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, catalogItem.registryId))
+    }
+    await ReconcileOutboxManager.enqueueAgentPropagation({
+      scope: 'catalog',
+      reason: 'registry_id_updated',
+      catalogItemId: data.id,
+      registryId: catalogItem.registryId,
+      actions: ['propagate_registry_id', 'rebuild', 'notify_microservices']
+    }, transaction)
+  }
+
   if (!catalogItem || AppHelper.isEmpty(catalogItem)) {
     return
-  }
-  if (data.registryId) {
-    const registry = await RegistryManager.findOne({ id: data.registryId }, transaction)
-    if (!registry) {
-      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, data.registryId))
-    }
-    const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: data.id }, transaction)
-    if (microservices.length > 0) {
-      for (const ms of microservices) {
-        await MicroserviceManager.updateAndFind({ uuid: ms.uuid }, { registryId: data.registryId }, transaction)
-      }
-    }
-  }
-
-  const item = await _checkIfItemExists(where, transaction)
-
-  if (item.category === 'SYSTEM') {
-    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_CATALOG_ITEM_UPDATE, data.id))
   }
 
   await _checkForDuplicateName(data.name, item, transaction)
@@ -314,14 +321,6 @@ const _updateCatalogItem = async function (data, where, transaction) {
 
 const _updateCatalogItemImages = async function (data, transaction) {
   if (data.images) {
-    // TODO: Rather than not allowing images for running microservices, update changetracking for agent microsevice list so that once catalog item images are updated, the microservices are updated and restarted.
-    // const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: data.id }, transaction)
-    // for (const ms of microservices) {
-    //   if (ms.microserviceStatus.status === MicroseriveStates.RUNNING) {
-    //     throw new Errors.ValidationError(ErrorMessages.CATALOG_ITEM_IMAGES_IS_FROZEN)
-    //   }
-    // }
-
     validateUniqueArchIds(data.images)
     for (const image of data.images) {
       await CatalogItemImageManager.updateOrCreate({
@@ -333,13 +332,12 @@ const _updateCatalogItemImages = async function (data, transaction) {
         containerImage: image.containerImage
       }, transaction)
     }
-    const microservices = await MicroserviceManager.findAllWithStatuses({ catalogItemId: data.id }, transaction)
-    if (microservices.length > 0) {
-      for (const ms of microservices) {
-        await MicroserviceManager.updateAndFind({ uuid: ms.uuid }, { rebuild: true }, transaction)
-        await ChangeTrackingService.update(ms.iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
-      }
-    }
+    await ReconcileOutboxManager.enqueueAgentPropagation({
+      scope: 'catalog',
+      reason: 'images_updated',
+      catalogItemId: data.id,
+      actions: ['rebuild', 'notify_microservices']
+    }, transaction)
   }
 }
 

@@ -1,6 +1,6 @@
 'use strict'
 
-const RECONCILE_OUTBOX_KINDS = ['nats', 'fog_platform', 'service_platform']
+const RECONCILE_OUTBOX_KINDS = ['nats', 'fog_platform', 'service_platform', 'agent_propagation']
 
 module.exports = (sequelize, DataTypes) => {
   const ReconcileOutbox = sequelize.define('ReconcileOutbox', {

@@ -1,10 +1,19 @@
 const BaseManager = require('./base-manager')
 const models = require('../models')
-const CatalogItemImage = models.CatalogItemImage
 
 class CatalogItemImageManager extends BaseManager {
   getEntity () {
-    return CatalogItemImage
+    return models.CatalogItemImage
+  }
+
+  async findCustomImageMicroserviceUuids (transaction) {
+    const rows = await this.getEntity().findAll({
+      attributes: ['microserviceUuid'],
+      where: models.sequelize.literal('microservice_uuid IS NOT NULL'),
+      raw: true,
+      transaction
+    })
+    return [...new Set(rows.map((row) => row.microserviceUuid).filter(Boolean))]
   }
 }
 

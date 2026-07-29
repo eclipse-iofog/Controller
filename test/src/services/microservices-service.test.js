@@ -378,7 +378,7 @@ describe('Microservices Service', () => {
         expect(NatsAuthService.revokeMicroserviceUser).to.have.been.calledOnceWith(msvcUuid, transaction)
         expect(NatsAuthService.reissueUserForMicroservice).to.not.have.been.called
         expect(NatsAuthService.ensureUserForMicroservice).to.not.have.been.called
-        expect(MicroserviceEnvManager.delete).to.have.been.calledOnce
+        expect(MicroserviceEnvManager.delete).to.have.been.calledTwice
         expect(VolumeMappingManager.delete).to.have.been.calledOnce
       })
     })

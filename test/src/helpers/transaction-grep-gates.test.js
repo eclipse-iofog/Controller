@@ -255,4 +255,34 @@ describe('grep gates', () => {
     expect(authSource).to.match(/runWithTransactionContext\(transaction, PRIORITY_INTERACTIVE, \(\) => f\.apply\(this, fArgs\)\)/)
     expect(authSource).to.not.match(/return f\.apply\(this, fArgs\)\s*\n\s*\} catch/)
   })
+
+  it('keeps ChangeTrackingService.update out of catalog-service.js and registry-service.js', () => {
+    expect(grepSrc('ChangeTrackingService', [], 'src/services/catalog-service.js')).to.equal('')
+    expect(grepSrc('ChangeTrackingService', [], 'src/services/registry-service.js')).to.equal('')
+  })
+
+  it('keeps MicroserviceManager.findAllWithStatuses fan-out out of catalog/registry propagation paths', () => {
+    const catalogSource = fs.readFileSync(
+      path.join(REPO_ROOT, 'src/services/catalog-service.js'),
+      'utf8'
+    )
+    const registrySource = fs.readFileSync(
+      path.join(REPO_ROOT, 'src/services/registry-service.js'),
+      'utf8'
+    )
+
+    const catalogUpdateBlock = catalogSource.slice(
+      catalogSource.indexOf('const updateCatalogItemEndPoint'),
+      catalogSource.indexOf('const deleteCatalogItemEndPoint')
+    )
+    expect(catalogUpdateBlock).to.not.match(/findAllWithStatuses/)
+
+    const createRegistryBody = registrySource.match(/const createRegistry = async function[\s\S]*?(?=const findRegistries)/)[0]
+    const updateRegistryBody = registrySource.match(/const updateRegistry = async function[\s\S]*?(?=const getRegistry)/)[0]
+    expect(createRegistryBody).to.not.match(/findAllWithStatuses/)
+    expect(updateRegistryBody).to.not.match(/findAllWithStatuses/)
+
+    expect(catalogSource).to.match(/deleteCatalogItemEndPoint[\s\S]*?findAllWithStatuses/)
+    expect(registrySource).to.match(/deleteRegistry[\s\S]*?findAllWithStatuses/)
+  })
 })

@@ -38,6 +38,8 @@ const RbacRoleManager = require('../data/managers/rbac-role-manager')
 const NatsAuthService = require('./nats-auth-service')
 const NatsUserRuleManager = require('../data/managers/nats-user-rule-manager')
 const NatsRuleJwtValidation = require('../helpers/nats-rule-jwt-validation')
+const NatsInstanceManager = require('../data/managers/nats-instance-manager')
+const { resolveNatsServerUrl } = require('../helpers/nats-server-url')
 
 const Op = require('sequelize').Op
 const FogManager = require('../data/managers/iofog-manager')
@@ -49,6 +51,33 @@ const logger = require('../logger')
 const SERVICE_ACCOUNT_VOLUME_TYPE = 'serviceAccount'
 const SERVICE_ACCOUNT_VOLUME_CONTAINER_DESTINATION = '/var/run/secrets/edgelet.iofog.org/serviceaccount'
 const SERVICE_ACCOUNT_VOLUME_ACCESS_MODE = 'ro'
+const NATS_CREDS_PATH_ENV = 'NATS_CREDS_PATH'
+const NATS_SERVER_URL_ENV = 'NATS_SERVER_URL'
+
+async function _upsertMicroserviceEnv (microserviceUuid, key, value, transaction) {
+  const existing = await MicroserviceEnvManager.findOne({ microserviceUuid, key }, transaction)
+  if (existing) {
+    await MicroserviceEnvManager.update({ id: existing.id }, { value }, transaction)
+  } else {
+    await MicroserviceEnvManager.create({ microserviceUuid, key, value }, transaction)
+  }
+}
+
+async function _resolveNatsServerUrlForMicroservice (microservice, transaction) {
+  const localNats = await NatsInstanceManager.findByFog(microservice.iofogUuid, transaction)
+  if (localNats) {
+    return resolveNatsServerUrl({
+      hostNetworkMode: microservice.hostNetworkMode,
+      localNats
+    })
+  }
+
+  const hub = await NatsInstanceManager.findOne({ isHub: true }, transaction)
+  return resolveNatsServerUrl({
+    hostNetworkMode: microservice.hostNetworkMode,
+    hub
+  })
+}
 
 /**
  * Create or update service account for a microservice
@@ -123,22 +152,14 @@ async function _ensureNatsCredsForMicroservice (microservice, transaction) {
     }, transaction)
   }
 
-  const existingCredsPathEnv = await MicroserviceEnvManager.findOne(
-    { microserviceUuid: microservice.uuid, key: 'NATS_CREDS_PATH' },
+  const natsServerUrl = await _resolveNatsServerUrlForMicroservice(microservice, transaction)
+  await _upsertMicroserviceEnv(
+    microservice.uuid,
+    NATS_CREDS_PATH_ENV,
+    `${containerDest}/${credsPath}`,
     transaction
   )
-  if (existingCredsPathEnv) {
-    await MicroserviceEnvManager.update(
-      { id: existingCredsPathEnv.id },
-      { value: `${containerDest}/${credsPath}` },
-      transaction
-    )
-  } else {
-    await MicroserviceEnvManager.create(
-      { microserviceUuid: microservice.uuid, key: 'NATS_CREDS_PATH', value: `${containerDest}/${credsPath}` },
-      transaction
-    )
-  }
+  await _upsertMicroserviceEnv(microservice.uuid, NATS_SERVER_URL_ENV, natsServerUrl, transaction)
 
   await MicroserviceManager.update(
     { uuid: microservice.uuid },
@@ -158,7 +179,11 @@ async function _detachNatsCredsForMicroservice (microservice, transaction) {
   }
 
   await MicroserviceEnvManager.delete(
-    { microserviceUuid: microservice.uuid, key: 'NATS_CREDS_PATH' },
+    { microserviceUuid: microservice.uuid, key: NATS_CREDS_PATH_ENV },
+    transaction
+  )
+  await MicroserviceEnvManager.delete(
+    { microserviceUuid: microservice.uuid, key: NATS_SERVER_URL_ENV },
     transaction
   )
 

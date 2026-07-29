@@ -10,6 +10,7 @@ const CatalogItemOutputTypeManager = require('../../../src/data/managers/catalog
 const RegistryManager = require('../../../src/data/managers/registry-manager')
 const AppHelper = require('../../../src/helpers/app-helper')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
+const ReconcileOutboxManager = require('../../../src/data/managers/reconcile-outbox-manager')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const DBConstants = require('../../../src/data/constants')
 const ErrorMessages = require('../../../src/helpers/error-messages')
@@ -210,8 +211,7 @@ describe('Catalog Service', () => {
       it('rejects with ValidationError', () => expect($subject).to.be.rejectedWith(Errors.ValidationError))
     })
 
-    context('when images are updated for in-use catalog item', () => {
-      const microservice = { uuid: 'msvc-uuid', iofogUuid: 'fog-uuid' }
+    context('when images are updated', () => {
       const dataWithImages = {
         description: 'updated',
         images: [{ containerImage: 'demo:v2', archId: 1 }]
@@ -221,23 +221,128 @@ describe('Catalog Service', () => {
 
       beforeEach(() => {
         $sandbox.stub(CatalogItemImageManager, 'updateOrCreate').resolves()
-        $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').resolves([microservice])
-        $sandbox.stub(MicroserviceManager, 'updateAndFind').resolves(microservice)
+        $sandbox.stub(ReconcileOutboxManager, 'enqueueAgentPropagation').resolves()
+        $sandbox.stub(MicroserviceManager, 'updateAndFind').resolves()
+        $sandbox.stub(MicroserviceManager, 'update').resolves()
         $sandbox.stub(ChangeTrackingService, 'update').resolves()
       })
 
-      it('marks microservices for rebuild', async () => {
+      it('enqueues background agent propagation without sync fan-out', async () => {
         await $subject
-        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
-          { uuid: microservice.uuid },
-          { rebuild: true },
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledOnceWith({
+          scope: 'catalog',
+          reason: 'images_updated',
+          catalogItemId: itemId,
+          actions: ['rebuild', 'notify_microservices']
+        }, transaction)
+        expect(MicroserviceManager.updateAndFind).to.not.have.been.called
+        expect(MicroserviceManager.update).to.not.have.been.called
+        expect(ChangeTrackingService.update).to.not.have.been.called
+      })
+
+      it('completes quickly when many microservices use the catalog item (no sync fan-out)', async () => {
+        const startedAt = Date.now()
+        await $subject
+        const elapsedMs = Date.now() - startedAt
+
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledOnce
+        expect(MicroserviceManager.update).to.not.have.been.called
+        expect(MicroserviceManager.updateAndFind).to.not.have.been.called
+        expect(ChangeTrackingService.update).to.not.have.been.called
+        expect(elapsedMs).to.be.below(2000)
+      })
+    })
+
+    context('when registryId is unchanged', () => {
+      const dataWithSameRegistry = { description: 'updated', registryId: existing.registryId }
+
+      def('subject', () => $service.updateCatalogItemEndPoint(itemId, dataWithSameRegistry, isCLI, transaction))
+
+      beforeEach(() => {
+        $sandbox.stub(ReconcileOutboxManager, 'enqueueAgentPropagation').resolves()
+        $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').resolves([{ uuid: 'msvc-uuid' }])
+        $sandbox.stub(MicroserviceManager, 'updateAndFind').resolves()
+      })
+
+      it('does not enqueue agent propagation', async () => {
+        await $subject
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.not.have.been.called
+        expect(MicroserviceManager.findAllWithStatuses).to.not.have.been.called
+        expect(MicroserviceManager.updateAndFind).to.not.have.been.called
+      })
+    })
+
+    context('when registryId is null or omitted', () => {
+      beforeEach(() => {
+        $sandbox.stub(ReconcileOutboxManager, 'enqueueAgentPropagation').resolves()
+        $sandbox.stub(RegistryManager, 'findOne').resolves({ id: 1 })
+      })
+
+      it('preserves existing registryId when null is sent', async () => {
+        await $service.updateCatalogItemEndPoint(itemId, { description: 'updated', registryId: null }, isCLI, transaction)
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.not.have.been.called
+        const updatePayload = CatalogItemManager.update.getCall(0).args[1]
+        expect(updatePayload).to.include({ description: 'updated' })
+        expect(updatePayload).to.not.have.property('registryId')
+      })
+
+      it('preserves existing registryId when omitted', async () => {
+        await $service.updateCatalogItemEndPoint(itemId, { description: 'updated' }, isCLI, transaction)
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.not.have.been.called
+        const updatePayload = CatalogItemManager.update.getCall(0).args[1]
+        expect(updatePayload).to.include({ description: 'updated' })
+        expect(updatePayload).to.not.have.property('registryId')
+      })
+    })
+
+    context('when registryId changes', () => {
+      const newRegistryId = 3
+      const dataWithRegistry = { registryId: newRegistryId }
+
+      def('subject', () => $service.updateCatalogItemEndPoint(itemId, dataWithRegistry, isCLI, transaction))
+
+      beforeEach(() => {
+        $sandbox.stub(RegistryManager, 'findOne').resolves({ id: newRegistryId })
+        $sandbox.stub(ReconcileOutboxManager, 'enqueueAgentPropagation').resolves()
+        $sandbox.stub(MicroserviceManager, 'findAllWithStatuses').resolves([{ uuid: 'msvc-uuid' }])
+        $sandbox.stub(MicroserviceManager, 'updateAndFind').resolves()
+        $sandbox.stub(MicroserviceManager, 'update').resolves()
+        $sandbox.stub(ChangeTrackingService, 'update').resolves()
+      })
+
+      it('enqueues background propagation without sync microservice fan-out', async () => {
+        await $subject
+        expect(RegistryManager.findOne).to.have.been.calledWith({ id: newRegistryId }, transaction)
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.have.been.calledOnceWith({
+          scope: 'catalog',
+          reason: 'registry_id_updated',
+          catalogItemId: itemId,
+          registryId: newRegistryId,
+          actions: ['propagate_registry_id', 'rebuild', 'notify_microservices']
+        }, transaction)
+        expect(MicroserviceManager.findAllWithStatuses).to.not.have.been.called
+        expect(MicroserviceManager.updateAndFind).to.not.have.been.called
+        expect(MicroserviceManager.update).to.not.have.been.called
+        expect(CatalogItemManager.update).to.have.been.calledWith(
+          { id: itemId },
+          sinon.match({ registryId: newRegistryId }),
           transaction
         )
-        expect(ChangeTrackingService.update).to.have.been.calledWith(
-          microservice.iofogUuid,
-          ChangeTrackingService.events.microserviceCommon,
-          transaction
-        )
+      })
+    })
+
+    context('when registryId is invalid', () => {
+      def('subject', () => $service.updateCatalogItemEndPoint(itemId, { registryId: 99 }, isCLI, transaction))
+
+      beforeEach(() => {
+        $sandbox.stub(RegistryManager, 'findOne').resolves(null)
+        $sandbox.stub(ReconcileOutboxManager, 'enqueueAgentPropagation').resolves()
+      })
+
+      it('rejects with NotFoundError before enqueue', async () => {
+        await expect($subject).to.be.rejectedWith(Errors.NotFoundError)
+        expect(ReconcileOutboxManager.enqueueAgentPropagation).to.not.have.been.called
+        expect(CatalogItemManager.update).to.not.have.been.called
       })
     })
   })

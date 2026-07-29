@@ -44,6 +44,27 @@ function buildNatsIdempotencyKey (payload = {}) {
   return `nats:${reason}:${scopeSuffix}`
 }
 
+function buildAgentPropagationIdempotencyKey (payload = {}) {
+  const { scope, catalogItemId, registryId, actions = [] } = payload
+
+  if (scope === 'catalog') {
+    if (actions.includes('propagate_registry_id')) {
+      return `ap:catalog:${catalogItemId}:registry`
+    }
+    return `ap:catalog:${catalogItemId}:images`
+  }
+
+  if (scope === 'registry') {
+    const microserviceActions = actions.includes('rebuild') || actions.includes('notify_microservices')
+    if (microserviceActions) {
+      return `ap:registry:${registryId}:microservices`
+    }
+    return 'ap:registry:registries'
+  }
+
+  throw new Error(`Cannot build agent propagation idempotency key for scope: ${scope}`)
+}
+
 function buildIdempotencyKey (kind, payload = {}) {
   switch (kind) {
     case 'fog_platform':
@@ -52,6 +73,8 @@ function buildIdempotencyKey (kind, payload = {}) {
       return buildServicePlatformIdempotencyKey(payload)
     case 'nats':
       return buildNatsIdempotencyKey(payload)
+    case 'agent_propagation':
+      return buildAgentPropagationIdempotencyKey(payload)
     default:
       throw new Error(`Unknown reconcile outbox kind: ${kind}`)
   }
@@ -62,5 +85,6 @@ module.exports = {
   buildFogPlatformIdempotencyKey,
   buildServicePlatformIdempotencyKey,
   buildNatsIdempotencyKey,
+  buildAgentPropagationIdempotencyKey,
   buildIdempotencyKey
 }

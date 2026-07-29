@@ -1,3 +1,5 @@
+const Op = require('sequelize').Op
+
 const BaseManager = require('./base-manager')
 const models = require('../models')
 
@@ -60,6 +62,18 @@ class FogManager extends BaseManager {
     }, {
       transaction
     })
+  }
+
+  async findUuidsAfterCursor (cursor, limit, transaction) {
+    const where = cursor ? { uuid: { [Op.gt]: cursor } } : {}
+    const rows = await Fog.findAll({
+      attributes: ['uuid'],
+      where,
+      order: [['uuid', 'ASC']],
+      limit,
+      transaction
+    })
+    return rows.map((row) => row.uuid)
   }
 
   updateLastActive (uuid, timestamp, transaction) {

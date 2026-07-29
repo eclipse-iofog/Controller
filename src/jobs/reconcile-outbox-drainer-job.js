@@ -4,6 +4,7 @@ const ReconcileOutboxManager = require('../data/managers/reconcile-outbox-manage
 const FogPlatformReconcileTaskManager = require('../data/managers/fog-platform-reconcile-task-manager')
 const ServicePlatformReconcileTaskManager = require('../data/managers/service-platform-reconcile-task-manager')
 const NatsService = require('../services/nats-service')
+const AgentPropagationService = require('../services/agent-propagation-service')
 const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
 const DEFAULT_BATCH_SIZE = 32
@@ -28,13 +29,23 @@ async function drainRow (row, transaction) {
   switch (row.kind) {
     case 'nats':
       await NatsService.enqueueReconcileTask(payload, transaction)
-      break
+      return { markProcessed: true }
     case 'fog_platform':
       await FogPlatformReconcileTaskManager.enqueueFogPlatformReconcileTask(payload, transaction)
-      break
+      return { markProcessed: true }
     case 'service_platform':
       await ServicePlatformReconcileTaskManager.enqueueServicePlatformReconcileTask(payload, transaction)
-      break
+      return { markProcessed: true }
+    case 'agent_propagation': {
+      const result = await AgentPropagationService.propagateAgentChangeTracking(payload, transaction)
+      if (!result.complete) {
+        return {
+          markProcessed: false,
+          nextPayload: result.nextPayload
+        }
+      }
+      return { markProcessed: true }
+    }
     default:
       throw new Error(`Unknown reconcile outbox kind: ${row.kind}`)
   }
@@ -54,9 +65,18 @@ async function drainOnce () {
 
     for (const row of rows) {
       try {
-        await drainRow(row, transaction)
-        await ReconcileOutboxManager.markProcessed(row.id, transaction)
-        processed += 1
+        const drainResult = await drainRow(row, transaction)
+        if (drainResult.nextPayload) {
+          await ReconcileOutboxManager.update(
+            { id: row.id },
+            { payload: JSON.stringify(drainResult.nextPayload) },
+            transaction
+          )
+        }
+        if (drainResult.markProcessed) {
+          await ReconcileOutboxManager.markProcessed(row.id, transaction)
+          processed += 1
+        }
       } catch (error) {
         failed += 1
         logger.error(`Reconcile outbox drain failed for row ${row.id}: ${error.message}`)
