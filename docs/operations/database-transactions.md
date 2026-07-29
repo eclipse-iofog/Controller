@@ -92,6 +92,8 @@ Phased reconcile and grep gates complement ALS: short txs for NATS/platform phas
 | `settings.dbBusyRetryMaxAttempts` | 8 | `DB_BUSY_RETRY_MAX_ATTEMPTS` |
 | `settings.dbBusyRetryBaseMs` | 25 | `DB_BUSY_RETRY_BASE_MS` |
 | `settings.reconcileOutboxDrainerIntervalSeconds` | 1 | `RECONCILE_OUTBOX_DRAINER_INTERVAL_SECONDS` |
+| `settings.reconcileOutboxDrainerBatchSize` | 32 | `RECONCILE_OUTBOX_DRAINER_BATCH_SIZE` |
+| `settings.agentPropagationFogNotifyBatchSize` | 100 | `AGENT_PROPAGATION_FOG_NOTIFY_BATCH_SIZE` |
 | `database.mysql.pool.max` | 10 | *(yaml only)* |
 | `database.postgres.pool.max` | 10 | *(yaml only)* |
 
@@ -196,6 +198,37 @@ Without vault (`vaultManager.isEnabled()` false), behavior is unchanged — inte
 
 ---
 
+## Agent propagation outbox (`agent_propagation`)
+
+Catalog and registry mutations that affect many microservices or fogs enqueue **`ReconcileOutbox`** rows with kind **`agent_propagation`** in the same interactive transaction as the source-of-truth write. The reconcile-outbox drainer executes propagation in **background** transactions — interactive API latency stays **O(1)** regardless of fleet size.
+
+| Trigger | Interactive tx | Background actions |
+|---------|----------------|-------------------|
+| Catalog images updated | Image upserts + enqueue | `rebuild`, `notify_microservices` |
+| Catalog `registryId` changed | Validate + catalog row update + enqueue | `propagate_registry_id`, `rebuild`, `notify_microservices` |
+| Registry created/deleted | Registry row + enqueue | `notify_registries` |
+| Registry updated | Registry row + enqueue (**two rows**) | Row 1: `rebuild`, `notify_microservices` · Row 2: `notify_registries` |
+
+**Eventual consistency:** agents typically see rebuild/notify within ~1–2 drainer ticks (`settings.reconcileOutboxDrainerIntervalSeconds`, default **1s**).
+
+### Chunking
+
+Large `notify_registries` / `notify_microservices` fan-out uses keyset pagination on fog UUID. Each drainer tick processes up to **`settings.agentPropagationFogNotifyBatchSize`** fogs (default **100**, env **`AGENT_PROPAGATION_FOG_NOTIFY_BATCH_SIZE`**). While work remains, the drainer updates the outbox row **`payload.progress.cursor`** and leaves **`processedAt` NULL**; **`markProcessed`** runs only when all actions complete. Retries may insert duplicate change-tracking rows for the same fog — agents OR-merge flags, so this is safe.
+
+### Custom catalog images
+
+Catalog image propagation applies to microservices linked to the catalog item **except** those with per-microservice image overrides (`CatalogItemImages.microservice_uuid` set). Those custom-image microservices are not rebuilt or notified on catalog image changes.
+
+### Troubleshooting
+
+1. Check **`ReconcileOutbox`** for `kind = 'agent_propagation'` and `processedAt IS NULL`.
+2. Inspect **`last_error`** on stuck rows.
+3. Verify drainer logs; confirm **`agentPropagationFogNotifyBatchSize`** suits fleet size (lower = more ticks, shorter background txs).
+
+Implementation: `src/services/agent-propagation-service.js`, `src/jobs/reconcile-outbox-drainer-job.js`.
+
+---
+
 ## Enforcement 
 
 Mechanical **grep gates** in `test/src/helpers/transaction-grep-gates.test.js` fail CI when transaction regressions reappear. Run:
@@ -221,6 +254,7 @@ npm test -- --grep "grep gates"
 | **OIDC adapter** | All adapter reads/writes through `runInTransaction` with `oidc.adapter.*` labels |
 | **JTI cleanup** | `fog-token-cleanup-job.js` routes through `runInTransaction`, not bare manager call |
 | **Agent auth ALS** | `checkFogToken` runs the handler inside `runWithTransactionContext` so nested `runInTransaction` reuses the auth tx |
+| **Catalog/registry propagation** | No `ChangeTrackingService.update` or `findAllWithStatuses` fan-out in catalog/registry update paths — background `agent_propagation` outbox only |
 
 When a gate fails, fix the **minimal** violation (pass parent `transaction`, move I/O outside the tx body, or split phases) — do not disable the gate.
 

@@ -11,6 +11,19 @@ module.exports = (sequelize, DataTypes) => {
     containerImage: {
       type: DataTypes.TEXT,
       field: 'container_image'
+    },
+    catalogItemId: {
+      type: DataTypes.INTEGER,
+      field: 'catalog_item_id'
+    },
+    microserviceUuid: {
+      type: DataTypes.STRING(36),
+      field: 'microservice_uuid',
+      allowNull: true
+    },
+    archId: {
+      type: DataTypes.INTEGER,
+      field: 'arch_id'
     }
   }, {
     tableName: 'CatalogItemImages',

@@ -366,7 +366,7 @@ class MicroserviceManager extends BaseManager {
     }, { transaction })
   }
 
-  findAllWithStatuses (where, transaction) {
+  async findAllWithStatuses (where, transaction) {
     return Microservice.findAll({
       include: [
         {
@@ -382,6 +382,17 @@ class MicroserviceManager extends BaseManager {
       ],
       where
     }, { transaction })
+  }
+
+  async findDistinctFogUuids (where, transaction) {
+    const rows = await Microservice.findAll({
+      attributes: [[models.sequelize.fn('DISTINCT', models.sequelize.col('iofog_uuid')), 'iofogUuid']],
+      where,
+      order: [[models.sequelize.col('iofog_uuid'), 'ASC']],
+      raw: true,
+      transaction
+    })
+    return rows.map((row) => row.iofogUuid).filter(Boolean)
   }
 
   findMicroserviceOnGet (where, transaction) {

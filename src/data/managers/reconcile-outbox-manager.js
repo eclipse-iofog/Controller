@@ -103,6 +103,11 @@ class ReconcileOutboxManager extends BaseManager {
     return this.enqueue('nats', rest, idempotencyKey, transaction)
   }
 
+  async enqueueAgentPropagation (payload, transaction) {
+    const idempotencyKey = buildIdempotencyKey('agent_propagation', payload)
+    return this.enqueue('agent_propagation', payload, idempotencyKey, transaction)
+  }
+
   async claimUnprocessed (limit, transaction) {
     const sequelize = models.sequelize
     const dialect = sequelize.getDialect()

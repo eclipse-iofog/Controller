@@ -7,9 +7,8 @@ const {
 const Validator = require('../schemas')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
-const ChangeTrackingService = require('./change-tracking-service')
+const ReconcileOutboxManager = require('../data/managers/reconcile-outbox-manager')
 const TransactionDecorator = require('../decorators/transaction-decorator')
-const FogManager = require('../data/managers/iofog-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 // const Sequelize = require('sequelize')
 // const Op = Sequelize.Op
@@ -53,7 +52,11 @@ const createRegistry = async function (registry, transaction) {
     })
   }
 
-  await _updateChangeTracking(transaction)
+  await ReconcileOutboxManager.enqueueAgentPropagation({
+    scope: 'registry',
+    reason: 'created',
+    actions: ['notify_registries']
+  }, transaction)
 
   return {
     id: createdRegistry.id
@@ -90,7 +93,11 @@ const deleteRegistry = async function (registryData, isCLI, transaction) {
     throw new Errors.ValidationError(ErrorMessages.REGISTRY_IS_IN_USE)
   } else {
     await RegistryManager.delete(queryData, transaction)
-    await _updateChangeTracking(transaction)
+    await ReconcileOutboxManager.enqueueAgentPropagation({
+      scope: 'registry',
+      reason: 'deleted',
+      actions: ['notify_registries']
+    }, transaction)
   }
 }
 
@@ -132,15 +139,19 @@ const updateRegistry = async function (registry, registryId, isCLI, transaction)
       }
 
   await RegistryManager.update(where, registryUpdate, transaction)
-  const microservices = await MicroserviceManager.findAllWithStatuses({ registryId }, transaction)
-  if (microservices.length > 0) {
-    for (const ms of microservices) {
-      await MicroserviceManager.updateAndFind({ uuid: ms.uuid }, { rebuild: true }, transaction)
-      await ChangeTrackingService.update(ms.iofogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
-    }
-  }
 
-  await _updateChangeTracking(transaction)
+  await ReconcileOutboxManager.enqueueAgentPropagation({
+    scope: 'registry',
+    reason: 'updated',
+    registryId: parseInt(registryId, 10),
+    actions: ['rebuild', 'notify_microservices']
+  }, transaction)
+
+  await ReconcileOutboxManager.enqueueAgentPropagation({
+    scope: 'registry',
+    reason: 'updated',
+    actions: ['notify_registries']
+  }, transaction)
 }
 
 const getRegistry = async function (registryId, isCLI, transaction) {
@@ -150,13 +161,6 @@ const getRegistry = async function (registryId, isCLI, transaction) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_REGISTRY_ID, registryId))
   }
   return registry
-}
-
-const _updateChangeTracking = async function (transaction) {
-  const fogs = await FogManager.findAll({}, transaction)
-  for (const fog of fogs) {
-    await ChangeTrackingService.update(fog.uuid, ChangeTrackingService.events.registries, transaction)
-  }
 }
 
 module.exports = {

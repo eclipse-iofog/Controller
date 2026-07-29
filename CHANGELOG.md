@@ -3,7 +3,7 @@
 
 ## [v3.8.2] - 2026-07-30
 
-Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2). Also embedded OAuth logout/re-login hardening, EdgeOps Console **v1.0.12**, operator sizing docs, and **SQLite write-queue self-recovery** for long-running single-node deployments.
+Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2). Also embedded OAuth logout/re-login hardening, EdgeOps Console **v1.0.12**, operator sizing docs, **SQLite write-queue self-recovery** for long-running single-node deployments, and **`NATS_SERVER_URL`** for NATS-enabled application microservices.
 
 ### Added
 
@@ -12,6 +12,8 @@ Plan 21: liveness/readiness probe split and structured agent auth errors (coordi
 - **`docs/operations/sizing.md`** — hardware sizing guide by fog count (Kubernetes and Remote ControlPlane).
 - **SQLite transaction recovery settings** — `settings.dbWriteQueueBackpressureDepth` (default **32**), `settings.dbTransactionTimeoutReadinessMs` (**5000**), `settings.dbTransactionTimeoutInteractiveMs` (**15000**), `settings.dbTransactionTimeoutBackgroundMs` (**120000**); env overrides **`DB_WRITE_QUEUE_BACKPRESSURE_DEPTH`**, **`DB_TRANSACTION_TIMEOUT_*_MS`** (see `docs/operations/database-transactions.md`).
 - **OTEL DB metrics** — `db.transaction.timeouts` and `db.write_queue.background_shed` for queue surgery and stuck-transaction visibility.
+- **Microservice NATS connection URL** — when `natsConfig.natsAccess` is enabled, Controller injects **`NATS_SERVER_URL`** alongside **`NATS_CREDS_PATH`** into the microservice env (delivered on `GET /api/v3/agent/microservices`). Resolution: fog with local NATS + bridge mode → `nats://nats.default.svc.bridge.local:{serverPort}`; fog with local NATS + `hostNetworkMode` → `nats://localhost:{serverPort}`; fog without local NATS → `nats://{hub.host}:{serverPort}` (default port **4222**). Enable/update/disable follows the same lifecycle as NATS creds; missing hub when no local NATS returns **400**.
+- **Agent propagation outbox** — catalog and registry microservice/fog fan-out runs in the background via **`ReconcileOutbox`** kind **`agent_propagation`** (~1 drainer tick eventual consistency). Config: **`settings.agentPropagationFogNotifyBatchSize`** (default **100**), env **`AGENT_PROPAGATION_FOG_NOTIFY_BATCH_SIZE`**.
 
 ### Changed
 
@@ -26,10 +28,11 @@ Plan 21: liveness/readiness probe split and structured agent auth errors (coordi
 - **SQLite transaction timeouts** — per-lane timeouts abort stuck work, recycle the sqlite pool, and allow the queue worker to continue (interactive **15s**, background **120s**).
 - **`checkFogToken` transaction scope** — agent handler runs inside the auth transaction via **`runWithTransactionContext`**, so nested **`runInTransaction()`** reuses the parent writer instead of enqueueing a second sqlite transaction.
 - **Readiness database probe (SQLite)** — **`SELECT 1`** for **`GET /api/v3/status`** runs outside the global write queue with a **5s** timeout, so health checks stay responsive under write-queue pressure.
+- **Catalog/registry propagation** — interactive catalog image/registry updates and registry CRUD commit source-of-truth + outbox enqueue only; bulk microservice rebuild, registry-id propagation, and fog change-tracking notify run in the background drainer (chunked for large fleets).
 
 ### Fixed
 
-- **SQLite ControlPlane freeze after multi-day uptime** — a hung sqlite transaction could block the global write queue indefinitely (queue depth > **256**, console/potctl and **`/api/v3/status`** unresponsive until restart). Self-recovery: transaction timeouts, pool recycle, and background queue shedding under sustained backpressure.
+- **SQLite ControlPlane freeze after multi-day uptime** — a hung sqlite transaction could block the global write queue indefinitely (queue depth > **256**, console/potctl/iofogctl and **`/api/v3/status`** unresponsive until restart). Self-recovery: transaction timeouts, pool recycle, and background queue shedding under sustained backpressure.
 - **Agent auth nested-transaction deadlock (SQLite)** — **`checkFogToken`** authenticated in one transaction then invoked the handler outside ALS, allowing nested writes to deadlock the single-connection pool on hot agent routes (e.g. status/config polling).
 - **Secret PATCH** — omitted **`type`** in the update body now defaults to the existing secret type instead of **400** `Secret type mismatch` (fixes JSON PATCH and YAML secret updates that send only **`data`**).
 - **Embedded OAuth re-login after logout** — stale issuer session could yield **`access_denied`** on callback; logout now tears down issuer/BFF OAuth state and authorize forces fresh login.

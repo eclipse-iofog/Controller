@@ -78,6 +78,7 @@ module.exports = {
   JOB_STARTUP_DELAY_SECONDS: 'settings.jobStartupDelaySeconds',
   RECONCILE_OUTBOX_DRAINER_INTERVAL_SECONDS: 'settings.reconcileOutboxDrainerIntervalSeconds',
   RECONCILE_OUTBOX_DRAINER_BATCH_SIZE: 'settings.reconcileOutboxDrainerBatchSize',
+  AGENT_PROPAGATION_FOG_NOTIFY_BATCH_SIZE: 'settings.agentPropagationFogNotifyBatchSize',
   SQLITE_ENTERPRISE_FOG_WARNING_THRESHOLD: 'settings.sqliteEnterpriseFogWarningThreshold',
   DB_WRITE_QUEUE_MAX_DEPTH: 'settings.dbWriteQueueMaxDepth',
   DB_WRITE_QUEUE_BACKPRESSURE_DEPTH: 'settings.dbWriteQueueBackpressureDepth',

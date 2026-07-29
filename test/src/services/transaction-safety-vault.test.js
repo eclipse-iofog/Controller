@@ -82,8 +82,7 @@ describe('Plan 19-H vault transaction safety (R-09–R-11)', () => {
       $sandbox.stub(SecretHelper, 'encryptSecretInternal').resolves('internal-encrypted')
       $sandbox.stub(SecretHelper, 'encryptSecret').resolves('vault-ref')
       $sandbox.stub(RegistryManager, 'update').resolves()
-      $sandbox.stub(require('../../../src/data/managers/iofog-manager'), 'findAll').resolves([])
-      $sandbox.stub(require('../../../src/services/change-tracking-service'), 'update').resolves()
+      $sandbox.stub(require('../../../src/data/managers/reconcile-outbox-manager'), 'enqueueAgentPropagation').resolves()
       $sandbox.stub(require('../../../src/helpers/transaction-runner'), 'runInTransaction').resolves()
     })
 

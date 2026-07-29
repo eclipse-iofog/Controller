@@ -4,6 +4,7 @@ const {
   buildFogPlatformIdempotencyKey,
   buildServicePlatformIdempotencyKey,
   buildNatsIdempotencyKey,
+  buildAgentPropagationIdempotencyKey,
   buildIdempotencyKey
 } = require('../../../src/helpers/reconcile-outbox-keys')
 
@@ -68,5 +69,49 @@ describe('reconcile-outbox-keys', () => {
   it('routes buildIdempotencyKey by kind', () => {
     expect(buildIdempotencyKey('fog_platform', { fogUuid: 'x', reason: 'delete' }))
       .to.equal('fp:x:delete:null')
+  })
+
+  it('builds catalog image propagation keys', () => {
+    const key = buildAgentPropagationIdempotencyKey({
+      scope: 'catalog',
+      catalogItemId: 7,
+      actions: ['rebuild', 'notify_microservices']
+    })
+    expect(key).to.equal('ap:catalog:7:images')
+  })
+
+  it('builds catalog registry propagation keys', () => {
+    const key = buildAgentPropagationIdempotencyKey({
+      scope: 'catalog',
+      catalogItemId: 7,
+      actions: ['propagate_registry_id', 'rebuild', 'notify_microservices']
+    })
+    expect(key).to.equal('ap:catalog:7:registry')
+  })
+
+  it('builds registry global notify keys', () => {
+    const key = buildAgentPropagationIdempotencyKey({
+      scope: 'registry',
+      registryId: 3,
+      actions: ['notify_registries']
+    })
+    expect(key).to.equal('ap:registry:registries')
+  })
+
+  it('builds registry microservice propagation keys', () => {
+    const key = buildAgentPropagationIdempotencyKey({
+      scope: 'registry',
+      registryId: 3,
+      actions: ['rebuild', 'notify_microservices']
+    })
+    expect(key).to.equal('ap:registry:3:microservices')
+  })
+
+  it('routes agent_propagation through buildIdempotencyKey', () => {
+    expect(buildIdempotencyKey('agent_propagation', {
+      scope: 'registry',
+      registryId: 9,
+      actions: ['notify_registries']
+    })).to.equal('ap:registry:registries')
   })
 })
