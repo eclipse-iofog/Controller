@@ -130,7 +130,7 @@
     "sequelize": "6.37.8",
     "sqlite3": "^6.0.1",
     "string-format": "2.0.0",
-    "undici": "^7.28.0",
+    "undici": "^7.29.0",
     "ws": "^8.21.0",
     "xss-clean": "0.1.1"
   },
