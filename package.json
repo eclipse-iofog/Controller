@@ -130,7 +130,7 @@
     "sequelize": "6.37.8",
     "sqlite3": "^6.0.1",
     "string-format": "2.0.0",
-    "undici": "^7.28.0",
+    "undici": "^7.29.0",
     "ws": "^8.21.0",
     "xss-clean": "0.1.1"
   },
@@ -164,10 +164,14 @@
     "tar": "^7.5.19",
     "protobufjs": "^7.6.5",
     "js-yaml": "4.3.0",
-    "brace-expansion": "5.0.8",
+    "brace-expansion": "5.0.9",
     "uuid": "11.1.1",
     "diff": "8.0.3",
-    "serialize-javascript": "7.0.5"
+    "serialize-javascript": "7.0.5",
+    "ip-address": "^10.3.1",
+    "node-gyp": {
+      "undici": "^6.28.0"
+    }
 
   }
 }
