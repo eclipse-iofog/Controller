@@ -1,7 +1,7 @@
 # Changelog
 
 
-## [v3.8.2] - 2026-07-30
+## [v3.8.2] - 2026-08-06
 
 Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2). Also embedded OAuth logout/re-login hardening, EdgeOps Console **v1.0.12**, operator sizing docs, **SQLite write-queue self-recovery** for long-running single-node deployments, and **`NATS_SERVER_URL`** for NATS-enabled application microservices.
 
