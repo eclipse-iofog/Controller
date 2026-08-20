@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [v3.8.3] - August 2026
+Security patch release: resolve npm audit findings across transitive and direct dependencies. No API or operator-facing behavior changes intended.
+### Changed
+- **`js-yaml` 4.3.0 → 4.3.1** — address GHSA-5p4m-2wfm-xmqj (quadratic CPU consumption in `!!omap` resolution).
+- **`oidc-provider` ^9.8.4 → ^9.11.3** — pulls in upstream dependency cleanup (removes vulnerable transitive `nanoid`; GHSA-28wg-ghj8-5hjv) and adapter/logout fixes within the 9.x line.
+- **`undici` ^7.29.0** (direct) and **`node-gyp` → `undici` ^6.28.0** override — address HTTP client advisories in runtime and native-module build tooling.
+- **`ip-address` ^10.3.1** override — address SSRF/trust-boundary advisories in the Kubernetes client SOCKS dependency chain.
+- **`brace-expansion` 5.0.9** override refresh.
+- Dockerfile **`ubi9/nodejs-24-minimal`** base image digest pin refreshed.
+- Embedded **EdgeOps Console** default version **v1.0.12** → **v1.0.13**
+### Fixed
+- Production **`better-npm-audit`** CI gate passes with zero outstanding advisories.
+
 ## [v3.8.2] - 2026-08-06
 
 Plan 21: liveness/readiness probe split and structured agent auth errors (coordinate with Edgelet v3.8.2). Also embedded OAuth logout/re-login hardening, EdgeOps Console **v1.0.12**, operator sizing docs, **SQLite write-queue self-recovery** for long-running single-node deployments, and **`NATS_SERVER_URL`** for NATS-enabled application microservices.
