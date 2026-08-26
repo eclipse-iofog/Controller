@@ -1,7 +1,16 @@
 # Changelog
 
 
-## [v3.8.3] - August 2026
+## [v3.8.3-rc.2] - August 2026
+
+Docker image digest pin refresh for reproducible multi-arch builds.
+
+### Changed
+
+- Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder stages) and **`ubi9/nodejs-24-minimal`**.
+
+
+## [v3.8.3-rc.1] - August 2026
 Security patch release: resolve npm audit findings across transitive and direct dependencies. No API or operator-facing behavior changes intended.
 ### Changed
 - **`js-yaml` 4.3.0 → 4.3.1** — address GHSA-5p4m-2wfm-xmqj (quadratic CPU consumption in `!!omap` resolution).
@@ -472,9 +481,8 @@ No changes
 ## [1.0.0](https://github.com/ioFog/Controller/releases/tag/1.0.0) (2018-10-30)
 
 
-[v2.0.0-rc1]:   https://github.com/eclipse-iofog/helm/compare/v2.0.0-rc1..v2.0.0-beta2
-[v2.0.0-beta2]: https://github.com/eclipse-iofog/helm/compare/v2.0.0-beta2..v2.0.0-beta
-[v2.0.0-beta]:  https://github.com/eclipse-iofog/helm/compare/v2.0.0-beta..v2.0.0-alpha
-[v2.0.0-alpha]: https://github.com/eclipse-iofog/helm/compare/v2.0.0-alpha..v1.3.0
-[v1.2.1]: https://github.com/eclipse-iofog/helm/compare/v1.2.1..v1.1.1
-[v1.1.1]: https://github.com/eclipse-iofog/helm/releases/tag/v1.1.1
+[v3.8.3-rc.2]: https://github.com/eclipse-iofog/Controller/compare/v3.8.3-rc.1...v3.8.3-rc.2
+[v3.8.3-rc.1]: https://github.com/eclipse-iofog/Controller/compare/v3.8.2...v3.8.3-rc.1
+[v3.8.2]:      https://github.com/eclipse-iofog/Controller/compare/v3.8.1...v3.8.2
+[v3.8.1]:      https://github.com/eclipse-iofog/Controller/compare/v3.8.0...v3.8.1
+[v3.8.0]:      https://github.com/eclipse-iofog/Controller/releases/tag/v3.8.0
