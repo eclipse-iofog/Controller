@@ -125,7 +125,7 @@
     "pino": "9.13.1",
     "pino-std-serializers": "7.0.0",
     "portscanner": "2.2.0",
-    "qs": "6.15.2",
+    "qs": "6.16.0",
     "rhea": "^3.0.4",
     "sequelize": "6.37.8",
     "sqlite3": "^6.0.1",
