@@ -1,4 +1,4 @@
-const { execSync } = require('child_process')
+const { spawnSync } = require('child_process')
 const fs = require('fs')
 const path = require('path')
 
@@ -12,16 +12,15 @@ const REPO = process.env.EDGEOPS_CONSOLE_REPO || 'https://github.com/Datasance/e
 const VERSION = process.env.EDGEOPS_CONSOLE_VERSION || 'v1.0.13'
 const FLAVOR = process.env.EDGEOPS_CONSOLE_FLAVOR || 'datasance'
 
-function normalizeTag (version) {
-  return version.startsWith('v') ? version : `v${version}`
+if (!/^https?:\/\/[a-zA-Z0-9.\-/_:@]+$/.test(REPO)) {
+  throw new Error(`Invalid EDGEOPS_CONSOLE_REPO value: ${REPO}`)
+}
+if (!/^v?[\d]+\.[\d]+\.[\d]+([\-+][\w.\-+]*)?$/.test(VERSION)) {
+  throw new Error(`Invalid EDGEOPS_CONSOLE_VERSION value: ${VERSION}`)
 }
 
-function run (command, options = {}) {
-  execSync(command, {
-    stdio: 'inherit',
-    cwd: options.cwd || ROOT,
-    env: options.env || process.env
-  })
+function normalizeTag (version) {
+  return version.startsWith('v') ? version : `v${version}`
 }
 
 function ensureConsoleSource () {
@@ -29,8 +28,10 @@ function ensureConsoleSource () {
 
   if (fs.existsSync(path.join(CLONE_DIR, '.git'))) {
     try {
-      run(`git fetch origin --depth 1 tag ${tag}`, { cwd: CLONE_DIR })
-      run(`git checkout ${tag}`, { cwd: CLONE_DIR })
+      const r1 = spawnSync('git', ['fetch', 'origin', '--depth', '1', 'tag', tag], { stdio: 'inherit', cwd: CLONE_DIR })
+      if (r1.status !== 0) throw new Error('git fetch failed')
+      const r2 = spawnSync('git', ['checkout', tag], { stdio: 'inherit', cwd: CLONE_DIR })
+      if (r2.status !== 0) throw new Error('git checkout failed')
       return
     } catch (_) {
       fs.rmSync(CLONE_DIR, { recursive: true, force: true })
@@ -38,7 +39,8 @@ function ensureConsoleSource () {
   }
 
   fs.mkdirSync(DEV_DIR, { recursive: true })
-  run(`git clone --depth 1 --branch ${tag} ${REPO} ${CLONE_DIR}`)
+  const r3 = spawnSync('git', ['clone', '--depth', '1', '--branch', tag, REPO, CLONE_DIR], { stdio: 'inherit', cwd: ROOT })
+  if (r3.status !== 0) throw new Error('git clone failed')
 }
 
 function copyBuildOutput () {
@@ -58,11 +60,10 @@ function copyBuildOutput () {
 
 function buildConsoleDev () {
   ensureConsoleSource()
-  run('npm ci --legacy-peer-deps', { cwd: CLONE_DIR })
-  run('sh package.sh', {
-    cwd: CLONE_DIR,
-    env: { ...process.env, VITE_DISTRIBUTION: FLAVOR }
-  })
+  const r4 = spawnSync('npm', ['ci', '--legacy-peer-deps'], { stdio: 'inherit', cwd: CLONE_DIR })
+  if (r4.status !== 0) throw new Error('npm ci failed')
+  const r5 = spawnSync('sh', ['package.sh'], { stdio: 'inherit', cwd: CLONE_DIR, env: { ...process.env, VITE_DISTRIBUTION: FLAVOR } })
+  if (r5.status !== 0) throw new Error('package.sh failed')
   copyBuildOutput()
   console.log(`EdgeOps Console built at ${BUILD_OUT}`)
 }
