@@ -1,6 +1,22 @@
 # Changelog
 
 
+## [v3.8.3-rc.3] - September 2026
+
+Additional security dependency patches and dev tooling refresh.
+
+### Changed
+
+- **`mysql2` 3.10.1 → 3.23.1** — address GHSA-3f6p-5ww8-9rcr (auth-plugin downgrade / cleartext credential leak) and GHSA-rgwj-5xj2-c3m3 (compressed-protocol decompression DoS).
+- **`qs` 6.15.2 → 6.16.0** (direct + override) — address GHSA-x5fp-wj9c-mxmx and GHSA-4mjr-xmp4-gh2g for Express/body-parser transitive copies.
+- **`nyc` 15.1.0 → 18.0.0** — refresh dev coverage tooling (Istanbul 6 / updated Babel stack); pulls **`browserslist` 4.28.8**, clearing GHSA-c83g-rgw3-j3cx and GHSA-73wf-gq98-2v4g from the coverage toolchain.
+- Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder stages) and **`ubi9/nodejs-24-minimal`**.
+
+### Fixed
+
+- Production **`better-npm-audit`** CI gate — **`mysql2`** and **`qs`** advisories resolved; **`browserslist`** cleared via **`nyc`** upgrade (dev-only).
+
+
 ## [v3.8.3-rc.2] - August 2026
 
 Docker image digest pin refresh for reproducible multi-arch builds.
@@ -480,6 +496,8 @@ No changes
 
 ## [1.0.0](https://github.com/ioFog/Controller/releases/tag/1.0.0) (2018-10-30)
 
+
+[v3.8.3-rc.3]: https://github.com/eclipse-iofog/Controller/compare/v3.8.3-rc.2...v3.8.3-rc.3
 
 [v3.8.3-rc.2]: https://github.com/eclipse-iofog/Controller/compare/v3.8.3-rc.1...v3.8.3-rc.2
 [v3.8.3-rc.1]: https://github.com/eclipse-iofog/Controller/compare/v3.8.2...v3.8.3-rc.1
