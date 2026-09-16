@@ -1,7 +1,7 @@
 # Controller RBAC — operator reference
 
 **Audience:** Platform operators, SREs, and integrators configuring access to Controller v3.8  
-**Applies to:** User and admin HTTP APIs under `/api/v3/*` (not Edgelet agent wire protocol)
+**Applies to:** User and admin HTTP APIs under `/api/v3/*` (not Edgelet agent wire protocol). Includes fleet models, RuntimeClass, and microservice templates.
 
 ## Overview
 
@@ -79,13 +79,14 @@ The table below lists **user API** resources in `rbac-resources.yaml` and which 
 | applications | ✓ | ✓ | ✓ | Replaces legacy `flows` |
 | systemApplications | ✓ | read | ✓ | |
 | applicationTemplates | ✓ | ✓ | ✓ | |
+| microserviceTemplates | ✓ | ✓ | ✓ | |
 | services | ✓ | ✓ | ✓ | |
 | router | ✓ | read | ✓ | |
 | cluster | ✓ | read | ✓ | v3.8 HA controllers |
 | natsOperator, natsBootstrap, natsHub | read / ✓ | read | read | SRE has full NATS CRUD except operator objects (read) |
 | natsAccounts, natsUsers, natsAccountRules, natsUserRules | ✓ | ✓ | ✓ | |
 | catalog, registries | ✓ | ✓ | ✓ | |
-| secrets, configMaps, volumeMounts | ✓ | ✓ | ✓ | |
+| secrets, configMaps, volumeMounts, models, runtimeClasses | ✓ | ✓ | ✓ | Model/RuntimeClass link uses `patch` (same as volumeMounts) |
 | tunnels | ✓ | read | — | Viewer intentionally omits exec/tunnel paths |
 | certificates, capabilities | ✓ | ✓ | ✓ | |
 | execSessions, logs | ✓ | ✓ | — | |
@@ -139,6 +140,10 @@ Some sub-resource actions map to `patch` (for example microservice start/stop). 
 | `POST /api/v3/agent/controller/register` | Added under **`agent`** resource (fog token) |
 | OIDC auth routes (OAuth BFF, interactions) | Catalogued under **`users`** with auth-only verbs |
 
+Fleet models, RuntimeClass, and microservice templates are user RBAC resources (`models`, `runtimeClasses`, `microserviceTemplates`). Viewer gets `get`/`list`. SRE, developer, and admin get full CRUD including link (`patch` on `…/:name/link`). Agent `GET /api/v3/agent/models` and `GET /api/v3/agent/runtimeClasses` are fog-token routes catalogued under **`agent`** for drift auditing only.
+
+Removed user HAL/USB inventory routes (`GET /api/v3/iofog/:uuid/hal/hw`, `GET /api/v3/iofog/:uuid/hal/usb`) and agent HAL PUT routes have no yaml entries.
+
 Orphan RBAC entries for removed APIs must not reappear. CI and local checks enforce this (see Maintenance).
 
 ## Custom roles
@@ -157,7 +162,7 @@ Keep `rbac-resources.yaml`, live routes, and system roles aligned when adding or
 ```bash
 nvm use 24
 
-# Compare Express routes to rbac-resources.yaml (243 routes as)
+# Compare Express routes to rbac-resources.yaml
 npm run rbac-audit
 
 # grep gates — banned legacy terms must be absent;
