@@ -57,9 +57,7 @@ describe('first-fog reconcile sqlite (R133)', function () {
       name: 'hub-edge',
       host: '127.0.0.1',
       archId: 1,
-      containerEngine: 'edgelet',
-      bluetoothEnabled: false,
-      abstractedHardwareEnabled: false
+      containerEngine: 'edgelet'
     }
 
     let fogUuid

@@ -1,6 +1,7 @@
 'use strict'
 
 const fs = require('fs')
+const os = require('os')
 const path = require('path')
 const express = require('express')
 
@@ -15,7 +16,8 @@ const ENV_KEYS = [
   'OIDC_BOOTSTRAP_ADMIN_USERNAME',
   'OIDC_BOOTSTRAP_ADMIN_PASSWORD',
   'CONTROL_PLANE',
-  'NODE_ENV'
+  'NODE_ENV',
+  'SQLITE_STORAGE_DIR'
 ]
 
 function snapshotEnv (keys) {
@@ -38,8 +40,13 @@ function applyEnv (values) {
   }
 }
 
+function sqliteStorageDir () {
+  return process.env.SQLITE_STORAGE_DIR ||
+    path.resolve(__dirname, '../../src/data/sqlite_files')
+}
+
 function sqliteStoragePath (dbName) {
-  return path.resolve(__dirname, '../../src/data/sqlite_files', dbName)
+  return path.join(sqliteStorageDir(), dbName)
 }
 
 function cleanupSqliteFiles (dbName) {
@@ -98,10 +105,13 @@ async function driveReconcileUntilReady (fogUuid, {
 async function createFirstFogSqliteHarness () {
   const envSnapshot = snapshotEnv(ENV_KEYS)
   const dbName = `first-fog-int-${Date.now()}-${Math.random().toString(36).slice(2)}.sqlite`
+  const storageDir = path.join(os.tmpdir(), 'controller-integration-sqlite')
+  fs.mkdirSync(storageDir, { recursive: true })
 
   applyEnv({
     DB_PROVIDER: 'sqlite',
     DB_NAME: dbName,
+    SQLITE_STORAGE_DIR: storageDir,
     AUTH_MODE: 'embedded',
     CONTROLLER_PUBLIC_URL: 'http://controller.test',
     AUTH_INSECURE_ALLOW_HTTP: 'true',
