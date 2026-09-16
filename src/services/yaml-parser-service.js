@@ -1,4 +1,5 @@
 const Errors = require('../helpers/errors')
+const CatalogContainer = require('../helpers/microservice-container-catalog')
 const lget = require('lodash/get')
 const yaml = require('js-yaml')
 
@@ -253,6 +254,23 @@ const parseMicroserviceImages = async (fileImages) => {
   return { registryId, catalogItemId: undefined, images }
 }
 
+function parseMicroserviceTemplateRef (template) {
+  if (template == null) {
+    return undefined
+  }
+  if (typeof template !== 'object' || Array.isArray(template)) {
+    throw new Errors.ValidationError('Invalid template format')
+  }
+  if (!template.name) {
+    throw new Errors.ValidationError('template.name is required when template is specified')
+  }
+  const result = { name: template.name }
+  if (template.variables !== undefined) {
+    result.variables = template.variables
+  }
+  return result
+}
+
 const parseMicroserviceYAML = async (microservice) => {
   const { registryId, catalogItemId, images } = await parseMicroserviceImages(microservice.images)
   const container = microservice.container || {}
@@ -324,13 +342,17 @@ const parseMicroserviceYAML = async (microservice) => {
     })
   }
 
+  const commands = container.commands !== undefined ? container.commands : container.cmd
+  const sysctls = container.sysctls !== undefined
+    ? CatalogContainer.normalizeSysctls(container.sysctls)
+    : undefined
+
   const microserviceData = {
     config: microservice.config != null ? JSON.stringify(microservice.config) : undefined,
     name: microservice.name,
     catalogItemId,
     agentName: lget(microservice, 'agent.name'),
     registryId,
-    ...container,
     hostNetworkMode: lget(microservice, 'container.hostNetworkMode', false),
     isPrivileged: lget(microservice, 'container.isPrivileged', false),
     pidMode: lget(microservice, 'container.pidMode', ''),
@@ -343,15 +365,34 @@ const parseMicroserviceYAML = async (microservice) => {
     capDrop: lget(microservice, 'container.capDrop', []),
     ports: (lget(microservice, 'container.ports', [])),
     volumeMappings: lget(microservice, 'container.volumes', []),
-    cmd: lget(microservice, 'container.commands', []),
+    commands,
+    cmd: commands,
     env: parseEnvVariables(lget(microservice, 'container.env', [])),
     images,
     extraHosts: lget(microservice, 'container.extraHosts', []),
     application: microservice.application,
+    models: microservice.models,
+    template: parseMicroserviceTemplateRef(microservice.template),
     schedule: lget(microservice, 'schedule', 50),
     serviceAccount: lget(microservice, 'serviceAccount', undefined),
     natsEnabled: lget(microservice, 'natsEnabled', undefined),
-    natsConfig: lget(microservice, 'natsConfig', undefined)
+    natsConfig: lget(microservice, 'natsConfig', undefined),
+    runAsUser: lget(microservice, 'container.runAsUser', undefined),
+    runAsGroup: lget(microservice, 'container.runAsGroup', undefined),
+    readOnlyRootFilesystem: lget(microservice, 'container.readOnlyRootFilesystem', undefined),
+    platform: lget(microservice, 'container.platform', undefined),
+    runtime: lget(microservice, 'container.runtime', undefined),
+    cdiDevices: lget(microservice, 'container.cdiDevices', undefined),
+    sysctls,
+    ulimits: lget(microservice, 'container.ulimits', undefined),
+    cpus: lget(microservice, 'container.cpus', undefined),
+    memoryReservation: lget(microservice, 'container.memoryReservation', undefined),
+    memorySwap: lget(microservice, 'container.memorySwap', undefined),
+    shmSize: lget(microservice, 'container.shmSize', undefined),
+    devices: lget(microservice, 'container.devices', undefined),
+    tmpfs: lget(microservice, 'container.tmpfs', undefined),
+    workingDir: lget(microservice, 'container.workingDir', undefined),
+    entrypoint: lget(microservice, 'container.entrypoint', undefined)
   }
   _deleteUndefinedFields(microserviceData)
   return microserviceData
@@ -648,6 +689,162 @@ async function parseNatsUserRuleFile (fileContent, options = {}) {
   }
 }
 
+async function parseModelFile (fileContent, options = {}) {
+  try {
+    const doc = yaml.load(fileContent)
+    if (!doc || !doc.kind) {
+      throw new Errors.ValidationError('Invalid YAML format: missing kind field')
+    }
+    if (doc.kind !== 'Model') {
+      throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
+    }
+    if (doc.metadata == null || doc.spec == null) {
+      throw new Errors.ValidationError('Invalid YAML format: missing metadata or spec')
+    }
+
+    const allowedApiVersions = new Set(['iofog.org/v3', 'datasance.com/v3'])
+    if (doc.apiVersion && !allowedApiVersions.has(doc.apiVersion)) {
+      throw new Errors.ValidationError(`Invalid apiVersion ${doc.apiVersion}`)
+    }
+
+    if (options.isUpdate && options.modelName) {
+      if (doc.metadata.name !== options.modelName) {
+        throw new Errors.ValidationError(`Model name in YAML (${doc.metadata.name}) doesn't match endpoint path (${options.modelName})`)
+      }
+    }
+
+    const spec = doc.spec || {}
+    const registryId = spec.registryId != null ? spec.registryId : spec.registry
+    const result = {
+      name: lget(doc, 'metadata.name', undefined),
+      repo: spec.repo,
+      revision: spec.revision,
+      registryId,
+      files: spec.files,
+      format: spec.format
+    }
+    _deleteUndefinedFields(result)
+
+    if (options.isUpdate && options.modelName) {
+      delete result.name
+    }
+
+    return result
+  } catch (error) {
+    if (error instanceof Errors.ValidationError) {
+      throw error
+    }
+    throw new Errors.ValidationError(`Error parsing YAML: ${error.message}`)
+  }
+}
+
+async function parseRuntimeClassFile (fileContent, options = {}) {
+  try {
+    const doc = yaml.load(fileContent)
+    if (!doc || !doc.kind) {
+      throw new Errors.ValidationError('Invalid YAML format: missing kind field')
+    }
+    if (doc.kind !== 'RuntimeClass') {
+      throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
+    }
+    if (doc.metadata == null) {
+      throw new Errors.ValidationError('Invalid YAML format: missing metadata')
+    }
+
+    const allowedApiVersions = new Set(['iofog.org/v3', 'datasance.com/v3'])
+    if (doc.apiVersion && !allowedApiVersions.has(doc.apiVersion)) {
+      throw new Errors.ValidationError(`Invalid apiVersion ${doc.apiVersion}`)
+    }
+
+    if (options.isUpdate && options.runtimeClassName) {
+      if (doc.metadata.name !== options.runtimeClassName) {
+        throw new Errors.ValidationError(`RuntimeClass name in YAML (${doc.metadata.name}) doesn't match endpoint path (${options.runtimeClassName})`)
+      }
+    }
+
+    const handler = doc.handler != null && doc.handler !== ''
+      ? doc.handler
+      : lget(doc, 'spec.handler', undefined)
+    if (handler == null || handler === '') {
+      throw new Errors.ValidationError('Invalid YAML format: handler is required')
+    }
+
+    const result = {
+      name: lget(doc, 'metadata.name', undefined),
+      handler
+    }
+    _deleteUndefinedFields(result)
+
+    if (options.isUpdate && options.runtimeClassName) {
+      delete result.name
+    }
+
+    return result
+  } catch (error) {
+    if (error instanceof Errors.ValidationError) {
+      throw error
+    }
+    throw new Errors.ValidationError(`Error parsing YAML: ${error.message}`)
+  }
+}
+
+async function parseMicroserviceTemplateFile (fileContent, options = {}) {
+  try {
+    const doc = yaml.load(fileContent)
+    if (!doc || !doc.kind) {
+      throw new Errors.ValidationError('Invalid YAML format: missing kind field')
+    }
+    if (doc.kind !== 'MicroserviceTemplate') {
+      throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
+    }
+    if (doc.metadata == null || doc.spec == null) {
+      throw new Errors.ValidationError('Invalid YAML format: missing metadata or spec')
+    }
+
+    const allowedApiVersions = new Set(['iofog.org/v3', 'datasance.com/v3'])
+    if (doc.apiVersion && !allowedApiVersions.has(doc.apiVersion)) {
+      throw new Errors.ValidationError(`Invalid apiVersion ${doc.apiVersion}`)
+    }
+
+    if (options.isUpdate && options.templateName) {
+      if (doc.metadata.name !== options.templateName) {
+        throw new Errors.ValidationError(`MicroserviceTemplate name in YAML (${doc.metadata.name}) doesn't match endpoint path (${options.templateName})`)
+      }
+    }
+
+    const spec = doc.spec || {}
+    if (!spec.microservice || typeof spec.microservice !== 'object' || Array.isArray(spec.microservice)) {
+      throw new Errors.ValidationError('MicroserviceTemplate spec.microservice is required')
+    }
+
+    const microservice = await parseMicroserviceYAML(spec.microservice)
+    delete microservice.name
+    delete microservice.application
+    delete microservice.iofogUuid
+    delete microservice.agentName
+    delete microservice.flowId
+
+    const result = {
+      name: lget(doc, 'metadata.name', undefined),
+      description: spec.description,
+      variables: spec.variables,
+      microservice
+    }
+    _deleteUndefinedFields(result)
+
+    if (options.isUpdate && options.templateName) {
+      delete result.name
+    }
+
+    return result
+  } catch (error) {
+    if (error instanceof Errors.ValidationError) {
+      throw error
+    }
+    throw new Errors.ValidationError(`Error parsing YAML: ${error.message}`)
+  }
+}
+
 module.exports = {
   parseAppTemplateFile,
   parseAppFile,
@@ -661,5 +858,8 @@ module.exports = {
   parseServiceFile,
   parseRoleFile,
   parseRoleBindingFile,
-  parseServiceAccountFile
+  parseServiceAccountFile,
+  parseModelFile,
+  parseRuntimeClassFile,
+  parseMicroserviceTemplateFile
 }
