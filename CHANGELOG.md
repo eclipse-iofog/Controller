@@ -1,6 +1,32 @@
 # Changelog
 
 
+## [Unreleased]
+
+Fleet models, RuntimeClass, registry extensions, microservice catalog PATCH, MicroserviceTemplate, and HAL/BLE removal for Edgelet v1.1+ handoff. Targets **v3.9.0** schema (user tags).
+
+### Added
+
+- **Fleet models API** — `GET/POST/PATCH/DELETE /api/v3/models`, YAML create/upsert, and volumeMount-style `GET/POST/DELETE …/models/:name/link`; server-generated uuid; agent `GET /api/v3/agent/models` returns linked rows only.
+- **RuntimeClass API** — `GET/POST/PATCH/DELETE /api/v3/runtimeClasses`, YAML, link endpoints (edgelet fogs only), and agent `GET /api/v3/agent/runtimeClasses`.
+- **Registry `type` / `ca` / `insecure`** — Hub system registry by Hugging Face url+`hf`; MS and catalog image pulls remain **oci-only**.
+- **`PATCH /api/v3/microservices/:uuid/models`** — `microserviceModels` change flag and rebuild rules for bind path / permissions / empty↔non-empty catalog transitions.
+- **Microservice container fields** — commands/cmd alias, CDI devices, capabilities, health check, and related agent wire fields.
+- **MicroserviceTemplate** — CRUD + YAML; deploy overlay via `POST /microservices` + `template`.
+- **Agent status ingest** — `modelStatus`, `activeModels`, `modelLastUpdate`, `runtimeClasses`, `availableCdiDevices`, `podId`; getChanges flags `models`, `runtimeClasses`, `microserviceModels`.
+- **v3.9.0 schema** — `Models`, `RuntimeClasses`, link tables, registry columns, template tables. Fresh install uses baseline 3.9.0 migrate+seed; upgrade from 3.8.0 applies incremental 3.9.0 only.
+
+### Changed
+
+- **MS deploy** — auto-links referenced fleet models and RuntimeClass on edgelet agents; validates runtime against `availableRuntimes`.
+- **RBAC + swagger** — models, runtimeClasses, microserviceTemplates, and agent model/runtime routes documented and catalogued.
+
+### Removed
+
+- **HAL/BLE provisioning** — user HAL/USB routes, RESTBlue/HAL system catalog items, fog `bluetooth`/`hal` flags, and `deviceScanFrequency` from agent config wire (Edge Guard retained).
+- **Agent HAL routes** — hardware inventory PUT/GET paths under `/api/v3/agent/hal/*`.
+
+
 ## [v3.8.3-rc.3] - September 2026
 
 Additional security dependency patches and dev tooling refresh.
