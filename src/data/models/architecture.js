@@ -33,22 +33,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       as: 'networkCatalogItem'
     })
-
-    Architecture.belongsTo(models.CatalogItem, {
-      foreignKey: {
-        name: 'halCatalogItemId',
-        field: 'hal_catalog_item_id'
-      },
-      as: 'halCatalogItem'
-    })
-
-    Architecture.belongsTo(models.CatalogItem, {
-      foreignKey: {
-        name: 'bluetoothCatalogItemId',
-        field: 'bluetooth_catalog_item_id'
-      },
-      as: 'bluetoothCatalogItem'
-    })
   }
   return Architecture
 }

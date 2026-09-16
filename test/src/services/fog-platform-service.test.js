@@ -61,8 +61,6 @@ describe('Fog platform service', () => {
       name: 'edge-a',
       isSystem: false,
       host: '10.0.0.5',
-      bluetoothEnabled: false,
-      abstractedHardwareEnabled: false,
       containerEngine: 'edgelet',
       tags: []
     }
@@ -71,9 +69,7 @@ describe('Fog platform service', () => {
       natsMode: 'leaf',
       host: '10.0.0.5',
       messagingPort: 5671,
-      containerEngine: 'edgelet',
-      bluetoothEnabled: false,
-      abstractedHardwareEnabled: false
+      containerEngine: 'edgelet'
     }
     const parsedSpec = { fogUuid, generation: 2, spec }
     const router = {

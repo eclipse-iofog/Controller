@@ -67,20 +67,6 @@ async function setFogRebootCommandEndPoint (req) {
   return FogService.setFogRebootCommandEndPoint(fog, false)
 }
 
-async function getHalHardwareInfoEndPoint (req) {
-  const uuidObj = {
-    uuid: req.params.uuid
-  }
-  return FogService.getHalHardwareInfoEndPoint(uuidObj, false)
-}
-
-async function getHalUsbInfoEndPoint (req) {
-  const uuidObj = {
-    uuid: req.params.uuid
-  }
-  return FogService.getHalUsbInfoEndPoint(uuidObj, false)
-}
-
 async function setFogPruneCommandEndPoint (req) {
   const fog = {
     uuid: req.params.uuid
@@ -116,8 +102,6 @@ module.exports = {
   generateProvisioningKeyEndPoint: (generateProvisionKeyEndPoint),
   setFogVersionCommandEndPoint,
   setFogRebootCommandEndPoint,
-  getHalHardwareInfoEndPoint,
-  getHalUsbInfoEndPoint,
   setFogPruneCommandEndPoint,
   enableNodeExecEndPoint,
   disableNodeExecEndPoint

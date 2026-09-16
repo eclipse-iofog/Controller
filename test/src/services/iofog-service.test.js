@@ -12,7 +12,6 @@ const NatsConnectionManager = require('../../../src/data/managers/nats-connectio
 const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
-const CatalogService = require('../../../src/services/catalog-service')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const MicroserviceService = require('../../../src/services/microservices-service')
 const ApplicationManager = require('../../../src/data/managers/application-manager')
@@ -21,8 +20,6 @@ const FogPublicKeyManager = require('../../../src/data/managers/iofog-public-key
 const TagsManager = require('../../../src/data/managers/tags-manager')
 const ioFogProvisionKeyManager = require('../../../src/data/managers/iofog-provision-key-manager')
 const ioFogVersionCommandManager = require('../../../src/data/managers/iofog-version-command-manager')
-const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
-const USBInfoManager = require('../../../src/data/managers/usb-info-manager')
 const Errors = require('../../../src/helpers/errors')
 const config = require('../../../src/config')
 const FogPlatformSpecManager = require('../../../src/data/managers/fog-platform-spec-manager')
@@ -137,9 +134,7 @@ describe('ioFog Service', () => {
       pruningFrequency: 10,
       availableDiskThreshold: 20,
       logLevel: 'INFO',
-      routerMode: 'edge',
-      abstractedHardwareEnabled: false,
-      bluetoothEnabled: false
+      routerMode: 'edge'
     }
 
     def('subject', () => $subject.createFogEndPoint(fogData, isCLI, transaction))
@@ -185,14 +180,6 @@ describe('ioFog Service', () => {
       await $subject
       expect(RouterService.createRouterForFog).to.not.have.been.called
       expect(NatsService.ensureNatsForFog).to.not.have.been.called
-    })
-
-    it('does not run HAL/Bluetooth catalog work on the synchronous path', async () => {
-      $sandbox.stub(CatalogService, 'getHalCatalogItem').resolves({ id: 1 })
-      $sandbox.stub(CatalogService, 'getBluetoothCatalogItem').resolves({ id: 2 })
-      await $subject
-      expect(CatalogService.getHalCatalogItem).to.not.have.been.called
-      expect(CatalogService.getBluetoothCatalogItem).to.not.have.been.called
     })
 
     context('when validation fails', () => {
@@ -869,44 +856,6 @@ describe('ioFog Service', () => {
     it('queues reboot change tracking', async () => {
       await $subject
       expect(ChangeTrackingService.update).to.have.been.calledWith(uuid, ChangeTrackingService.events.reboot, transaction)
-    })
-  })
-
-  describe('.getHalHardwareInfoEndPoint()', () => {
-    const uuidObj = { uuid: 'testUuid' }
-    const hwInfo = { cpu: 'arm64' }
-
-    def('subject', () => $subject.getHalHardwareInfoEndPoint(uuidObj, isCLI, transaction))
-
-    beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').resolves(true)
-      $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: uuidObj.uuid })
-      $sandbox.stub(HWInfoManager, 'findOne').resolves(hwInfo)
-    })
-
-    it('returns HAL hardware info', async () => {
-      const result = await $subject
-      expect(result).to.equal(hwInfo)
-      expect(HWInfoManager.findOne).to.have.been.calledWith({ iofogUuid: uuidObj.uuid }, transaction)
-    })
-  })
-
-  describe('.getHalUsbInfoEndPoint()', () => {
-    const uuidObj = { uuid: 'testUuid' }
-    const usbInfo = { devices: [] }
-
-    def('subject', () => $subject.getHalUsbInfoEndPoint(uuidObj, isCLI, transaction))
-
-    beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').resolves(true)
-      $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: uuidObj.uuid })
-      $sandbox.stub(USBInfoManager, 'findOne').resolves(usbInfo)
-    })
-
-    it('returns HAL USB info', async () => {
-      const result = await $subject
-      expect(result).to.equal(usbInfo)
-      expect(USBInfoManager.findOne).to.have.been.calledWith({ iofogUuid: uuidObj.uuid }, transaction)
     })
   })
 })

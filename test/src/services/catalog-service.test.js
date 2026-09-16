@@ -381,25 +381,5 @@ describe('Catalog Service', () => {
         registry_id: 1
       }, transaction)
     })
-
-    it('.getBluetoothCatalogItem() queries RESTBlue system item', async () => {
-      await CatalogService.getBluetoothCatalogItem(transaction)
-      expect(CatalogItemManager.findOne).to.have.been.calledWith({
-        name: 'RESTBlue',
-        category: 'SYSTEM',
-        publisher: 'Eclipse ioFog',
-        registry_id: 1
-      }, transaction)
-    })
-
-    it('.getHalCatalogItem() queries HAL system item', async () => {
-      await CatalogService.getHalCatalogItem(transaction)
-      expect(CatalogItemManager.findOne).to.have.been.calledWith({
-        name: 'HAL',
-        category: 'SYSTEM',
-        publisher: 'Eclipse ioFog',
-        registry_id: 1
-      }, transaction)
-    })
   })
 })

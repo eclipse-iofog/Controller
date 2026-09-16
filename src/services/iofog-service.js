@@ -10,8 +10,6 @@ const NatsService = require('./nats-service')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas')
-const HWInfoManager = require('../data/managers/hw-info-manager')
-const USBInfoManager = require('../data/managers/usb-info-manager')
 const CatalogService = require('./catalog-service')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const ApplicationManager = require('../data/managers/application-manager')
@@ -355,10 +353,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     logFileCount: fogData.logFileCount,
     statusFrequency: fogData.statusFrequency,
     changeFrequency: fogData.changeFrequency,
-    deviceScanFrequency: fogData.deviceScanFrequency,
-    bluetoothEnabled: fogData.bluetoothEnabled,
     watchdogEnabled: fogData.watchdogEnabled,
-    abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     archId: _resolveArchId(fogData),
     logLevel: fogData.logLevel,
     edgeGuardFrequency: fogData.edgeGuardFrequency,
@@ -370,7 +365,7 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
     timeZone: fogData.timeZone
   }
 
-  if ((fogData.latitude || fogData.longitude) && (fogData.gpsMode !== 'dynamic' && fogData.gpsMode !== 'off')) {
+  if ((fogData.latitude || fogData.longitude) && (fogData.gpsMode !== 'dynamic' && fogData.gpsMode !== 'off' && fogData.gpsMode !== 'auto')) {
     createFogData.gpsMode = 'manual'
   } else if (fogData.gpsMode === 'dynamic' && fogData.gpsDevice) {
     createFogData.gpsMode = fogData.gpsMode
@@ -484,11 +479,8 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     logFileCount: fogData.logFileCount,
     statusFrequency: fogData.statusFrequency,
     changeFrequency: fogData.changeFrequency,
-    deviceScanFrequency: fogData.deviceScanFrequency,
-    bluetoothEnabled: fogData.bluetoothEnabled,
     watchdogEnabled: fogData.watchdogEnabled,
     isSystem: fogData.isSystem,
-    abstractedHardwareEnabled: fogData.abstractedHardwareEnabled,
     archId: _resolveArchId(fogData),
     logLevel: fogData.logLevel,
     pruningFrequency: fogData.pruningFrequency,
@@ -498,7 +490,7 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
     timeZone: fogData.timeZone
   }
 
-  if ((fogData.latitude || fogData.longitude) && (fogData.gpsMode !== 'dynamic' && fogData.gpsMode !== 'off')) {
+  if ((fogData.latitude || fogData.longitude) && (fogData.gpsMode !== 'dynamic' && fogData.gpsMode !== 'off' && fogData.gpsMode !== 'auto')) {
     updateFogData.gpsMode = 'manual'
   } else if (fogData.gpsMode === 'dynamic' && fogData.gpsDevice) {
     updateFogData.gpsMode = fogData.gpsMode
@@ -1014,36 +1006,6 @@ async function setFogRebootCommandEndPoint (fogData, isCLI, transaction) {
   await ChangeTrackingService.update(fogData.uuid, ChangeTrackingService.events.reboot, transaction)
 }
 
-async function getHalHardwareInfoEndPoint (uuidObj, isCLI, transaction) {
-  await Validator.validate(uuidObj, Validator.schemas.halGet)
-
-  const fog = await FogManager.findOne({
-    uuid: uuidObj.uuid
-  }, transaction)
-  if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
-  }
-
-  return HWInfoManager.findOne({
-    iofogUuid: uuidObj.uuid
-  }, transaction)
-}
-
-async function getHalUsbInfoEndPoint (uuidObj, isCLI, transaction) {
-  await Validator.validate(uuidObj, Validator.schemas.halGet)
-
-  const fog = await FogManager.findOne({
-    uuid: uuidObj.uuid
-  }, transaction)
-  if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, uuidObj.uuid))
-  }
-
-  return USBInfoManager.findOne({
-    iofogUuid: uuidObj.uuid
-  }, transaction)
-}
-
 function _filterFogs (fogs, filters) {
   if (!filters) {
     return fogs
@@ -1107,60 +1069,6 @@ async function _processDeleteCommand (fog, transaction) {
   await FogManager.delete({ uuid: fog.uuid }, transaction)
 }
 
-async function _createHalMicroserviceForFog (fogData, oldFog, transaction) {
-  const halItem = await CatalogService.getHalCatalogItem(transaction)
-  const systemMicroserviceName = getSystemMicroserviceName('hal')
-  const fogForName = (fogData && fogData.name) ? fogData : oldFog
-
-  const halMicroserviceData = {
-    uuid: AppHelper.generateUUID(),
-    name: systemMicroserviceName,
-    config: '{}',
-    catalogItemId: halItem.id,
-    iofogUuid: fogData.uuid,
-    hostNetworkMode: true,
-    isPrivileged: true,
-    logSize: Constants.MICROSERVICE_DEFAULT_LOG_SIZE,
-    schedule: 1,
-    configLastUpdated: Date.now()
-  }
-
-  const application = await ensureSystemApplication(fogForName, transaction)
-  halMicroserviceData.applicationId = application.id
-  const existingMicroservice = await MicroserviceManager.findOne({
-    name: systemMicroserviceName,
-    applicationId: application.id
-  }, transaction)
-  if (!existingMicroservice) {
-    await MicroserviceManager.create(halMicroserviceData, transaction)
-    await MicroserviceStatusManager.create({ microserviceUuid: halMicroserviceData.uuid }, transaction)
-    await MicroserviceExecStatusManager.create({ microserviceUuid: halMicroserviceData.uuid }, transaction)
-  }
-}
-
-async function _deleteHalMicroserviceByFog (fogData, transaction) {
-  const halItem = await CatalogService.getHalCatalogItem(transaction)
-  const deleteHalMicroserviceData = {
-    iofogUuid: fogData.uuid,
-    catalogItemId: halItem.id
-  }
-
-  const fog = await FogManager.findOne({ uuid: fogData.uuid }, transaction)
-  if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
-  }
-  const systemAppName = getSystemAppName(fog.name)
-  const legacySystemAppName = getLegacySystemAppName(fog.uuid)
-  let application = await ApplicationManager.findOne({ name: systemAppName }, transaction)
-  if (!application) {
-    application = await ApplicationManager.findOne({ name: legacySystemAppName }, transaction)
-  }
-  if (application) {
-    deleteHalMicroserviceData.applicationId = application.id
-    await MicroserviceManager.delete(deleteHalMicroserviceData, transaction)
-  }
-}
-
 async function _deleteNatsMicroserviceByFog (fogData, transaction) {
   const natsItem = await CatalogService.getNatsCatalogItem(transaction)
   if (!natsItem) return
@@ -1182,59 +1090,6 @@ async function _deleteNatsMicroserviceByFog (fogData, transaction) {
   if (application) {
     deleteNatsMicroserviceData.applicationId = application.id
     await MicroserviceManager.delete(deleteNatsMicroserviceData, transaction)
-  }
-}
-
-async function _createBluetoothMicroserviceForFog (fogData, oldFog, transaction) {
-  const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction)
-  const systemMicroserviceName = getSystemMicroserviceName('ble')
-  const fogForName = (fogData && fogData.name) ? fogData : oldFog
-
-  const bluetoothMicroserviceData = {
-    uuid: AppHelper.generateUUID(),
-    name: systemMicroserviceName,
-    config: '{}',
-    catalogItemId: bluetoothItem.id,
-    iofogUuid: fogData.uuid,
-    hostNetworkMode: true,
-    isPrivileged: true,
-    logSize: Constants.MICROSERVICE_DEFAULT_LOG_SIZE,
-    schedule: 1,
-    configLastUpdated: Date.now()
-  }
-
-  const application = await ensureSystemApplication(fogForName, transaction)
-  bluetoothMicroserviceData.applicationId = application.id
-  const existingMicroservice = await MicroserviceManager.findOne({
-    name: systemMicroserviceName,
-    applicationId: application.id
-  }, transaction)
-  if (!existingMicroservice) {
-    await MicroserviceManager.create(bluetoothMicroserviceData, transaction)
-    await MicroserviceStatusManager.create({ microserviceUuid: bluetoothMicroserviceData.uuid }, transaction)
-    await MicroserviceExecStatusManager.create({ microserviceUuid: bluetoothMicroserviceData.uuid }, transaction)
-  }
-}
-
-async function _deleteBluetoothMicroserviceByFog (fogData, transaction) {
-  const bluetoothItem = await CatalogService.getBluetoothCatalogItem(transaction)
-  const deleteBluetoothMicroserviceData = {
-    iofogUuid: fogData.uuid,
-    catalogItemId: bluetoothItem.id
-  }
-  const fog = await FogManager.findOne({ uuid: fogData.uuid }, transaction)
-  if (!fog) {
-    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_IOFOG_UUID, fogData.uuid))
-  }
-  const systemAppName = getSystemAppName(fog.name)
-  const legacySystemAppName = getLegacySystemAppName(fog.uuid)
-  let application = await ApplicationManager.findOne({ name: systemAppName }, transaction)
-  if (!application) {
-    application = await ApplicationManager.findOne({ name: legacySystemAppName }, transaction)
-  }
-  if (application) {
-    deleteBluetoothMicroserviceData.applicationId = application.id
-    await MicroserviceManager.delete(deleteBluetoothMicroserviceData, transaction)
   }
 }
 
@@ -1545,8 +1400,6 @@ module.exports = {
   generateProvisioningKeyEndPoint: TransactionDecorator.generateTransaction(generateProvisioningKeyEndPoint),
   setFogVersionCommandEndPoint: TransactionDecorator.generateTransaction(setFogVersionCommandEndPoint),
   setFogRebootCommandEndPoint: TransactionDecorator.generateTransaction(setFogRebootCommandEndPoint),
-  getHalHardwareInfoEndPoint: TransactionDecorator.generateTransaction(getHalHardwareInfoEndPoint),
-  getHalUsbInfoEndPoint: TransactionDecorator.generateTransaction(getHalUsbInfoEndPoint),
   getFog,
   refreshProvisionKeyForFog,
   setFogPruneCommandEndPoint: TransactionDecorator.generateTransaction(setFogPruneCommandEndPoint),
@@ -1565,9 +1418,5 @@ module.exports = {
   _processDeleteCommand,
   _reconcileNatsCertificatesOnHostChange,
   _deleteNatsMicroserviceByFog,
-  _createHalMicroserviceForFog,
-  _deleteHalMicroserviceByFog,
-  _createBluetoothMicroserviceForFog,
-  _deleteBluetoothMicroserviceByFog,
   _updateMicroserviceExtraHosts
 }

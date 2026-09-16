@@ -54,8 +54,6 @@ const fogPlatformSpec = {
     jsMemoryStoreSize: { type: 'string', maxLength: 32 },
     networkRouter: { type: ['string', 'null'] },
     containerEngine: { type: 'string', enum: ['edgelet', 'docker', 'podman'] },
-    bluetoothEnabled: { type: 'boolean' },
-    abstractedHardwareEnabled: { type: 'boolean' },
     tags: {
       type: 'array',
       items: {
@@ -159,9 +157,7 @@ const FOG_PLATFORM_SPEC_SCALAR_FIELDS = [
   'jsStorageSize',
   'jsMemoryStoreSize',
   'networkRouter',
-  'containerEngine',
-  'bluetoothEnabled',
-  'abstractedHardwareEnabled'
+  'containerEngine'
 ]
 
 const FOG_PLATFORM_SPEC_ARRAY_FIELDS = [
