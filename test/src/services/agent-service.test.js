@@ -18,8 +18,6 @@ const RegistryManager = require('../../../src/data/managers/registry-manager')
 const TunnelManager = require('../../../src/data/managers/tunnel-manager')
 const ioFogVersionCommandManager = require('../../../src/data/managers/iofog-version-command-manager')
 const ioFogProvisionKeyManager = require('../../../src/data/managers/iofog-provision-key-manager')
-const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
-const USBInfoManager = require('../../../src/data/managers/usb-info-manager')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const path = require('path')
@@ -450,7 +448,6 @@ describe('Agent Service', () => {
       logFileCount: agentConfig.logFileCount,
       statusFrequency: agentConfig.statusFrequency,
       changeFrequency: agentConfig.changeFrequency,
-      deviceScanFrequency: agentConfig.deviceScanFrequency,
       watchdogEnabled: agentConfig.watchdogEnabled,
       latitude: agentConfig.latitude,
       longitude: agentConfig.longitude,
@@ -486,6 +483,7 @@ describe('Agent Service', () => {
           expect(ioFogManager.update).to.have.been.calledWith({
             uuid: $uuid,
           }, expectedFogUpdate, transaction)
+          expect(expectedFogUpdate).to.not.have.property('deviceScanFrequency')
         })
 
         context('when ioFogManager#update fails', () => {
@@ -507,21 +505,51 @@ describe('Agent Service', () => {
     })
   })
 
-  describe('.getAgentConfigChanges()', () => {
-    const configChanges = {
-      config: undefined,
-      version: undefined,
-      reboot: undefined,
-      deleteNode: undefined,
-      microserviceList: undefined,
-      microserviceConfig: undefined,
-      routing: undefined,
-      registries: undefined,
-      tunnel: undefined,
-      routerChanged: undefined,
-      prune: undefined,
+  describe('.getAgentConfig()', () => {
+    const transaction = {}
+    const fogData = {
+      networkInterface: 'eth0',
+      containerEngineUrl: 'unix:///run/edgelet/containerd.sock',
+      diskLimit: 50,
+      diskDirectory: '/var/lib/iofog/',
+      memoryLimit: 4096,
+      cpuLimit: 80,
+      logLimit: 10,
+      logDirectory: '/var/log/iofog/',
+      logFileCount: 10,
+      gpsMode: 'auto',
+      gpsDevice: '',
+      gpsScanFrequency: 60,
+      edgeGuardFrequency: 0,
+      statusFrequency: 10,
+      changeFrequency: 20,
+      watchdogEnabled: false,
+      latitude: 0,
+      longitude: 0,
+      logLevel: 'INFO',
+      availableDiskThreshold: 20,
+      pruningFrequency: 0,
+      timeZone: 'UTC',
+      deviceScanFrequency: 50,
     }
 
+    def('uuid', () => 'testUuid')
+    def('fog', () => ({ uuid: $uuid }))
+    def('subject', () => $subject.getAgentConfig($fog, transaction))
+
+    beforeEach(() => {
+      $sandbox.stub(ioFogManager, 'findOne').resolves(fogData)
+    })
+
+    it('omits deviceScanFrequency from the agent config payload', async () => {
+      const result = await $subject
+      expect(result).to.not.have.property('deviceScanFrequency')
+      expect(result.statusFrequency).to.equal(fogData.statusFrequency)
+      expect(result.edgeGuardFrequency).to.equal(fogData.edgeGuardFrequency)
+    })
+  })
+
+  describe('.getAgentConfigChanges()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -535,7 +563,7 @@ describe('Agent Service', () => {
 
     def('subject', () => $subject.getAgentConfigChanges($fog, transaction))
 
-    def('getByFogIdResponse', () => 'getByFogIdResponse')
+    def('getByFogIdResponse', () => [])
     def('updateIfChangedResponse', () => Promise.resolve())
 
     beforeEach(() => {
@@ -546,6 +574,13 @@ describe('Agent Service', () => {
     it('calls ChangeTrackingService#getByIoFogUuid() with correct args', async () => {
       await $subject
       expect(ChangeTrackingService.getByIoFogUuid).to.have.been.calledWith($uuid, transaction)
+    })
+
+    it('includes additive change flags as false by default', async () => {
+      const result = await $subject
+      expect(result.models).to.equal(false)
+      expect(result.runtimeClasses).to.equal(false)
+      expect(result.microserviceModels).to.equal(false)
     })
 
     context('when ChangeTrackingService#getByIoFogUuid() fails', () => {
@@ -1349,10 +1384,36 @@ describe('Agent Service', () => {
             expect(msvc.application).to.equal('testApp')
             expect(msvc.registryId).to.equal(microserviceResponse.microservices[0].registryId)
             expect(msvc.cmd).to.deep.equal(microserviceResponse.microservices[0].cmd)
+            expect(msvc.commands).to.deep.equal(microserviceResponse.microservices[0].cmd)
             expect(msvc.extraHosts).to.deep.equal(microserviceResponse.microservices[0].extraHosts)
             expect(msvc.isController).to.equal(true)
             expect(msvc.isRouter).to.equal(false)
             expect(msvc.isNats).to.equal(false)
+          })
+
+          it('emits catalog models and omits empty argv arrays', async () => {
+            MicroserviceManager.findAllActiveApplicationMicroservices.resolves([{
+              ...microserviceWithValidImage,
+              cmd: [],
+              entrypoint: [],
+              microserviceModel: { bindPath: '/models', permissions: 'ro' },
+              modelItems: [{ id: 1, name: 'test-model' }],
+              cpus: 1.5,
+              workingDir: '/app'
+            }])
+
+            const result = await $subject
+            const msvc = result.microservices[0]
+            expect(msvc).to.not.have.property('entrypoint')
+            expect(msvc).to.not.have.property('commands')
+            expect(msvc.cmd).to.eql([])
+            expect(msvc.models).to.eql({
+              bindPath: '/models',
+              permissions: 'ro',
+              items: [{ name: 'test-model' }]
+            })
+            expect(msvc.cpus).to.equal(1.5)
+            expect(msvc.workingDir).to.equal('/app')
           })
         })
       })
@@ -1437,7 +1498,7 @@ describe('Agent Service', () => {
 
     def('subject', () => $subject.getAgentRegistries($fog, transaction))
 
-    def('getAgentRegistriesResponse', () => Promise.resolve())
+    def('getAgentRegistriesResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(RegistryManager, 'findAll').returns($getAgentRegistriesResponse)
@@ -1459,6 +1520,55 @@ describe('Agent Service', () => {
     context('when RegistryManager#findAll() succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.have.property('registries')
+      })
+
+      context('with registry rows', () => {
+        def('getAgentRegistriesResponse', () => Promise.resolve([{
+          id: 3,
+          url: 'https://huggingface.co',
+          isPublic: true,
+          username: '',
+          password: '',
+          userEmail: '',
+          type: 'hf',
+          ca: null,
+          insecure: false
+        }, {
+          id: 4,
+          url: 'https://registry.example.com',
+          isPublic: false,
+          username: 'user',
+          password: 'secret',
+          userEmail: 'user@example.com',
+          type: 'oci',
+          ca: 'Y2VydA==',
+          insecure: true
+        }]))
+
+        it('includes type, ca, and insecure on every registry', async () => {
+          const result = await $subject
+          expect(result.registries).to.eql([{
+            id: 3,
+            url: 'https://huggingface.co',
+            isPublic: true,
+            username: '',
+            password: '',
+            userEmail: '',
+            type: 'hf',
+            ca: '',
+            insecure: false
+          }, {
+            id: 4,
+            url: 'https://registry.example.com',
+            isPublic: false,
+            username: 'user',
+            password: 'secret',
+            userEmail: 'user@example.com',
+            type: 'oci',
+            ca: 'Y2VydA==',
+            insecure: true
+          }])
+        })
       })
     })
   })
@@ -1612,139 +1722,169 @@ describe('Agent Service', () => {
     })
   })
 
-  describe('.updateHalHardwareInfo()', () => {
+  describe('.getAgentLinkedModels()', () => {
     const transaction = {}
-    const error = 'Error!'
 
     def('uuid', () => 'testUuid')
-
+    def('getModels', () => $sandbox.stub().resolves([]))
     def('fog', () => ({
       uuid: $uuid,
+      getModels: $getModels,
     }))
+    def('subject', () => $subject.getAgentLinkedModels($fog, transaction))
 
-    def('info', () => 'testInfo')
-    def('hardwareData', () => ({
-      info: $info,
-    }))
-
-    def('response', () => ({
-      versionCommand: $versionCommandLine,
-      provisionKey: $provisionKey,
-      expirationTime: $expirationTime,
-    }))
-
-    def('subject', () => $subject.updateHalHardwareInfo($hardwareData, $fog, transaction))
-
-    def('validatorResponse', () => Promise.resolve(true))
-    def('hwResponse', () => Promise.resolve())
-
-    beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(HWInfoManager, 'updateOrCreate').returns($hwResponse)
-    })
-
-    it('calls Validator#validate() with correct args', async () => {
-      await $subject
-      expect(Validator.validate).to.have.been.calledWith($hardwareData, Validator.schemas.updateHardwareInfo)
-    })
-
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
+    it('returns an empty list when the fog has no linked models', async () => {
+      await expect($subject).to.eventually.eql([])
+      expect($getModels).to.have.been.calledWith({
+        attributes: ['uuid', 'name', 'repo', 'revision', 'files', 'format', 'registryId'],
+        joinTableAttributes: [],
+        transaction,
       })
     })
 
-    context('when Validator#validate() succeeds', () => {
-      it('calls HWInfoManager#updateOrCreate() with correct args', async () => {
-        await $subject
-        expect(HWInfoManager.updateOrCreate).to.have.been.calledWith({
-          iofogUuid: $uuid,
-        }, $hardwareData, transaction)
+    it('maps linked model rows to the wire object', async () => {
+      $getModels.resolves([{
+        uuid: '3f2c8a1e-2b64-4c0d-9f11-0a1b2c3d4e5f',
+        name: 'test-model',
+        repo: 'org/repo',
+        revision: null,
+        registryId: 3,
+        files: ['file.gguf'],
+        format: 'gguf',
+        toJSON () {
+          return {
+            uuid: this.uuid,
+            name: this.name,
+            repo: this.repo,
+            revision: this.revision,
+            registryId: this.registryId,
+            files: this.files,
+            format: this.format
+          }
+        }
+      }])
 
-        context('when HWInfoManager#updateOrCreate() fails', () => {
-          def('hwResponse', () => Promise.reject(error))
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.equal(undefined)
-          })
-        })
-
-        context('when HWInfoManager#updateOrCreate() succeeds', () => {
-          it(`succeeds`, () => {
-            return expect($subject).to.equal(undefined)
-          })
-        })
-      })
+      await expect($subject).to.eventually.eql([{
+        uuid: '3f2c8a1e-2b64-4c0d-9f11-0a1b2c3d4e5f',
+        name: 'test-model',
+        repo: 'org/repo',
+        revision: '',
+        registryId: 3,
+        files: ['file.gguf'],
+        format: 'gguf'
+      }])
     })
   })
 
-  describe('.updateHalUsbInfo()', () => {
+  describe('.getAgentLinkedRuntimeClasses()', () => {
     const transaction = {}
-    const error = 'Error!'
 
     def('uuid', () => 'testUuid')
-
+    def('getRuntimeClassLinks', () => $sandbox.stub().resolves([]))
     def('fog', () => ({
       uuid: $uuid,
+      getRuntimeClassLinks: $getRuntimeClassLinks,
     }))
+    def('subject', () => $subject.getAgentLinkedRuntimeClasses($fog, transaction))
 
-    def('info', () => 'testInfo')
-    def('usbData', () => ({
-      info: $info,
-    }))
+    it('returns an empty list when the fog has no linked runtime classes', async () => {
+      await expect($subject).to.eventually.eql([])
+      expect($getRuntimeClassLinks).to.have.been.calledWith({
+        attributes: ['name', 'handler'],
+        joinTableAttributes: [],
+        transaction,
+      })
+    })
 
-    def('response', () => ({
-      versionCommand: $versionCommandLine,
-      provisionKey: $provisionKey,
-      expirationTime: $expirationTime,
-    }))
+    it('maps linked runtime class rows to the wire object', async () => {
+      $getRuntimeClassLinks.resolves([{
+        name: 'spin',
+        handler: 'spin',
+        toJSON () {
+          return {
+            name: this.name,
+            handler: this.handler
+          }
+        }
+      }])
 
-    def('subject', () => $subject.updateHalUsbInfo($usbData, $fog, transaction))
+      await expect($subject).to.eventually.eql([{
+        name: 'spin',
+        handler: 'spin'
+      }])
+    })
+  })
 
-    def('validatorResponse', () => Promise.resolve(true))
-    def('usbResponse', () => Promise.resolve())
+  describe('.updateAgentStatus() additive fields', () => {
+    const transaction = {}
+    const microserviceStatus = '[{"id":"testUuid","containerId":"ctr-1","status":"RUNNING","podId":"pod-1"}]'
+    const agentStatus = {
+      daemonStatus: 'RUNNING',
+      daemonOperatingDuration: 25,
+      daemonLastStart: 1,
+      warningMessage: '',
+      memoryUsage: 1,
+      diskUsage: 1,
+      cpuUsage: 1,
+      memoryViolation: false,
+      diskViolation: false,
+      cpuViolation: false,
+      systemAvailableDisk: 1,
+      systemAvailableMemory: 1,
+      systemTotalCpu: 1,
+      repositoryCount: 0,
+      repositoryStatus: '[]',
+      systemTime: 1,
+      lastStatusTime: 1,
+      ipAddress: '127.0.0.1',
+      ipAddressExternal: '127.0.0.1',
+      lastCommandTime: 1,
+      tunnelStatus: '{}',
+      version: '1.1.0',
+      isReadyToUpgrade: false,
+      isReadyToRollback: false,
+      gpsStatus: 'OK',
+      microserviceStatus,
+      runtimeClasses: [{ name: 'spin', handler: 'spin', source: 'managed' }],
+      availableCdiDevices: ['nvidia.com/gpu=0'],
+      modelStatus: '[]',
+      activeModels: 2,
+      modelLastUpdate: 1710000000,
+    }
+
+    def('uuid', () => 'testUuid')
+    def('fog', () => ({ uuid: $uuid }))
+    def('subject', () => $subject.updateAgentStatus(agentStatus, $fog, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(USBInfoManager, 'updateOrCreate').returns($usbResponse)
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.spy(AppHelper, 'deleteUndefinedFields')
+      $sandbox.stub(ioFogManager, 'findOne').resolves({ warningMessage: '' })
+      $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves(null)
+      $sandbox.stub(ioFogManager, 'update').resolves()
+      $sandbox.stub(MicroserviceStatusManager, 'update').resolves()
+      $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').resolves()
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: $uuid })
     })
 
-    it('calls Validator#validate() with correct args', async () => {
+    it('persists additive fog status fields and microservice podId', async () => {
       await $subject
-      expect(Validator.validate).to.have.been.calledWith($usbData, Validator.schemas.updateUsbInfo)
-    })
-
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when Validator#validate() succeeds', () => {
-      it('calls USBInfoManager#updateOrCreate() with correct args', async () => {
-        await $subject
-        expect(USBInfoManager.updateOrCreate).to.have.been.calledWith({
-          iofogUuid: $uuid,
-        }, $usbData, transaction)
-
-        context('when USBInfoManager#updateOrCreate() fails', () => {
-          def('usbResponse', () => Promise.reject(error))
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.equal(undefined)
-          })
-        })
-
-        context('when USBInfoManager#updateOrCreate() succeeds', () => {
-          it(`succeeds`, () => {
-            return expect($subject).to.equal(undefined)
-          })
-        })
-      })
+      expect(ioFogManager.update).to.have.been.calledWith(
+        { uuid: $uuid },
+        sinon.match({
+          runtimeClasses: JSON.stringify(agentStatus.runtimeClasses),
+          availableCdiDevices: JSON.stringify(agentStatus.availableCdiDevices),
+          modelStatus: '[]',
+          activeModels: 2,
+          modelLastUpdate: 1710000000,
+        }),
+        transaction
+      )
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: 'testUuid' },
+        sinon.match({ podId: 'pod-1', containerId: 'ctr-1' }),
+        transaction
+      )
     })
   })
 

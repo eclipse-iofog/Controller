@@ -300,6 +300,67 @@ module.exports = [
   },
   {
     method: 'get',
+    path: '/api/v3/agent/models',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
+        }
+      ]
+
+      const getAgentLinkedModelsEndpoint = ResponseDecorator.handleErrors(AgentController.getAgentLinkedModelsEndpoint,
+        successCode, errorCodes)
+      const responseObject = await getAgentLinkedModelsEndpoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req, res, responseObject })
+    }
+  },
+  {
+    method: 'get',
+    path: '/api/v3/agent/runtimeClasses',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
+        }
+      ]
+
+      const getAgentLinkedRuntimeClassesEndpoint = ResponseDecorator.handleErrors(
+        AgentController.getAgentLinkedRuntimeClassesEndpoint,
+        successCode,
+        errorCodes
+      )
+      const responseObject = await getAgentLinkedRuntimeClassesEndpoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req, res, responseObject })
+    }
+  },
+  {
+    method: 'get',
     path: '/api/v3/agent/microservices',
     middleware: async (req, res) => {
       logger.apiReq(req)
@@ -487,72 +548,6 @@ module.exports = [
       const getAgentChangeVersionCommandEndPoint = ResponseDecorator.handleErrors(
         AgentController.getAgentChangeVersionCommandEndPoint, successCode, errorCodes)
       const responseObject = await getAgentChangeVersionCommandEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req, res, responseObject })
-    }
-  },
-  {
-    method: 'put',
-    path: '/api/v3/agent/hal/hw',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_NO_CONTENT
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
-          errors: [Errors.ServiceUnavailableError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        }
-      ]
-
-      const updateHalHardwareInfoEndPoint = ResponseDecorator.handleErrors(AgentController.updateHalHardwareInfoEndPoint,
-        successCode, errorCodes)
-      const responseObject = await updateHalHardwareInfoEndPoint(req)
-
-      res
-        .status(responseObject.code)
-        .send(responseObject.body)
-
-      logger.apiRes({ req, res, responseObject })
-    }
-  },
-  {
-    method: 'put',
-    path: '/api/v3/agent/hal/usb',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_NO_CONTENT
-      const errorCodes = [
-        {
-          code: constants.HTTP_CODE_UNAUTHORIZED,
-          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
-        },
-        {
-          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
-          errors: [Errors.ServiceUnavailableError]
-        },
-        {
-          code: constants.HTTP_CODE_BAD_REQUEST,
-          errors: [Errors.ValidationError]
-        }
-      ]
-
-      const updateHalUsbInfoEndPoint = ResponseDecorator.handleErrors(AgentController.updateHalUsbInfoEndPoint,
-        successCode, errorCodes)
-      const responseObject = await updateHalUsbInfoEndPoint(req)
 
       res
         .status(responseObject.code)

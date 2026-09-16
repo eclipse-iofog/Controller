@@ -139,7 +139,6 @@ describe('Agent Controller', () => {
     def('logFileCount', () => 5)
     def('statusFrequency', () => 60)
     def('changeFrequency', () => 30)
-    def('deviceScanFrequency', () => 40)
     def('watchdogEnabled', () => true)
     def('latitude', () => 30)
     def('longitude', () => 40)
@@ -158,7 +157,6 @@ describe('Agent Controller', () => {
         logFileCount: $logFileCount,
         statusFrequency: $statusFrequency,
         changeFrequency: $changeFrequency,
-        devicesScanFrequency: $deviceScanFrequency,
         watchdogEnabled: $watchdogEnabled,
         latitude: $latitude,
         longitude: $longitude,
@@ -187,7 +185,6 @@ describe('Agent Controller', () => {
         logFileCount: $logFileCount,
         statusFrequency: $statusFrequency,
         changeFrequency: $changeFrequency,
-        devicesScanFrequency: $deviceScanFrequency,
         watchdogEnabled: $watchdogEnabled,
         latitude: $latitude,
         longitude: $longitude,
@@ -535,85 +532,35 @@ describe('Agent Controller', () => {
     })
   })
 
-  describe('updateHalHardwareInfoEndPoint()', () => {
+  describe('getAgentLinkedModelsEndpoint()', () => {
     def('fog', () => 'fog!')
-
-    def('info', () => 'testInfo')
-
-    def('req', () => ({
-      body: {
-        info: $info,
-      },
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.updateHalHardwareInfoEndPoint($req, $fog))
+    def('req', () => ({ body: {} }))
+    def('response', () => Promise.resolve([]))
+    def('subject', () => $subject.getAgentLinkedModelsEndpoint($req, $fog))
 
     beforeEach(() => {
-      $sandbox.stub(AgentService, 'updateHalHardwareInfo').returns($response)
+      $sandbox.stub(AgentService, 'getAgentLinkedModels').returns($response)
     })
 
-    it('calls AgentService.updateHalHardwareInfo with correct args', async () => {
-      await $subject
-      expect(AgentService.updateHalHardwareInfo).to.have.been.calledWith({
-        info: $info,
-      }, $fog)
-    })
-
-    context('when AgentService#updateHalHardwareInfo fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when AgentService#updateHalHardwareInfo succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
+    it('returns linked models for the requesting fog', async () => {
+      await expect($subject).to.eventually.eql({ models: [] })
+      expect(AgentService.getAgentLinkedModels).to.have.been.calledWith($fog)
     })
   })
 
-  describe('updateHalUsbInfoEndPoint()', () => {
+  describe('getAgentLinkedRuntimeClassesEndpoint()', () => {
     def('fog', () => 'fog!')
-
-    def('info', () => 'testInfo')
-
-    def('req', () => ({
-      body: {
-        info: $info,
-      },
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.updateHalUsbInfoEndPoint($req, $fog))
+    def('req', () => ({ body: {} }))
+    def('response', () => Promise.resolve([]))
+    def('subject', () => $subject.getAgentLinkedRuntimeClassesEndpoint($req, $fog))
 
     beforeEach(() => {
-      $sandbox.stub(AgentService, 'updateHalUsbInfo').returns($response)
+      $sandbox.stub(AgentService, 'getAgentLinkedRuntimeClasses').returns($response)
     })
 
-    it('calls AgentService.updateHalUsbInfo with correct args', async () => {
-      await $subject
-      expect(AgentService.updateHalUsbInfo).to.have.been.calledWith({
-        info: $info,
-      }, $fog)
-    })
-
-    context('when AgentService#updateHalUsbInfo fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when AgentService#updateHalUsbInfo succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
+    it('returns linked runtime classes for the requesting fog', async () => {
+      await expect($subject).to.eventually.eql({ runtimeClasses: [] })
+      expect(AgentService.getAgentLinkedRuntimeClasses).to.have.been.calledWith($fog)
     })
   })
 
