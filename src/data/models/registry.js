@@ -62,6 +62,21 @@ module.exports = (sequelize, DataTypes) => {
     userEmail: {
       type: DataTypes.TEXT,
       field: 'user_email'
+    },
+    type: {
+      type: DataTypes.STRING(16),
+      field: 'type',
+      defaultValue: 'oci'
+    },
+    ca: {
+      type: DataTypes.TEXT,
+      field: 'ca',
+      allowNull: true
+    },
+    insecure: {
+      type: DataTypes.BOOLEAN,
+      field: 'insecure',
+      defaultValue: false
     }
   }, {
     tableName: 'Registries',
