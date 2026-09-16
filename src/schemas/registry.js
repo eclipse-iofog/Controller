@@ -1,18 +1,23 @@
+const emailPattern = '^$|^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
+  '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
+
 const registryCreate = {
   id: '/registryCreate',
   type: 'object',
   properties: {
     url: { type: 'string', minLength: 1 },
     isPublic: { type: 'boolean' },
-    username: { type: 'string', minLength: 1 },
+    username: { type: 'string' },
     password: { type: 'string' },
     email: {
       type: 'string',
-      pattern: '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
-      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
-    }
+      pattern: emailPattern
+    },
+    type: { type: 'string', enum: ['oci', 'hf'] },
+    ca: { type: 'string' },
+    insecure: { type: 'boolean' }
   },
-  required: ['url', 'isPublic', 'username', 'password', 'email'],
+  required: ['url', 'isPublic'],
   additionalProperties: true
 }
 
@@ -32,13 +37,15 @@ const registryUpdate = {
   properties: {
     url: { type: 'string', minLength: 1 },
     isPublic: { type: 'boolean' },
-    username: { type: 'string', minLength: 1 },
+    username: { type: 'string' },
     password: { type: 'string' },
     email: {
       type: 'string',
-      pattern: '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}' +
-      '\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
-    }
+      pattern: emailPattern
+    },
+    type: { type: 'string', enum: ['oci', 'hf'] },
+    ca: { type: 'string' },
+    insecure: { type: 'boolean' }
   },
   additionalProperties: true
 }
