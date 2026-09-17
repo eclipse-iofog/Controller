@@ -51,6 +51,11 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: '',
       field: 'container_id'
     },
+    podId: {
+      type: DataTypes.TEXT,
+      defaultValue: '',
+      field: 'pod_id'
+    },
     percentage: {
       type: DataTypes.FLOAT,
       defaultValue: 0.00,

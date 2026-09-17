@@ -63,16 +63,13 @@ db.initDB = async (isStart) => {
     if (databaseProvider instanceof require('../providers/sqlite')) {
       const sqliteDbPath = databaseProvider.sequelize.options.storage
       logger.info('Running SQLite database migrations and seeders...')
-      await databaseProvider.runMigrationSQLite(sqliteDbPath)
-      await databaseProvider.runSeederSQLite(sqliteDbPath)
+      await databaseProvider.runVersionChainSQLite(sqliteDbPath)
     } else if (databaseProvider instanceof require('../providers/mysql')) {
       logger.info('Running MySQL database migrations and seeders...')
-      await databaseProvider.runMigrationMySQL(databaseProvider.sequelize)
-      await databaseProvider.runSeederMySQL(databaseProvider.sequelize)
+      await databaseProvider.runVersionChainMySQL(databaseProvider.sequelize)
     } else if (databaseProvider instanceof require('../providers/postgres')) {
       logger.info('Running PostgreSQL database migrations and seeders...')
-      await databaseProvider.runMigrationPostgres(databaseProvider.sequelize)
-      await databaseProvider.runSeederPostgres(databaseProvider.sequelize)
+      await databaseProvider.runVersionChainPostgres(databaseProvider.sequelize)
     }
 
     // Initialize RBAC cache version if it doesn't exist

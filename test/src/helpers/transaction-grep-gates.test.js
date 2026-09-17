@@ -29,6 +29,21 @@ function grepSrc (pattern, extraArgs = [], searchPath = 'src/') {
   }
 }
 
+function grepPaths (pattern, extraArgs, searchPaths) {
+  const hits = []
+  for (const searchPath of searchPaths) {
+    const resolved = path.join(REPO_ROOT, searchPath)
+    if (!fs.existsSync(resolved)) {
+      continue
+    }
+    const match = grepSrc(pattern, extraArgs, searchPath)
+    if (match) {
+      hits.push(match)
+    }
+  }
+  return hits.join('\n')
+}
+
 /**
  * Plan 19-I-C: K8s I/O must run outside runInTransaction callback bodies.
  * Allowed external helpers (called after tx commit / between phases):
@@ -167,6 +182,17 @@ describe('grep gates', () => {
     expect(volumeMountSource).to.not.match(/removeVolumeMount\(volumeMount\.uuid, transaction\)/)
   })
 
+  it('passes Sequelize transaction inside options for model association calls', () => {
+    const modelSource = fs.readFileSync(
+      path.join(REPO_ROOT, 'src/services/model-service.js'),
+      'utf8'
+    )
+    expect(modelSource).to.match(/getFogs\(\{ transaction \}\)/)
+    expect(modelSource).to.match(/addModel\(model, \{ transaction \}\)/)
+    expect(modelSource).to.match(/removeModel\(model, \{ transaction \}\)/)
+    expect(modelSource).to.match(/hasModel\(model, \{ transaction \}\)/)
+  })
+
   it('keeps vault HTTP out of secret/configmap/registry transaction bodies', () => {
     const secretSource = fs.readFileSync(
       path.join(REPO_ROOT, 'src/services/secret-service.js'),
@@ -259,6 +285,46 @@ describe('grep gates', () => {
   it('keeps ChangeTrackingService.update out of catalog-service.js and registry-service.js', () => {
     expect(grepSrc('ChangeTrackingService', [], 'src/services/catalog-service.js')).to.equal('')
     expect(grepSrc('ChangeTrackingService', [], 'src/services/registry-service.js')).to.equal('')
+  })
+
+  it('has zero plan or RFC rule tokens in application code, tests, swagger, migrations, and seeders', () => {
+    const codeHits = grepPaths(
+      'R1[5-7][0-9]|plan.?23|BR-',
+      ['-E', '-i', '--include=*.js', '--exclude=transaction-grep-gates.test.js'],
+      ['src/', 'test/']
+    )
+    const sqlHits = grepPaths(
+      'R1[5-7][0-9]|plan.?23|BR-',
+      ['-E', '-i', '--include=*.sql'],
+      ['src/data/migrations/', 'src/data/seeders/']
+    )
+    const swaggerHits = grepSrc(
+      'R1[5-7][0-9]|plan.?23|BR-',
+      ['-E', '-i'],
+      'docs/swagger.yaml'
+    )
+    expect([codeHits, sqlHits, swaggerHits].filter(Boolean).join('\n')).to.equal('')
+  })
+
+  it('has zero hardware inventory and bluetooth catalog leftovers in application JS', () => {
+    const hits = grepSrc(
+      'deviceScanFrequency|abstractedHardwareEnabled|bluetoothEnabled|getHalCatalogItem|getBluetoothCatalogItem|RESTBlue',
+      ['-E', '--exclude-dir=cli']
+    )
+    expect(hits).to.equal('')
+  })
+
+  it('does not register hardware inventory HTTP routes', () => {
+    expect(grepSrc('/hal/', [], 'src/routes/')).to.equal('')
+    const yamlHits = grepSrc('/agent/hal/|/iofog/.*/hal/', [
+      '-E',
+      '--include=*.yaml'
+    ], 'src/config')
+    expect(yamlHits).to.equal('')
+  })
+
+  it('keeps Edge Guard frequency on fog config', () => {
+    expect(grepSrc('edgeGuardFrequency')).to.not.equal('')
   })
 
   it('keeps MicroserviceManager.findAllWithStatuses fan-out out of catalog/registry propagation paths', () => {

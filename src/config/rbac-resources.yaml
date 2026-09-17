@@ -55,6 +55,10 @@ resources:
         methods:
           DELETE: [patch]
         resourceNameParam: uuid
+      - path: /api/v3/microservices/:uuid/models
+        methods:
+          PATCH: [patch]
+        resourceNameParam: uuid
       - path: /api/v3/microservices/:uuid/start
         methods:
           PATCH: [patch]
@@ -137,14 +141,6 @@ resources:
       - path: /api/v3/iofog/:uuid/reboot
         methods:
           POST: [patch]
-        resourceNameParam: uuid
-      - path: /api/v3/iofog/:uuid/hal/hw
-        methods:
-          GET: [get]
-        resourceNameParam: uuid
-      - path: /api/v3/iofog/:uuid/hal/usb
-        methods:
-          GET: [get]
         resourceNameParam: uuid
       - path: /api/v3/iofog/:uuid/prune
         methods:
@@ -529,6 +525,84 @@ resources:
           DELETE: [patch]
         resourceNameParam: name
 
+  # Fleet models
+  models:
+    basePath: /api/v3/models
+    routes:
+      - path: /api/v3/models
+        methods:
+          GET: [list]
+          POST: [create]
+      - path: /api/v3/models/yaml
+        methods:
+          POST: [create]
+      - path: /api/v3/models/:name
+        methods:
+          GET: [get]
+          PATCH: [patch]
+          DELETE: [delete]
+        resourceNameParam: name
+      - path: /api/v3/models/yaml/:name
+        methods:
+          PUT: [update]
+        resourceNameParam: name
+      - path: /api/v3/models/:name/link
+        methods:
+          GET: [get]
+          POST: [patch]
+          DELETE: [patch]
+        resourceNameParam: name
+
+  # Runtime classes
+  runtimeClasses:
+    basePath: /api/v3/runtimeClasses
+    routes:
+      - path: /api/v3/runtimeClasses
+        methods:
+          GET: [list]
+          POST: [create]
+      - path: /api/v3/runtimeClasses/yaml
+        methods:
+          POST: [create]
+      - path: /api/v3/runtimeClasses/:name
+        methods:
+          GET: [get]
+          PATCH: [patch]
+          DELETE: [delete]
+        resourceNameParam: name
+      - path: /api/v3/runtimeClasses/yaml/:name
+        methods:
+          PUT: [update]
+        resourceNameParam: name
+      - path: /api/v3/runtimeClasses/:name/link
+        methods:
+          GET: [get]
+          POST: [patch]
+          DELETE: [patch]
+        resourceNameParam: name
+
+  # Microservice templates
+  microserviceTemplates:
+    basePath: /api/v3/microserviceTemplates
+    routes:
+      - path: /api/v3/microserviceTemplates
+        methods:
+          GET: [list]
+          POST: [create]
+      - path: /api/v3/microserviceTemplates/yaml
+        methods:
+          POST: [create]
+      - path: /api/v3/microserviceTemplates/:name
+        methods:
+          GET: [get]
+          PATCH: [patch]
+          DELETE: [delete]
+        resourceNameParam: name
+      - path: /api/v3/microserviceTemplates/yaml/:name
+        methods:
+          PUT: [update]
+        resourceNameParam: name
+
   # Tunnels
   tunnels:
     basePath: /api/v3/iofog
@@ -644,6 +718,12 @@ resources:
       - path: /api/v3/agent/volumeMounts
         methods:
           GET: [list]
+      - path: /api/v3/agent/models
+        methods:
+          GET: [list]
+      - path: /api/v3/agent/runtimeClasses
+        methods:
+          GET: [list]
       - path: /api/v3/agent/microservices
         methods:
           GET: [list]
@@ -660,12 +740,6 @@ resources:
       - path: /api/v3/agent/version
         methods:
           GET: [get]
-      - path: /api/v3/agent/hal/hw
-        methods:
-          PUT: [update]
-      - path: /api/v3/agent/hal/usb
-        methods:
-          PUT: [update]
       - path: /api/v3/agent/delete-node
         methods:
           DELETE: [delete]

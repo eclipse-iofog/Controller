@@ -303,67 +303,6 @@ module.exports = [
     }
   },
   {
-    method: 'get',
-    path: '/api/v3/iofog/:uuid/hal/hw',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errCodes = [
-        {
-          code: 401,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: 404,
-          errors: [Errors.NotFoundError]
-        }
-      ]
-
-      await rbacMiddleware.protect()(req, res, async () => {
-        const getHalHardwareInfo = ResponseDecorator.handleErrors(FogController.getHalHardwareInfoEndPoint,
-          successCode, errCodes)
-        const responseObject = await getHalHardwareInfo(req)
-        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
-        res
-          .status(responseObject.code)
-          .send(responseObject.body)
-
-        logger.apiRes({ req, user, res, responseObject })
-      })
-    }
-  },
-  {
-    method: 'get',
-    path: '/api/v3/iofog/:uuid/hal/usb',
-    middleware: async (req, res) => {
-      logger.apiReq(req)
-
-      const successCode = constants.HTTP_CODE_SUCCESS
-      const errCodes = [
-        {
-          code: 401,
-          errors: [Errors.AuthenticationError]
-        },
-        {
-          code: 404,
-          errors: [Errors.NotFoundError]
-        }
-      ]
-
-      await rbacMiddleware.protect()(req, res, async () => {
-        const getHalUsbInfo = ResponseDecorator.handleErrors(FogController.getHalUsbInfoEndPoint, successCode, errCodes)
-        const responseObject = await getHalUsbInfo(req)
-        const user = req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.content.preferred_username : 'system'
-        res
-          .status(responseObject.code)
-          .send(responseObject.body)
-
-        logger.apiRes({ req, user, res, responseObject })
-      })
-    }
-  },
-  {
     method: 'post',
     path: '/api/v3/iofog/:uuid/prune',
     middleware: async (req, res) => {

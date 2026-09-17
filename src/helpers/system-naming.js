@@ -3,7 +3,7 @@ const Errors = require('./errors')
 const ApplicationManager = require('../data/managers/application-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 
-const SYSTEM_MICROSERVICE_TYPES = ['router', 'hal', 'ble', 'debug', 'nats']
+const SYSTEM_MICROSERVICE_TYPES = ['router', 'debug', 'nats']
 
 const getSystemAppName = (fogName) => `system-${fogName}`
 

@@ -37,7 +37,6 @@ const updateAgentConfig = {
     logFileCount: { type: 'integer', minimum: 0 },
     statusFrequency: { type: 'integer', minimum: 0 },
     changeFrequency: { type: 'integer', minimum: 0 },
-    deviceScanFrequency: { type: 'integer', minimum: 0 },
     watchdogEnabled: { type: 'boolean' },
     latitude: { type: 'number', minimum: -90, maximum: 90 },
     longitude: { type: 'number', minimum: -180, maximum: 180 },
@@ -94,6 +93,17 @@ const updateAgentStatus = {
       type: 'array',
       items: { type: 'string' }
     },
+    runtimeClasses: {
+      type: 'array',
+      items: { type: 'object' }
+    },
+    availableCdiDevices: {
+      type: 'array',
+      items: { type: 'string' }
+    },
+    modelStatus: { type: 'string' },
+    activeModels: { type: 'integer', minimum: 0 },
+    modelLastUpdate: { type: 'integer', minimum: 0 },
     runtimeAgentPhase: { type: 'string' },
     controlPlaneQuiesced: { type: 'boolean' },
     gpsMode: { type: 'string' },
@@ -123,34 +133,14 @@ const microserviceStatus = {
     memoryUsage: { type: 'number' },
     ipAddress: { type: 'string' },
     ipAddressExternal: { type: 'string' },
-    execSessionIds: { type: 'array', items: { type: 'string' } }
+    execSessionIds: { type: 'array', items: { type: 'string' } },
+    podId: { type: 'string' }
   },
   required: ['id'],
   additionalProperties: true
 }
 
-const updateHardwareInfo = {
-  id: '/updateHardwareInfo',
-  type: 'object',
-  properties: {
-    info: { type: 'string' }
-  },
-  required: ['info'],
-  additionalProperties: true
-}
-
-const updateUsbInfo = {
-  id: '/updateUsbInfo',
-  type: 'object',
-  properties: {
-    info: { type: 'string' }
-  },
-  required: ['info'],
-  additionalProperties: true
-}
-
 module.exports = {
-  mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentGps, updateAgentStatus,
-    updateHardwareInfo, updateUsbInfo],
+  mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentGps, updateAgentStatus],
   innerSchemas: [microserviceStatus]
 }

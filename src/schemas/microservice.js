@@ -1,4 +1,4 @@
-const { nameRegex } = require('./utils/utils')
+const { nameRegex, serviceNameRegex } = require('./utils/utils')
 
 const microserviceCreate = {
   id: '/microserviceCreate',
@@ -66,10 +66,75 @@ const microserviceCreate = {
       items: { type: 'string' }
     },
     runAsUser: { type: 'string' },
+    runAsGroup: { type: 'string' },
+    readOnlyRootFilesystem: { type: 'boolean' },
     platform: { type: 'string' },
     runtime: { type: 'string' },
     cpuSetCpus: { type: 'string' },
     memoryLimit: { type: 'integer' },
+    memoryReservation: { type: 'integer', minimum: 1 },
+    memorySwap: { type: 'integer' },
+    shmSize: { type: 'integer', minimum: 1 },
+    cpus: { type: 'number' },
+    workingDir: { type: 'string' },
+    entrypoint: {
+      type: 'array',
+      items: { type: 'string' }
+    },
+    commands: {
+      type: 'array',
+      items: { type: 'string' }
+    },
+    sysctls: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        'kernel.shm_rmid_forced': { type: 'string' },
+        'net.ipv4.ip_local_port_range': { type: 'string' },
+        'net.ipv4.tcp_syncookies': { type: 'string' },
+        'net.ipv4.ping_group_range': { type: 'string' },
+        'net.ipv4.ip_unprivileged_port_start': { type: 'string' },
+        'net.ipv4.ip_local_reserved_ports': { type: 'string' },
+        'net.ipv4.tcp_keepalive_time': { type: 'string' },
+        'net.ipv4.tcp_fin_timeout': { type: 'string' },
+        'net.ipv4.tcp_keepalive_intvl': { type: 'string' },
+        'net.ipv4.tcp_keepalive_probes': { type: 'string' },
+        'net.ipv4.tcp_rmem': { type: 'string' },
+        'net.ipv4.tcp_wmem': { type: 'string' },
+        'net.ipv4.tcp_slow_start_after_idle': { type: 'string' },
+        'net.ipv4.tcp_notsent_lowat': { type: 'string' }
+      }
+    },
+    ulimits: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        core: { $ref: '/containerUlimit' },
+        cpu: { $ref: '/containerUlimit' },
+        data: { $ref: '/containerUlimit' },
+        fsize: { $ref: '/containerUlimit' },
+        locks: { $ref: '/containerUlimit' },
+        memlock: { $ref: '/containerUlimit' },
+        msgqueue: { $ref: '/containerUlimit' },
+        nice: { $ref: '/containerUlimit' },
+        nofile: { $ref: '/containerUlimit' },
+        nproc: { $ref: '/containerUlimit' },
+        rss: { $ref: '/containerUlimit' },
+        rtprio: { $ref: '/containerUlimit' },
+        rttime: { $ref: '/containerUlimit' },
+        sigpending: { $ref: '/containerUlimit' },
+        stack: { $ref: '/containerUlimit' }
+      }
+    },
+    devices: {
+      type: 'array',
+      items: { $ref: '/containerDevice' }
+    },
+    tmpfs: {
+      type: 'array',
+      items: { $ref: '/containerTmpfs' }
+    },
+    models: { $ref: '/microserviceCatalog' },
     natsConfig: { $ref: '/microserviceNatsConfig' },
     healthCheck: {
       type: 'object',
@@ -155,10 +220,75 @@ const microserviceUpdate = {
       items: { type: 'string' }
     },
     runAsUser: { type: 'string' },
+    runAsGroup: { type: 'string' },
+    readOnlyRootFilesystem: { type: 'boolean' },
     platform: { type: 'string' },
     runtime: { type: 'string' },
     cpuSetCpus: { type: 'string' },
     memoryLimit: { type: 'integer' },
+    memoryReservation: { type: 'integer', minimum: 1 },
+    memorySwap: { type: 'integer' },
+    shmSize: { type: 'integer', minimum: 1 },
+    cpus: { type: 'number' },
+    workingDir: { type: 'string' },
+    entrypoint: {
+      type: 'array',
+      items: { type: 'string' }
+    },
+    commands: {
+      type: 'array',
+      items: { type: 'string' }
+    },
+    sysctls: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        'kernel.shm_rmid_forced': { type: 'string' },
+        'net.ipv4.ip_local_port_range': { type: 'string' },
+        'net.ipv4.tcp_syncookies': { type: 'string' },
+        'net.ipv4.ping_group_range': { type: 'string' },
+        'net.ipv4.ip_unprivileged_port_start': { type: 'string' },
+        'net.ipv4.ip_local_reserved_ports': { type: 'string' },
+        'net.ipv4.tcp_keepalive_time': { type: 'string' },
+        'net.ipv4.tcp_fin_timeout': { type: 'string' },
+        'net.ipv4.tcp_keepalive_intvl': { type: 'string' },
+        'net.ipv4.tcp_keepalive_probes': { type: 'string' },
+        'net.ipv4.tcp_rmem': { type: 'string' },
+        'net.ipv4.tcp_wmem': { type: 'string' },
+        'net.ipv4.tcp_slow_start_after_idle': { type: 'string' },
+        'net.ipv4.tcp_notsent_lowat': { type: 'string' }
+      }
+    },
+    ulimits: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        core: { $ref: '/containerUlimit' },
+        cpu: { $ref: '/containerUlimit' },
+        data: { $ref: '/containerUlimit' },
+        fsize: { $ref: '/containerUlimit' },
+        locks: { $ref: '/containerUlimit' },
+        memlock: { $ref: '/containerUlimit' },
+        msgqueue: { $ref: '/containerUlimit' },
+        nice: { $ref: '/containerUlimit' },
+        nofile: { $ref: '/containerUlimit' },
+        nproc: { $ref: '/containerUlimit' },
+        rss: { $ref: '/containerUlimit' },
+        rtprio: { $ref: '/containerUlimit' },
+        rttime: { $ref: '/containerUlimit' },
+        sigpending: { $ref: '/containerUlimit' },
+        stack: { $ref: '/containerUlimit' }
+      }
+    },
+    devices: {
+      type: 'array',
+      items: { $ref: '/containerDevice' }
+    },
+    tmpfs: {
+      type: 'array',
+      items: { $ref: '/containerTmpfs' }
+    },
+    models: { $ref: '/microserviceCatalog' },
     natsConfig: { $ref: '/microserviceNatsConfig' },
     healthCheck: {
       type: 'object',
@@ -294,7 +424,85 @@ const microserviceNatsConfig = {
   additionalProperties: false
 }
 
+const microserviceCatalogItem = {
+  id: '/microserviceCatalogItem',
+  type: 'object',
+  properties: {
+    name: {
+      type: 'string',
+      pattern: serviceNameRegex,
+      minLength: 1,
+      maxLength: 63
+    }
+  },
+  required: ['name'],
+  additionalProperties: false
+}
+
+const microserviceCatalog = {
+  id: '/microserviceCatalog',
+  type: 'object',
+  properties: {
+    bindPath: { type: 'string' },
+    permissions: { enum: ['ro', 'rw'] },
+    items: {
+      type: 'array',
+      items: { $ref: '/microserviceCatalogItem' }
+    }
+  },
+  additionalProperties: false
+}
+
+const microserviceCatalogPatch = {
+  id: '/microserviceCatalogPatch',
+  type: 'object',
+  properties: {
+    bindPath: { type: 'string' },
+    permissions: { enum: ['ro', 'rw'] },
+    items: {
+      type: 'array',
+      items: { $ref: '/microserviceCatalogItem' }
+    }
+  },
+  additionalProperties: false
+}
+
+const containerDevice = {
+  id: '/containerDevice',
+  type: 'object',
+  properties: {
+    hostPath: { type: 'string', pattern: '^/dev/' },
+    containerPath: { type: 'string', minLength: 1 },
+    permissions: { type: 'string', pattern: '^[rwm]+$' }
+  },
+  required: ['hostPath', 'containerPath'],
+  additionalProperties: false
+}
+
+const containerTmpfs = {
+  id: '/containerTmpfs',
+  type: 'object',
+  properties: {
+    containerPath: { type: 'string', minLength: 1 },
+    size: { type: 'integer', minimum: 1 },
+    mode: { type: 'string' }
+  },
+  required: ['containerPath'],
+  additionalProperties: false
+}
+
+const containerUlimit = {
+  id: '/containerUlimit',
+  type: 'object',
+  properties: {
+    soft: { type: 'integer' },
+    hard: { type: 'integer' }
+  },
+  required: ['soft', 'hard'],
+  additionalProperties: false
+}
+
 module.exports = {
-  mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, extraHosts, portsCreate, microserviceDelete, volumeMappings, microserviceHealthCheck],
-  innerSchemas: [volumeMappings, ports, env, extraHosts, microserviceCreate, microserviceHealthCheck, microserviceNatsConfig]
+  mainSchemas: [microserviceCreate, microserviceUpdate, env, ports, extraHosts, portsCreate, microserviceDelete, volumeMappings, microserviceHealthCheck, microserviceCatalogPatch],
+  innerSchemas: [volumeMappings, ports, env, extraHosts, microserviceCreate, microserviceHealthCheck, microserviceNatsConfig, microserviceCatalog, microserviceCatalogItem, containerDevice, containerTmpfs, containerUlimit]
 }

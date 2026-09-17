@@ -62,6 +62,12 @@ const updateSystemMicroserviceYAMLEndPoint = async function (req) {
   return MicroservicesService.updateSystemMicroserviceEndPoint(microserviceUuid, microservice, false)
 }
 
+const updateMicroserviceCatalogEndPoint = async function (req) {
+  const microserviceUuid = req.params.uuid
+  const catalog = req.body
+  return MicroservicesService.updateMicroserviceCatalogEndPoint(microserviceUuid, catalog, false)
+}
+
 const updateMicroserviceConfigEndPoint = async function (req) {
   const microserviceUuid = req.params.uuid
   const config = req.body
@@ -214,6 +220,7 @@ module.exports = {
   createMicroserviceYAMLEndPoint,
   updateMicroserviceYAMLEndPoint,
   updateSystemMicroserviceYAMLEndPoint,
+  updateMicroserviceCatalogEndPoint,
   updateMicroserviceConfigEndPoint,
   getMicroserviceConfigEndPoint,
   updateSystemMicroserviceConfigEndPoint,

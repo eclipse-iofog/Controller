@@ -18,12 +18,23 @@ const VolumeMappingManager = require('../../../src/data/managers/volume-mapping-
 const MicroserviceExtraHostManager = require('../../../src/data/managers/microservice-extra-host-manager')
 const MicroserviceEnvManager = require('../../../src/data/managers/microservice-env-manager')
 const MicroserviceArgManager = require('../../../src/data/managers/microservice-arg-manager')
+const MicroserviceEntrypointManager = require('../../../src/data/managers/microservice-entrypoint-manager')
+const MicroserviceDeviceManager = require('../../../src/data/managers/microservice-device-manager')
+const MicroserviceTmpfsManager = require('../../../src/data/managers/microservice-tmpfs-manager')
+const MicroserviceUlimitManager = require('../../../src/data/managers/microservice-ulimit-manager')
+const MicroserviceModelManager = require('../../../src/data/managers/microservice-model-manager')
+const MicroserviceModelItemManager = require('../../../src/data/managers/microservice-model-item-manager')
 const MicroserviceCdiDevManager = require('../../../src/data/managers/microservice-cdi-device-manager')
 const MicroserviceCapAddManager = require('../../../src/data/managers/microservice-cap-add-manager')
 const MicroserviceCapDropManager = require('../../../src/data/managers/microservice-cap-drop-manager')
 const MicroserviceHealthCheckManager = require('../../../src/data/managers/microservice-healthcheck-manager')
 const VolumeMountService = require('../../../src/services/volume-mount-service')
+const RuntimeClassService = require('../../../src/services/runtime-class-service')
+const ModelService = require('../../../src/services/model-service')
+const MicroserviceTemplateService = require('../../../src/services/microservice-template-service')
+const FleetModelManager = require('../../../src/data/managers/fleet-model-manager')
 const RbacRoleManager = require('../../../src/data/managers/rbac-role-manager')
+const ErrorMessages = require('../../../src/helpers/error-messages')
 const RbacServiceAccountManager = require('../../../src/data/managers/rbac-service-account-manager')
 const NatsAuthService = require('../../../src/services/nats-auth-service')
 const Errors = require('../../../src/helpers/errors')
@@ -47,19 +58,45 @@ function buildMicroserviceRecord (fields = {}) {
   }
 }
 
+function stubChildTableDeps (sandbox) {
+  sandbox.stub(MicroserviceArgManager, 'findAll').resolves([])
+  sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').resolves([])
+  sandbox.stub(MicroserviceArgManager, 'create').resolves()
+  sandbox.stub(MicroserviceArgManager, 'delete').resolves()
+  sandbox.stub(MicroserviceEntrypointManager, 'findAll').resolves([])
+  sandbox.stub(MicroserviceEntrypointManager, 'create').resolves()
+  sandbox.stub(MicroserviceEntrypointManager, 'delete').resolves()
+  sandbox.stub(MicroserviceDeviceManager, 'findAll').resolves([])
+  sandbox.stub(MicroserviceDeviceManager, 'create').resolves()
+  sandbox.stub(MicroserviceDeviceManager, 'delete').resolves()
+  sandbox.stub(MicroserviceTmpfsManager, 'findAll').resolves([])
+  sandbox.stub(MicroserviceTmpfsManager, 'create').resolves()
+  sandbox.stub(MicroserviceTmpfsManager, 'delete').resolves()
+  sandbox.stub(MicroserviceUlimitManager, 'findAll').resolves([])
+  sandbox.stub(MicroserviceUlimitManager, 'create').resolves()
+  sandbox.stub(MicroserviceUlimitManager, 'delete').resolves()
+  sandbox.stub(MicroserviceModelManager, 'findOne').resolves(null)
+  sandbox.stub(MicroserviceModelManager, 'create').resolves()
+  sandbox.stub(MicroserviceModelManager, 'delete').resolves()
+  sandbox.stub(MicroserviceModelItemManager, 'findAll').resolves([])
+  sandbox.stub(MicroserviceModelItemManager, 'create').resolves()
+  sandbox.stub(MicroserviceModelItemManager, 'delete').resolves()
+}
+
 function stubBuildGetResponseDeps (sandbox) {
   sandbox.stub(MicroservicePortService, 'getPortMappings').resolves([])
   sandbox.stub(MicroserviceExtraHostManager, 'findAll').resolves([])
   sandbox.stub(CatalogItemImageManager, 'findAll').resolves([])
   sandbox.stub(VolumeMappingManager, 'findAll').resolves([])
   sandbox.stub(MicroserviceEnvManager, 'findAllExcludeFields').resolves([])
-  sandbox.stub(MicroserviceArgManager, 'findAllExcludeFields').resolves([])
   sandbox.stub(MicroserviceCdiDevManager, 'findAllExcludeFields').resolves([])
   sandbox.stub(MicroserviceCapAddManager, 'findAllExcludeFields').resolves([])
   sandbox.stub(MicroserviceCapDropManager, 'findAllExcludeFields').resolves([])
   sandbox.stub(MicroserviceStatusManager, 'findAllExcludeFields').resolves([])
   sandbox.stub(MicroserviceExecStatusManager, 'findAllExcludeFields').resolves([])
   sandbox.stub(MicroserviceHealthCheckManager, 'findAllExcludeFields').resolves([])
+  sandbox.stub(RbacServiceAccountManager, 'findOneByMicroserviceUuid').resolves(null)
+  stubChildTableDeps(sandbox)
 }
 
 function stubServiceAccountDeps (sandbox) {
@@ -97,12 +134,14 @@ function stubCreateMicroserviceDeps (sandbox, { msvcUuid = 'msvc-uuid', appId = 
     return Promise.resolve(null)
   })
   sandbox.stub(MicroservicePortService, 'validatePortMappings').resolves()
+  sandbox.stub(MicroservicePortService, 'switchOnUpdateFlagsForMicroservicesForPortMapping').resolves()
   sandbox.stub(CatalogItemImageManager, 'bulkCreate').resolves()
   sandbox.stub(MicroserviceStatusManager, 'create').resolves()
   sandbox.stub(MicroserviceExecStatusManager, 'create').resolves()
   sandbox.stub(ChangeTrackingService, 'update').resolves()
   sandbox.stub(VolumeMappingManager, 'bulkCreate').resolves()
   stubServiceAccountDeps(sandbox)
+  stubChildTableDeps(sandbox)
 }
 
 function stubUpdateMicroserviceDeps (sandbox, existing) {
@@ -112,6 +151,7 @@ function stubUpdateMicroserviceDeps (sandbox, existing) {
   sandbox.stub(Validator, 'validate').resolves(true)
   sandbox.stub(AppHelper, 'deleteUndefinedFields').callsFake((value) => value)
   sandbox.stub(FogManager, 'findOne').resolves(fog)
+  sandbox.stub(RegistryManager, 'findOne').resolves({ id: existing.registryId || 1, type: 'oci' })
   sandbox.stub(MicroserviceManager, 'findOneWithCategory').resolves({
     ...existing,
     catalogItem: existing.catalogItem || null,
@@ -125,7 +165,9 @@ function stubUpdateMicroserviceDeps (sandbox, existing) {
   sandbox.stub(ServiceManager, 'findOne').resolves(null)
   sandbox.stub(ChangeTrackingService, 'update').resolves()
   sandbox.stub(VolumeMappingManager, 'delete').resolves()
+  sandbox.stub(VolumeMappingManager, 'findAll').resolves([])
   stubServiceAccountDeps(sandbox)
+  stubChildTableDeps(sandbox)
 }
 
 describe('Microservices Service', () => {
@@ -215,6 +257,81 @@ describe('Microservices Service', () => {
     })
   })
 
+  describe('.buildGetMicroserviceResponse()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const roleRef = {
+      kind: 'Role',
+      name: 'custom-role',
+      apiGroup: 'edgelet.iofog.org/v1'
+    }
+
+    def('subject', () => $service.buildGetMicroserviceResponse($microservice, transaction))
+
+    beforeEach(() => {
+      stubBuildGetResponseDeps($sandbox)
+      $sandbox.stub(ApplicationManager, 'findOne').resolves({ name: 'my-app' })
+    })
+
+    context('when serviceAccount is preloaded on the microservice', () => {
+      def('microservice', () => ({
+        uuid: msvcUuid,
+        name: 'test-msvc',
+        applicationId: 42,
+        logSize: 1024,
+        serviceAccount: { name: 'test-msvc', roleRef }
+      }))
+
+      it('returns shaped serviceAccount with roleRef only', async () => {
+        const result = await $subject
+        expect(RbacServiceAccountManager.findOneByMicroserviceUuid).to.not.have.been.called
+        expect(result.serviceAccount).to.eql({ roleRef })
+      })
+
+      it('does not leak raw serviceAccount database fields', async () => {
+        const result = await $subject
+        expect(result.serviceAccount).to.not.have.property('id')
+        expect(result.serviceAccount).to.not.have.property('microserviceUuid')
+        expect(result.serviceAccount).to.not.have.property('roleId')
+      })
+    })
+
+    context('when serviceAccount is not preloaded', () => {
+      def('microservice', () => ({
+        uuid: msvcUuid,
+        name: 'test-msvc',
+        applicationId: 42,
+        logSize: 1024
+      }))
+
+      beforeEach(() => {
+        RbacServiceAccountManager.findOneByMicroserviceUuid.resolves({
+          name: 'test-msvc',
+          roleRef
+        })
+      })
+
+      it('loads serviceAccount by microservice uuid', async () => {
+        const result = await $subject
+        expect(RbacServiceAccountManager.findOneByMicroserviceUuid).to.have.been.calledWith(msvcUuid, transaction)
+        expect(result.serviceAccount).to.eql({ roleRef })
+      })
+    })
+
+    context('when microservice has no service account', () => {
+      def('microservice', () => ({
+        uuid: msvcUuid,
+        name: 'test-msvc',
+        applicationId: 42,
+        logSize: 1024
+      }))
+
+      it('returns null serviceAccount', async () => {
+        const result = await $subject
+        expect(result.serviceAccount).to.equal(null)
+      })
+    })
+  })
+
   describe('.createMicroserviceEndPoint()', () => {
     const msvcUuid = 'new-msvc-uuid'
     const microserviceData = {
@@ -287,6 +404,60 @@ describe('Microservices Service', () => {
         expect(VolumeMappingManager.create).to.have.been.called
       })
     })
+
+    context('when runtime is set', () => {
+      it('auto-links the runtime class on an edgelet fog', async () => {
+        FogManager.findOne.resolves({
+          uuid: 'fog-uuid',
+          archId: 1,
+          name: 'edge-1',
+          availableRuntimes: ['spin'],
+          containerEngine: 'edgelet'
+        })
+        const ensure = $sandbox.stub(RuntimeClassService, 'ensureRuntimeClassLinkedToFog').resolves(true)
+
+        await $service.createMicroserviceEndPoint({
+          ...microserviceData,
+          runtime: 'spin'
+        }, isCLI, transaction)
+
+        expect(ensure).to.have.been.calledWith('fog-uuid', 'spin', transaction)
+      })
+
+      it('rejects when the runtime is not in availableRuntimes', async () => {
+        FogManager.findOne.resolves({
+          uuid: 'fog-uuid',
+          archId: 1,
+          name: 'edge-1',
+          availableRuntimes: ['runc'],
+          containerEngine: 'edgelet'
+        })
+        const ensure = $sandbox.stub(RuntimeClassService, 'ensureRuntimeClassLinkedToFog').resolves(true)
+
+        await expect($service.createMicroserviceEndPoint({
+          ...microserviceData,
+          runtime: 'spin'
+        }, isCLI, transaction)).to.be.rejectedWith(Errors.ValidationError, /not available/)
+        expect(ensure).to.not.have.been.called
+      })
+
+      it('rejects when the runtime class row is missing', async () => {
+        FogManager.findOne.resolves({
+          uuid: 'fog-uuid',
+          archId: 1,
+          name: 'edge-1',
+          availableRuntimes: ['spin'],
+          containerEngine: 'edgelet'
+        })
+        $sandbox.stub(RuntimeClassService, 'ensureRuntimeClassLinkedToFog')
+          .rejects(new Errors.ValidationError("RuntimeClass 'spin' does not exist"))
+
+        await expect($service.createMicroserviceEndPoint({
+          ...microserviceData,
+          runtime: 'spin'
+        }, isCLI, transaction)).to.be.rejectedWith(Errors.ValidationError, /does not exist/)
+      })
+    })
   })
 
   describe('.updateMicroserviceEndPoint()', () => {
@@ -310,10 +481,86 @@ describe('Microservices Service', () => {
       expect(ChangeTrackingService.update).to.have.been.called
     })
 
+    context('when runtime is set', () => {
+      def('updateData', () => ({ runtime: 'spin' }))
+
+      it('auto-links the runtime class on an edgelet fog', async () => {
+        FogManager.findOne.resolves({
+          uuid: existing.iofogUuid,
+          archId: 1,
+          name: 'edge-1',
+          availableRuntimes: ['spin'],
+          containerEngine: 'edgelet'
+        })
+        const ensure = $sandbox.stub(RuntimeClassService, 'ensureRuntimeClassLinkedToFog').resolves(true)
+
+        await $subject
+        expect(ensure).to.have.been.calledWith(existing.iofogUuid, 'spin', transaction)
+      })
+    })
+
     context('when renaming', () => {
       def('updateData', () => ({ name: 'new-name' }))
 
       it('rejects rename attempts', () => expect($subject).to.be.rejectedWith('Microservice Resource Name is immutable'))
+    })
+
+    context('when rebasing from a template', () => {
+      def('updateData', () => ({
+        template: {
+          name: 'nginx-edge',
+          variables: { port: '9090' }
+        }
+      }))
+
+      beforeEach(() => {
+        MicroserviceManager.findOne.callsFake((where) => {
+          if (where && where.name && where.uuid) {
+            return Promise.resolve(null)
+          }
+          return Promise.resolve(existing)
+        })
+        $sandbox.stub(CatalogItemImageManager, 'delete').resolves()
+        $sandbox.stub(CatalogItemImageManager, 'bulkCreate').resolves()
+        $sandbox.stub(FleetModelManager, 'findOne').resolves({ uuid: 'model-uuid', name: 'test-model' })
+        $sandbox.stub(ModelService, 'ensureModelsLinkedToFog').resolves(['test-model'])
+        $sandbox.stub(MicroserviceTemplateService, 'getMicroserviceDataFromTemplate').resolves({
+          images: [{ containerImage: 'nginx:alpine', archId: 1 }],
+          registryId: 1,
+          commands: ['nginx', '-g', 'daemon off;'],
+          models: {
+            bindPath: '/models',
+            permissions: 'ro',
+            items: [{ name: 'test-model' }]
+          }
+        })
+      })
+
+      it('expands the template and preserves identity from the existing microservice', async () => {
+        await $subject
+
+        expect(MicroserviceTemplateService.getMicroserviceDataFromTemplate).to.have.been.calledWith(
+          { name: 'nginx-edge', variables: { port: '9090' } },
+          isCLI,
+          transaction
+        )
+        expect(Validator.validate).to.have.been.calledWith(
+          sinon.match({
+            name: existing.name,
+            iofogUuid: existing.iofogUuid,
+            images: [{ containerImage: 'nginx:alpine', archId: 1 }]
+          }),
+          Validator.schemas.microserviceUpdate
+        )
+        expect(MicroserviceModelItemManager.create).to.have.been.calledWith(
+          sinon.match({ name: 'test-model' }),
+          transaction
+        )
+        expect(MicroserviceArgManager.create).to.have.been.calledWith(
+          sinon.match({ cmd: 'nginx' }),
+          transaction
+        )
+      })
     })
 
     context('when microservice is controller', () => {
@@ -639,6 +886,274 @@ describe('Microservices Service', () => {
           'Volume mappings of type serviceAccount are system-managed and cannot be created by users'
         )
       })
+    })
+  })
+
+  describe('.createMicroserviceEndPoint() catalog and registry', () => {
+    const msvcUuid = 'new-msvc-uuid'
+    const microserviceData = {
+      name: 'new-msvc',
+      application: 'my-app',
+      iofogUuid: 'fog-uuid',
+      images: [{ containerImage: 'demo:latest', archId: 1 }],
+      registryId: 1
+    }
+
+    beforeEach(() => {
+      stubCreateMicroserviceDeps($sandbox, { msvcUuid })
+    })
+
+    it('rejects a Hugging Face registry for microservice images', async () => {
+      RegistryManager.findOne.resolves({ id: 3, type: 'hf' })
+
+      return expect($service.createMicroserviceEndPoint({
+        ...microserviceData,
+        registryId: 3
+      }, isCLI, transaction)).to.be.rejectedWith(
+        AppHelper.formatMessage(ErrorMessages.REGISTRY_NOT_OCI_FOR_IMAGE, 3)
+      )
+    })
+
+    it('auto-attaches catalog model names to the target agent', async () => {
+      $sandbox.stub(FleetModelManager, 'findOne').resolves({ uuid: 'model-uuid', name: 'test-model' })
+      const attach = $sandbox.stub(ModelService, 'ensureModelsLinkedToFog').resolves(['test-model'])
+
+      await $service.createMicroserviceEndPoint({
+        ...microserviceData,
+        models: {
+          bindPath: '/models',
+          permissions: 'ro',
+          items: [{ name: 'test-model' }]
+        }
+      }, isCLI, transaction)
+
+      expect(attach).to.have.been.calledWith('fog-uuid', ['test-model'], transaction)
+      expect(MicroserviceModelManager.create).to.have.been.calledWith(
+        sinon.match({ bindPath: '/models', permissions: 'ro' }),
+        transaction
+      )
+      expect(MicroserviceModelItemManager.create).to.have.been.calledWith(
+        sinon.match({ name: 'test-model' }),
+        transaction
+      )
+      const created = MicroserviceManager.create.firstCall.args[0]
+      expect(created).to.not.have.property('models')
+      expect(created).to.not.have.property('commands')
+    })
+
+    it('persists commands when cmd is sent as an alias', async () => {
+      await $service.createMicroserviceEndPoint({
+        ...microserviceData,
+        cmd: ['python', 'app.py']
+      }, isCLI, transaction)
+
+      const created = MicroserviceManager.create.firstCall.args[0]
+      expect(created).to.not.have.property('commands')
+      expect(MicroserviceArgManager.create).to.have.been.calledWith(
+        sinon.match({ cmd: 'python' }),
+        transaction
+      )
+      expect(MicroserviceArgManager.create).to.have.been.calledWith(
+        sinon.match({ cmd: 'app.py' }),
+        transaction
+      )
+    })
+
+    it('deploys from a template with identity overlay and merged catalog/container fields', async () => {
+      $sandbox.stub(FleetModelManager, 'findOne').resolves({ uuid: 'model-uuid', name: 'test-model' })
+      $sandbox.stub(ModelService, 'ensureModelsLinkedToFog').resolves(['test-model'])
+      $sandbox.stub(MicroserviceTemplateService, 'getMicroserviceDataFromTemplate').resolves({
+        images: [{ containerImage: 'nginx:alpine', archId: 1 }],
+        registryId: 1,
+        commands: ['nginx', '-g', 'daemon off;'],
+        models: {
+          bindPath: '/models',
+          permissions: 'ro',
+          items: [{ name: 'test-model' }]
+        }
+      })
+
+      await $service.createMicroserviceEndPoint({
+        name: 'my-instance',
+        application: 'my-app',
+        iofogUuid: 'fog-uuid',
+        template: {
+          name: 'nginx-edge',
+          variables: { port: '8080' }
+        }
+      }, isCLI, transaction)
+
+      expect(MicroserviceTemplateService.getMicroserviceDataFromTemplate).to.have.been.calledWith(
+        { name: 'nginx-edge', variables: { port: '8080' } },
+        isCLI,
+        transaction
+      )
+      expect(Validator.validate).to.have.been.calledWith(
+        sinon.match({
+          name: 'my-instance',
+          application: 'my-app',
+          iofogUuid: 'fog-uuid',
+          images: [{ containerImage: 'nginx:alpine', archId: 1 }]
+        }),
+        Validator.schemas.microserviceCreate
+      )
+      const created = MicroserviceManager.create.firstCall.args[0]
+      expect(created.name).to.equal('my-instance')
+      expect(created).to.not.have.property('models')
+      expect(created).to.not.have.property('commands')
+      expect(MicroserviceModelItemManager.create).to.have.been.calledWith(
+        sinon.match({ name: 'test-model' }),
+        transaction
+      )
+      expect(MicroserviceArgManager.create).to.have.been.calledWith(
+        sinon.match({ cmd: 'nginx' }),
+        transaction
+      )
+    })
+  })
+
+  describe('.updateMicroserviceCatalogEndPoint()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const existingCatalog = {
+      bindPath: '/models',
+      permissions: 'ro',
+      items: [{ name: 'test-model' }]
+    }
+
+    function stubCatalogPatch (sandbox, existing, previousCatalog = null) {
+      sandbox.stub(MicroserviceManager, 'findOneWithCategory').resolves(existing)
+      sandbox.stub(VolumeMappingManager, 'findAll').resolves([])
+      sandbox.stub(FleetModelManager, 'findOne').resolves({ uuid: 'model-uuid', name: 'test-model' })
+      sandbox.stub(ModelService, 'ensureModelsLinkedToFog').resolves([])
+      sandbox.stub(MicroserviceManager, 'update').resolves()
+      sandbox.stub(ChangeTrackingService, 'update').resolves()
+      sandbox.stub(MicroserviceTmpfsManager, 'findAll').resolves([])
+      sandbox.stub(MicroserviceModelManager, 'findOne').resolves(
+        previousCatalog && previousCatalog.bindPath
+          ? { bindPath: previousCatalog.bindPath, permissions: previousCatalog.permissions || 'ro' }
+          : null
+      )
+      sandbox.stub(MicroserviceModelItemManager, 'findAll').resolves(
+        previousCatalog && Array.isArray(previousCatalog.items)
+          ? previousCatalog.items.map((item, id) => ({ id, name: item.name }))
+          : []
+      )
+      sandbox.stub(MicroserviceModelManager, 'delete').resolves()
+      sandbox.stub(MicroserviceModelManager, 'create').resolves()
+      sandbox.stub(MicroserviceModelItemManager, 'delete').resolves()
+      sandbox.stub(MicroserviceModelItemManager, 'create').resolves()
+    }
+
+    it('rebuilds when the catalog goes from empty to non-empty', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubCatalogPatch($sandbox, existing)
+
+      await $service.updateMicroserviceCatalogEndPoint(msvcUuid, {
+        bindPath: '/models',
+        items: [{ name: 'test-model' }]
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: true }),
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceList,
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.not.have.been.calledWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceModels,
+        transaction
+      )
+      expect(MicroserviceModelItemManager.create).to.have.been.calledWith(
+        sinon.match({ name: 'test-model' }),
+        transaction
+      )
+    })
+
+    it('rebuilds when the catalog goes from non-empty to empty', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubCatalogPatch($sandbox, existing, existingCatalog)
+
+      await $service.updateMicroserviceCatalogEndPoint(msvcUuid, {
+        items: []
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: true }),
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceList,
+        transaction
+      )
+    })
+
+    it('rebuilds when bindPath changes', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubCatalogPatch($sandbox, existing, existingCatalog)
+
+      await $service.updateMicroserviceCatalogEndPoint(msvcUuid, {
+        bindPath: '/opt/models',
+        permissions: 'ro',
+        items: [{ name: 'test-model' }]
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: true }),
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceList,
+        transaction
+      )
+    })
+
+    it('rebuilds when permissions change', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubCatalogPatch($sandbox, existing, existingCatalog)
+
+      await $service.updateMicroserviceCatalogEndPoint(msvcUuid, {
+        bindPath: '/models',
+        permissions: 'rw',
+        items: [{ name: 'test-model' }]
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: true }),
+        transaction
+      )
+    })
+
+    it('does not rebuild when only items change on a non-empty catalog', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubCatalogPatch($sandbox, existing, existingCatalog)
+      FleetModelManager.findOne.callsFake(async (where) => ({ uuid: 'model-uuid', name: where.name }))
+
+      await $service.updateMicroserviceCatalogEndPoint(msvcUuid, {
+        bindPath: '/models',
+        permissions: 'ro',
+        items: [{ name: 'test-model' }, { name: 'qwen3-8-27b' }]
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: false }),
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledOnceWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceModels,
+        transaction
+      )
     })
   })
 })

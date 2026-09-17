@@ -2,10 +2,15 @@ const AppHelper = require('../helpers/app-helper')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const constants = require('../helpers/constants')
+const CatalogContainer = require('../helpers/microservice-container-catalog')
 const FogManager = require('../data/managers/iofog-manager')
 const ApplicationManager = require('../data/managers/application-manager')
 const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceArgManager = require('../data/managers/microservice-arg-manager')
+const MicroserviceEntrypointManager = require('../data/managers/microservice-entrypoint-manager')
+const MicroserviceDeviceManager = require('../data/managers/microservice-device-manager')
+const MicroserviceTmpfsManager = require('../data/managers/microservice-tmpfs-manager')
+const MicroserviceUlimitManager = require('../data/managers/microservice-ulimit-manager')
 const MicroserviceCdiDevManager = require('../data/managers/microservice-cdi-device-manager')
 const MicroserviceCapAddManager = require('../data/managers/microservice-cap-add-manager')
 const MicroserviceCapDropManager = require('../data/managers/microservice-cap-drop-manager')
@@ -64,7 +69,8 @@ function buildScalarColumns (spec, { defaultLogSize = constants.MICROSERVICE_DEF
     runAsUser: spec.runAsUser,
     platform: spec.platform,
     cpuSetCpus: spec.cpuSetCpus,
-    memoryLimit: spec.memoryLimit
+    memoryLimit: spec.memoryLimit,
+    ...CatalogContainer.serializeContainerColumns(spec)
   })
 }
 
@@ -255,6 +261,61 @@ async function _updateArg (arg, microserviceUuid, transaction) {
   }
 }
 
+async function _replaceEntrypoint (entrypoint, microserviceUuid, transaction) {
+  await MicroserviceEntrypointManager.delete({ microserviceUuid }, transaction)
+  if (!Array.isArray(entrypoint)) {
+    return
+  }
+  for (const token of entrypoint) {
+    await MicroserviceEntrypointManager.create({ entrypoint: token, microserviceUuid }, transaction)
+  }
+}
+
+async function _replaceDevices (devices, microserviceUuid, transaction) {
+  await MicroserviceDeviceManager.delete({ microserviceUuid }, transaction)
+  if (!Array.isArray(devices)) {
+    return
+  }
+  for (const device of devices) {
+    await MicroserviceDeviceManager.create({
+      hostPath: device.hostPath,
+      containerPath: device.containerPath,
+      permissions: device.permissions || 'rwm',
+      microserviceUuid
+    }, transaction)
+  }
+}
+
+async function _replaceTmpfs (tmpfs, microserviceUuid, transaction) {
+  await MicroserviceTmpfsManager.delete({ microserviceUuid }, transaction)
+  if (!Array.isArray(tmpfs)) {
+    return
+  }
+  for (const entry of tmpfs) {
+    await MicroserviceTmpfsManager.create({
+      containerPath: entry.containerPath,
+      size: entry.size,
+      mode: entry.mode,
+      microserviceUuid
+    }, transaction)
+  }
+}
+
+async function _replaceUlimits (ulimits, microserviceUuid, transaction) {
+  await MicroserviceUlimitManager.delete({ microserviceUuid }, transaction)
+  if (!ulimits || typeof ulimits !== 'object') {
+    return
+  }
+  for (const [name, value] of Object.entries(ulimits)) {
+    await MicroserviceUlimitManager.create({
+      name,
+      soft: value.soft,
+      hard: value.hard,
+      microserviceUuid
+    }, transaction)
+  }
+}
+
 async function _createCdiDevice (microserviceUuid, cdiDevice, transaction) {
   await MicroserviceCdiDevManager.create({ cdiDevices: cdiDevice, microserviceUuid }, transaction)
 }
@@ -306,6 +367,7 @@ async function _updateHealthCheck (microserviceUuid, healthCheck, transaction) {
 }
 
 async function createWorkloadRelations (microservice, spec, { validatedExtraHosts, transaction }) {
+  CatalogContainer.validateContainerFields(spec, {})
   const microserviceUuid = microservice.uuid
 
   if (validatedExtraHosts && validatedExtraHosts.length) {
@@ -320,10 +382,24 @@ async function createWorkloadRelations (microservice, spec, { validatedExtraHost
     }
   }
 
-  if (spec.cmd) {
-    for (const arg of spec.cmd) {
+  const argv = CatalogContainer.resolveProcessArgv(spec)
+  if (argv) {
+    for (const arg of argv) {
       await _createArg(microserviceUuid, arg, transaction)
     }
+  }
+
+  if (spec.entrypoint !== undefined) {
+    await _replaceEntrypoint(spec.entrypoint, microserviceUuid, transaction)
+  }
+  if (spec.devices !== undefined) {
+    await _replaceDevices(spec.devices, microserviceUuid, transaction)
+  }
+  if (spec.tmpfs !== undefined) {
+    await _replaceTmpfs(spec.tmpfs, microserviceUuid, transaction)
+  }
+  if (spec.ulimits !== undefined) {
+    await _replaceUlimits(spec.ulimits, microserviceUuid, transaction)
   }
 
   if (spec.cdiDevices) {
@@ -350,6 +426,8 @@ async function createWorkloadRelations (microservice, spec, { validatedExtraHost
 }
 
 async function updateWorkloadRelations (microserviceUuid, spec, { validatedExtraHosts, transaction }) {
+  CatalogContainer.validateContainerFields(spec, {})
+
   if (validatedExtraHosts) {
     await _updateExtraHosts(validatedExtraHosts, microserviceUuid, transaction)
   }
@@ -358,8 +436,22 @@ async function updateWorkloadRelations (microserviceUuid, spec, { validatedExtra
     await _updateEnv(spec.env, microserviceUuid, transaction)
   }
 
-  if (spec.cmd) {
-    await _updateArg(spec.cmd, microserviceUuid, transaction)
+  const argv = CatalogContainer.resolveProcessArgv(spec)
+  if (argv !== undefined) {
+    await _updateArg(argv, microserviceUuid, transaction)
+  }
+
+  if (spec.entrypoint !== undefined) {
+    await _replaceEntrypoint(spec.entrypoint, microserviceUuid, transaction)
+  }
+  if (spec.devices !== undefined) {
+    await _replaceDevices(spec.devices, microserviceUuid, transaction)
+  }
+  if (spec.tmpfs !== undefined) {
+    await _replaceTmpfs(spec.tmpfs, microserviceUuid, transaction)
+  }
+  if (spec.ulimits !== undefined) {
+    await _replaceUlimits(spec.ulimits, microserviceUuid, transaction)
   }
 
   if (spec.cdiDevices) {
@@ -400,10 +492,23 @@ function shouldRebuildForWorkloadChange (existing, spec, { config, annotations, 
     spec.ports ||
     spec.extraHosts ||
     spec.cmd ||
+    spec.commands ||
+    spec.entrypoint ||
     spec.cdiDevices ||
     spec.capAdd ||
     spec.capDrop ||
-    spec.healthCheck
+    spec.healthCheck ||
+    spec.runAsGroup ||
+    spec.readOnlyRootFilesystem ||
+    spec.workingDir ||
+    spec.cpus ||
+    spec.memoryReservation ||
+    spec.memorySwap ||
+    spec.shmSize ||
+    spec.sysctls ||
+    spec.ulimits ||
+    spec.devices ||
+    spec.tmpfs
   )
 }
 

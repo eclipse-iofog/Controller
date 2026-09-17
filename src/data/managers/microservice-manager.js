@@ -9,6 +9,12 @@ const MicroserviceCdiDev = models.MicroserviceCdiDev
 const MicroserviceCapAdd = models.MicroserviceCapAdd
 const MicroserviceCapDrop = models.MicroserviceCapDrop
 const VolumeMapping = models.VolumeMapping
+const MicroserviceEntrypoint = models.MicroserviceEntrypoint
+const MicroserviceDevice = models.MicroserviceDevice
+const MicroserviceTmpfs = models.MicroserviceTmpfs
+const MicroserviceUlimit = models.MicroserviceUlimit
+const MicroserviceModel = models.MicroserviceModel
+const MicroserviceModelItem = models.MicroserviceModelItem
 const CatalogItem = models.CatalogItem
 const CatalogItemImage = models.CatalogItemImage
 const Fog = models.Fog
@@ -30,6 +36,47 @@ const microserviceExcludedFields = [
   'catalog_item_id',
   'iofog_uuid'
 ]
+
+function containerChildIncludes () {
+  return [
+    {
+      model: MicroserviceEntrypoint,
+      as: 'entrypoint',
+      required: false,
+      attributes: ['id', 'entrypoint']
+    },
+    {
+      model: MicroserviceDevice,
+      as: 'devices',
+      required: false,
+      attributes: ['id', 'hostPath', 'containerPath', 'permissions']
+    },
+    {
+      model: MicroserviceTmpfs,
+      as: 'tmpfs',
+      required: false,
+      attributes: ['id', 'containerPath', 'size', 'mode']
+    },
+    {
+      model: MicroserviceUlimit,
+      as: 'ulimits',
+      required: false,
+      attributes: ['id', 'name', 'soft', 'hard']
+    },
+    {
+      model: MicroserviceModel,
+      as: 'microserviceModel',
+      required: false,
+      attributes: ['bindPath', 'permissions']
+    },
+    {
+      model: MicroserviceModelItem,
+      as: 'modelItems',
+      required: false,
+      attributes: ['id', 'name']
+    }
+  ]
+}
 
 class MicroserviceManager extends BaseManager {
   getEntity () {
@@ -56,6 +103,7 @@ class MicroserviceManager extends BaseManager {
           required: false,
           attributes: ['cmd']
         },
+        ...containerChildIncludes(),
         {
           model: MicroserviceCdiDev,
           as: 'cdiDevices',
@@ -152,6 +200,7 @@ class MicroserviceManager extends BaseManager {
           required: false,
           attributes: ['cmd', 'id']
         },
+        ...containerChildIncludes(),
         {
           model: MicroserviceCdiDev,
           as: 'cdiDevices',
@@ -272,6 +321,7 @@ class MicroserviceManager extends BaseManager {
           required: false,
           attributes: ['cmd']
         },
+        ...containerChildIncludes(),
         {
           model: MicroserviceCdiDev,
           as: 'cdiDevices',
