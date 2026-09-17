@@ -68,7 +68,6 @@ module.exports = [
   {
     method: 'patch',
     path: '/api/v3/microserviceTemplates/:name',
-    supportSubstitution: true,
     middleware: async (req, res) => {
       logger.apiReq(req)
       await rbacMiddleware.protect()(req, res, async () => {
@@ -96,7 +95,6 @@ module.exports = [
   {
     method: 'post',
     path: '/api/v3/microserviceTemplates',
-    supportSubstitution: true,
     middleware: async (req, res) => {
       logger.apiReq(req)
       await rbacMiddleware.protect()(req, res, async () => {

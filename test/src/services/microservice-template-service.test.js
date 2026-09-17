@@ -51,7 +51,7 @@ describe('Microservice Template Service', () => {
       $sandbox.stub(MicroserviceTemplateManager, 'findOnePopulated').resolves(stubTemplateRow())
     })
 
-    it('creates a template and strips instance identity fields', async () => {
+    it('creates a template and strips deploy instance fields only', async () => {
       const result = await MicroserviceTemplateService.createMicroserviceTemplateEndpoint({
         name: 'nginx-edge',
         description: 'nginx at the edge',
@@ -59,16 +59,19 @@ describe('Microservice Template Service', () => {
         microservice: {
           ...templateSpec(),
           name: 'should-not-store',
-          application: 'should-not-store',
+          application: '{{ app-name }}',
+          agentName: '{{ agent-name }}',
           iofogUuid: 'fog-uuid'
         }
       }, transaction)
 
       expect(result.name).to.equal('nginx-edge')
-      expect(result.microservice).to.not.have.property('name')
-      expect(result.microservice).to.not.have.property('application')
-      expect(result.microservice).to.not.have.property('iofogUuid')
-      expect(result.microservice.models.items).to.eql([{ name: 'test-model' }])
+      const storedMicroservice = JSON.parse(MicroserviceTemplateManager.create.getCall(0).args[0].microserviceJSON)
+      expect(storedMicroservice).to.not.have.property('name')
+      expect(storedMicroservice.application).to.equal('{{ app-name }}')
+      expect(storedMicroservice.agentName).to.equal('{{ agent-name }}')
+      expect(storedMicroservice).to.not.have.property('iofogUuid')
+      expect(storedMicroservice.models.items).to.eql([{ name: 'test-model' }])
       expect(result.microservice.commands).to.eql(['nginx', '-g', 'daemon off;'])
       expect(result.variables[0].key).to.equal('port')
       expect(result.variables[0].defaultValue).to.equal('80')
@@ -209,6 +212,78 @@ describe('Microservice Template Service', () => {
       }, false, transaction)
 
       expect(result.env).to.eql([{ key: 'PORT', value: '80' }])
+    })
+
+    it('substitutes typed default values into the microservice spec', async () => {
+      MicroserviceTemplateManager.findOnePopulated.resolves(stubTemplateRow({
+        microserviceJSON: JSON.stringify({
+          application: '{{application}}',
+          agentName: '{{agent-name}}',
+          registryId: '{{registry-id}}',
+          schedule: '{{schedule}}',
+          shmSize: '{{shm-size}}',
+          natsConfig: {
+            natsAccess: '{{nats-access}}',
+            natsRule: '{{nats-rule}}'
+          },
+          models: {
+            bindPath: '{{bind-path}}',
+            permissions: '{{permissions}}',
+            items: [
+              { name: '{{model1}}' },
+              { name: '{{model2}}' },
+              { name: '{{model3}}' }
+            ]
+          },
+          images: [
+            { archId: 1, containerImage: '{{amd64-image}}' },
+            { archId: 2, containerImage: '{{arm64-image}}' }
+          ]
+        }),
+        variables: [
+          { key: 'application', defaultValue: JSON.stringify('test-app') },
+          { key: 'agent-name', defaultValue: JSON.stringify('lima') },
+          { key: 'nats-access', defaultValue: JSON.stringify(true) },
+          { key: 'nats-rule', defaultValue: JSON.stringify('default-user') },
+          { key: 'schedule', defaultValue: JSON.stringify(50) },
+          { key: 'bind-path', defaultValue: JSON.stringify('/models') },
+          { key: 'permissions', defaultValue: JSON.stringify('ro') },
+          { key: 'model1', defaultValue: JSON.stringify('model1') },
+          { key: 'model2', defaultValue: JSON.stringify('model2') },
+          { key: 'model3', defaultValue: JSON.stringify('') },
+          { key: 'registry-id', defaultValue: JSON.stringify(5) },
+          { key: 'arm64-image', defaultValue: JSON.stringify('dhi.io/clickhouse-server:26.7') },
+          { key: 'amd64-image', defaultValue: JSON.stringify('dhi.io/clickhouse-server:26.7') },
+          { key: 'shm-size', defaultValue: JSON.stringify(1024) }
+        ]
+      }))
+
+      const result = await MicroserviceTemplateService.getMicroserviceDataFromTemplate({
+        name: 'nginx-edge'
+      }, false, transaction)
+
+      expect(result.application).to.equal('test-app')
+      expect(result.agentName).to.equal('lima')
+      expect(result.registryId).to.equal(5)
+      expect(result.schedule).to.equal(50)
+      expect(result.shmSize).to.equal(1024)
+      expect(result.natsConfig).to.eql({
+        natsAccess: true,
+        natsRule: 'default-user'
+      })
+      expect(result.models).to.eql({
+        bindPath: '/models',
+        permissions: 'ro',
+        items: [
+          { name: 'model1' },
+          { name: 'model2' },
+          { name: '' }
+        ]
+      })
+      expect(result.images).to.eql([
+        { archId: 1, containerImage: 'dhi.io/clickhouse-server:26.7' },
+        { archId: 2, containerImage: 'dhi.io/clickhouse-server:26.7' }
+      ])
     })
 
     it('accepts application-style array variables', async () => {

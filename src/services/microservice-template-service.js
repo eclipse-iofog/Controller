@@ -6,7 +6,7 @@ const MicroserviceTemplateVariableManager = require('../data/managers/microservi
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
 
-const IDENTITY_FIELDS = ['name', 'application', 'iofogUuid', 'agentName', 'flowId', 'template']
+const INSTANCE_FIELDS = ['name', 'iofogUuid', 'flowId', 'template']
 
 function _toPlain (row) {
   if (!row) {
@@ -43,9 +43,9 @@ function _parseStoredDefaultValue (defaultValue) {
   }
 }
 
-function stripIdentityFields (microservice) {
+function stripInstanceFields (microservice) {
   const clone = { ...(microservice || {}) }
-  for (const field of IDENTITY_FIELDS) {
+  for (const field of INSTANCE_FIELDS) {
     delete clone[field]
   }
   return clone
@@ -172,7 +172,7 @@ async function createMicroserviceTemplateEndpoint (data, transaction) {
   const created = await MicroserviceTemplateManager.create({
     name: data.name,
     description: data.description != null ? data.description : '',
-    microserviceJSON: JSON.stringify(stripIdentityFields(data.microservice))
+    microserviceJSON: JSON.stringify(stripInstanceFields(data.microservice))
   }, transaction)
 
   try {
@@ -194,7 +194,7 @@ async function updateMicroserviceTemplateEndpoint (name, data, transaction) {
   const current = toWireTemplate(existing)
 
   const nextMicroservice = data.microservice !== undefined
-    ? stripIdentityFields(data.microservice)
+    ? stripInstanceFields(data.microservice)
     : current.microservice
   const nextDescription = data.description !== undefined ? data.description : current.description
 
@@ -237,7 +237,7 @@ async function getMicroserviceDataFromTemplate (deploymentData, isCLI, transacti
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_TEMPLATE_INVALID, deploymentData.name))
   }
 
-  const spec = stripIdentityFields(template.microservice)
+  const spec = stripInstanceFields(template.microservice)
   const parsedConfig = _parseJsonObjectField(spec.config)
   if (parsedConfig !== undefined) {
     spec.config = parsedConfig
@@ -274,5 +274,6 @@ module.exports = {
   deleteMicroserviceTemplateEndpoint: TransactionDecorator.generateTransaction(deleteMicroserviceTemplateEndpoint),
   getMicroserviceDataFromTemplate,
   toWireTemplate,
-  stripIdentityFields
+  stripInstanceFields,
+  stripIdentityFields: stripInstanceFields
 }
