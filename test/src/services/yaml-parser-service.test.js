@@ -512,7 +512,74 @@ spec:
       expect(result.microservice.commands).to.eql(['nginx', '-g', 'daemon off;'])
       expect(result.microservice.env).to.eql([{ key: 'PORT', value: '{{ port }}' }])
       expect(result.microservice).to.not.have.property('name')
-      expect(result.microservice).to.not.have.property('application')
+      expect(result.microservice).to.not.have.property('pidMode')
+      expect(result.microservice).to.not.have.property('healthCheck')
+    })
+
+    it('preserves template placeholders and typed variable defaults', async () => {
+      const yaml = `
+apiVersion: datasance.com/v3
+kind: MicroserviceTemplate
+metadata:
+  name: ms-template2
+spec:
+  description: Template for creating microservices
+  variables:
+    - key: application
+      defaultValue: test-app
+    - key: agent-name
+      defaultValue: lima
+    - key: nats-access
+      defaultValue: true
+    - key: registry-id
+      defaultValue: 5
+    - key: schedule
+      defaultValue: 50
+    - key: shm-size
+      defaultValue: 1024
+  microservice:
+    application: "{{application}}"
+    schedule: "{{schedule}}"
+    agent:
+      name: "{{agent-name}}"
+    natsConfig:
+      natsAccess: "{{nats-access}}"
+      natsRule: "{{nats-rule}}"
+    images:
+      registry: "{{registry-id}}"
+      arm64: "{{arm64-image}}"
+      amd64: "{{amd64-image}}"
+    models:
+      bindPath: "{{bind-path}}"
+      permissions: "{{permissions}}"
+      items:
+        - name: "{{model1}}"
+    container:
+      hostNetworkMode: false
+      shmSize: "{{shm-size}}"
+      commands: []
+`
+      const result = await YamlParserService.parseMicroserviceTemplateFile(yaml)
+      expect(result.variables).to.eql([
+        { key: 'application', defaultValue: 'test-app' },
+        { key: 'agent-name', defaultValue: 'lima' },
+        { key: 'nats-access', defaultValue: true },
+        { key: 'registry-id', defaultValue: 5 },
+        { key: 'schedule', defaultValue: 50 },
+        { key: 'shm-size', defaultValue: 1024 }
+      ])
+      expect(result.microservice.application).to.equal('{{application}}')
+      expect(result.microservice.agentName).to.equal('{{agent-name}}')
+      expect(result.microservice.registryId).to.equal('{{registry-id}}')
+      expect(result.microservice.schedule).to.equal('{{schedule}}')
+      expect(result.microservice.shmSize).to.equal('{{shm-size}}')
+      expect(result.microservice.natsConfig).to.eql({
+        natsAccess: '{{nats-access}}',
+        natsRule: '{{nats-rule}}'
+      })
+      expect(result.microservice.models.items).to.eql([{ name: '{{model1}}' }])
+      expect(result.microservice).to.not.have.property('pidMode')
+      expect(result.microservice).to.not.have.property('cmd')
     })
 
     it('accepts iofog.org/v3 apiVersion', async () => {
