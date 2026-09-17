@@ -148,6 +148,7 @@ module.exports = {
   RUNTIME_CLASS_IN_USE: 'Cannot delete RuntimeClass \'{}\': pinned by microservices {}',
   RUNTIME_CLASS_UNLINK_IN_USE: 'Cannot unlink RuntimeClass \'{}\' from agent {}: pinned by microservices {}',
   RUNTIME_CLASS_LINK_REQUIRES_EDGELET: 'Cannot link RuntimeClass to agent {}: container engine must be edgelet',
+  RUNTIME_CLASS_LINK_NOT_AVAILABLE: 'Cannot link RuntimeClass \'{}\' to agent \'{}\': runtime is not in availableRuntimes',
   RUNTIME_CLASS_MISSING: 'RuntimeClass \'{}\' does not exist',
   MICROSERVICE_CATALOG_BIND_PATH_REQUIRED: 'Model catalog bindPath is required when items are present',
   MICROSERVICE_CATALOG_BIND_PATH_ABSOLUTE: 'Model catalog bindPath must be an absolute container path',
