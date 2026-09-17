@@ -923,7 +923,7 @@ paths:
             schema:
               type: object
               properties:
-                application:
+                template:
                   type: string
                   format: binary
       responses:
