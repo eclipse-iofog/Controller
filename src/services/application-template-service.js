@@ -11,6 +11,32 @@ const ApplicationTemplateVariableManager = require('../data/managers/application
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const Validator = require('../schemas')
 
+function _parseStoredDefaultValue (defaultValue) {
+  if (defaultValue === undefined || defaultValue === null) {
+    return undefined
+  }
+  if (typeof defaultValue !== 'string') {
+    return defaultValue
+  }
+  try {
+    return JSON.parse(defaultValue)
+  } catch (error) {
+    return defaultValue
+  }
+}
+
+function _buildDefaultVariableMap (variables) {
+  return (variables || []).reduce((acc, variable) => {
+    if (variable && variable.key != null) {
+      const parsed = _parseStoredDefaultValue(variable.defaultValue)
+      if (parsed !== undefined) {
+        acc[variable.key] = parsed
+      }
+    }
+    return acc
+  }, {})
+}
+
 const createApplicationTemplateEndPoint = async function (applicationTemplateData, isCLI, transaction) {
   // Add a name field to pass schema validation using the applicationCreate schema
   applicationTemplateData.application = { ...applicationTemplateData.application, name: 'validation' }
@@ -157,9 +183,16 @@ const _buildGetApplicationObj = function (applicationDBObj) {
   const JSONData = applicationDBObj.toJSON()
   JSONData.application = JSON.parse(JSONData.applicationJSON || null)
   JSONData.variables = (JSONData.variables || []).map(v => {
-    if (v.defaultValue === undefined) { return v }
+    if (v.defaultValue === undefined || v.defaultValue === null) {
+      return v
+    }
+    const parsed = _parseStoredDefaultValue(v.defaultValue)
+    if (parsed === undefined) {
+      return v
+    }
     return {
-      ...v, defaultValue: JSON.parse(v.defaultValue)
+      ...v,
+      defaultValue: parsed
     }
   })
   delete JSONData.applicationJSON
@@ -208,9 +241,7 @@ const getApplicationDataFromTemplate = async function (deploymentData, isCLI, tr
   const newApplication = applicationTemplate.application
 
   // Replace variables
-  const defaultVariablesValues = (applicationTemplate.variables || []).reduce((acc, v) => {
-    return { ...acc, [v.key]: JSON.parse(v.defaultValue) }
-  }, {})
+  const defaultVariablesValues = _buildDefaultVariableMap(applicationTemplate.variables)
   const userProvidedVariables = (deploymentData.variables || []).reduce((acc, v) => {
     return { ...acc, [v.key]: v.value }
   }, {})
