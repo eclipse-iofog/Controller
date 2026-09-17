@@ -20,6 +20,7 @@ Fleet models, RuntimeClass, registry extensions, microservice catalog PATCH, Mic
 
 - **MS deploy** — auto-links referenced fleet models and RuntimeClass on edgelet agents; validates runtime against `availableRuntimes`.
 - **RBAC + swagger** — models, runtimeClasses, microserviceTemplates, and agent model/runtime routes documented and catalogued.
+- Embedded **EdgeOps Console** default version **v1.0.13** → **v1.1.0-rc.1**
 
 ### Removed
 
