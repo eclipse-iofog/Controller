@@ -6098,7 +6098,7 @@ paths:
       tags:
         - RuntimeClasses
       summary: Links a RuntimeClass to fog nodes
-      description: Attach is refused when fog containerEngine is not edgelet.
+      description: Attach is refused when fog containerEngine is not edgelet or when the RuntimeClass name is not in the fog availableRuntimes list.
       operationId: linkRuntimeClass
       parameters:
         - in: path

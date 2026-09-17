@@ -147,7 +147,9 @@ describe('RuntimeClass Service', () => {
       runtimeClass = stubRuntimeClassRow()
       agent = {
         uuid: fogUuid,
-        containerEngine: 'edgelet'
+        name: 'edge-1',
+        containerEngine: 'edgelet',
+        availableRuntimes: ['spin']
       }
       $sandbox.stub(RuntimeClassManager, 'findOne').resolves(runtimeClass)
       $sandbox.stub(FogManager, 'findOne').resolves(agent)
@@ -171,6 +173,13 @@ describe('RuntimeClass Service', () => {
       agent.containerEngine = 'docker'
       await expect(RuntimeClassService.linkRuntimeClassEndpoint('spin', [fogUuid], transaction))
         .to.be.rejectedWith(Errors.ValidationError, /edgelet/)
+      expect(runtimeClass.addFog).to.not.have.been.called
+    })
+
+    it('refuses link when the runtime is not in availableRuntimes', async () => {
+      agent.availableRuntimes = ['runc']
+      await expect(RuntimeClassService.linkRuntimeClassEndpoint('spin', [fogUuid], transaction))
+        .to.be.rejectedWith(Errors.ValidationError, /availableRuntimes/)
       expect(runtimeClass.addFog).to.not.have.been.called
     })
 

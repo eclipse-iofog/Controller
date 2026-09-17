@@ -151,6 +151,7 @@ describe('fleet models and runtime sqlite integration', function () {
     const { expect } = require('chai')
     const RuntimeClassService = require('../../../src/services/runtime-class-service')
     const AgentService = require('../../../src/services/agent-service')
+    const FogManager = require('../../../src/data/managers/iofog-manager')
 
     const suffix = uniqueSuffix()
     const edgeFog = await createEdgeFog(suffix)
@@ -162,6 +163,15 @@ describe('fleet models and runtime sqlite integration', function () {
         handler: 'spin'
       }, transaction),
       'integration.createRuntimeClass'
+    )
+
+    await runTx(
+      (transaction) => FogManager.update(
+        { uuid: edgeFog.uuid },
+        { availableRuntimes: JSON.stringify([className]) },
+        transaction
+      ),
+      'integration.setAvailableRuntimesForLink'
     )
 
     await runTx(

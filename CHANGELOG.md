@@ -1,7 +1,14 @@
 # Changelog
 
+## [v3.9.0-rc.2]
 
-## [Unreleased]
+### Fixed
+
+- **`PATCH /api/v3/iofog/{uuid}` after Controller upgrade** — stale `bluetoothEnabled` / `abstractedHardwareEnabled` keys in `"FogPlatformSpecs".spec_json` (written before HAL removal) caused validation failure with misleading `Invalid fog platform spec field 'instance'`. Platform spec merge and upsert now whitelist allowed fields only; validation errors name the rejected field.
+- **`POST /api/v3/runtimeClasses/{name}/link`** — refused link when the RuntimeClass name is not in the target fog `availableRuntimes` (same rule as microservice deploy runtime validation).
+
+
+## [v3.9.0-rc.1]
 
 Fleet models, RuntimeClass, registry extensions, microservice catalog PATCH, MicroserviceTemplate, and HAL/BLE removal for Edgelet v1.1+ handoff. Targets **v3.9.0** schema (user tags).
 

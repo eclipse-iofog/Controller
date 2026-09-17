@@ -44,6 +44,35 @@ function _warnIfUnknownHandler (name, handler) {
   )
 }
 
+function _parseFogAvailableRuntimes (fog) {
+  if (!fog || fog.availableRuntimes == null || fog.availableRuntimes === '') {
+    return []
+  }
+  if (Array.isArray(fog.availableRuntimes)) {
+    return fog.availableRuntimes
+  }
+  try {
+    const parsed = JSON.parse(fog.availableRuntimes)
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    return []
+  }
+}
+
+function _assertRuntimeClassAvailableOnFog (runtimeClassName, agent) {
+  const availableRuntimes = _parseFogAvailableRuntimes(agent)
+  if (!availableRuntimes.includes(runtimeClassName)) {
+    const agentLabel = agent.name || agent.uuid || 'agent'
+    throw new Errors.ValidationError(
+      AppHelper.formatMessage(
+        ErrorMessages.RUNTIME_CLASS_LINK_NOT_AVAILABLE,
+        runtimeClassName,
+        agentLabel
+      )
+    )
+  }
+}
+
 async function findLinkedFogUuids (runtimeClass, transaction) {
   if (!runtimeClass || typeof runtimeClass.getFogs !== 'function') {
     return []
@@ -168,6 +197,7 @@ async function linkRuntimeClassEndpoint (name, fogUuids, transaction) {
         AppHelper.formatMessage(ErrorMessages.RUNTIME_CLASS_LINK_REQUIRES_EDGELET, fogUuid)
       )
     }
+    _assertRuntimeClassAvailableOnFog(name, agent)
     await runtimeClass.addFog(agent, { transaction })
   }
 
