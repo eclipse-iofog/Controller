@@ -131,7 +131,7 @@ Full request/response shapes: **`docs/swagger.yaml`** (agent paths).
 
 | Job | File | Role |
 |-----|------|------|
-| Fog status | `fog-status-job.js` | Mark agents offline when status pings lapse |
+| Fog status | `fog-status-job.js` | Liveness cleaner: chunked transactions mark quiet fogs UNKNOWN using Controller receipt time (`lastStatusTime`). Desired-active microservices become UNKNOWN with CPU/memory 0. Desired-inactive STOPPED workloads are left alone. Does not delete microservices. Overlapping runs on the same process are skipped. |
 | Controller heartbeat | `controller-heartbeat-job.js` | Control-plane liveness |
 | Fog token cleanup | `fog-token-cleanup-job.js` | Expire stale agent tokens |
 | Controller cleanup | `controller-cleanup-job.js` | Orphaned controller MS housekeeping |
@@ -139,7 +139,7 @@ Full request/response shapes: **`docs/swagger.yaml`** (agent paths).
 | NATS reconcile | `nats-reconcile-worker-job.js` | NATS operator sync |
 | Platform reconcile | `platform-reconcile-worker-job.js` | Fog + service platform claim/reconcile (one job, two queues) |
 | Fog platform sweep | `fog-platform-sweep-job.js` | Drift detection; re-enqueue stale fog/service tasks |
-| Stopped app status | `stopped-app-status-job.js` | Application state maintenance |
+| Stopped app status | `stopped-app-status-job.js` | Desired-inactive safety net: leftover RUNNING, STOPPING, DELETED, or DELETING observed status is rewritten to STOPPED with CPU/memory 0. Overlapping runs on the same process are skipped. |
 
 ### Platform reconcile (fog + service + resolver)
 

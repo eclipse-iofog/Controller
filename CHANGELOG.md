@@ -1,5 +1,26 @@
 # Changelog
 
+## [v3.9.0-rc.3]
+
+Observed microservice status and fog liveness: live CPU/memory only while a microservice is RUNNING, and node quietness judged by when Controller last received a status PUT.
+
+### Fixed
+
+- **Stopped/inactive microservices** no longer keep the last CPU/memory sample after stop, deactivate, or a non-RUNNING agent report.
+- **Fog liveness** uses Controller receipt time (`lastStatusTime`), not the agent's clock, so clock skew no longer flaps nodes UNKNOWN.
+- **Status jobs** walk the fleet in small transactions and no longer delete microservices from the liveness cleaner.
+
+### Added
+
+- **Microservice last-crash columns** — `last_error`, `last_error_at`, `restart_count` on `MicroserviceStatuses` (baseline 3.9.0 and 3.8→3.9 upgrade).
+
+### Changed
+
+- **GET microservice meters** — `status.cpuUsage` and `status.memoryUsage` are 0 unless observed `status` is `RUNNING`.
+- **Operator stop / application deactivate** — GET shows `STOPPING` and zero meters immediately, before the next agent PUT.
+- **Microservice last crash** — GET `status` always includes `lastError`, `lastErrorAt`, and `restartCount`. `errorMessage` is the current failure (cleared by the agent after 30s RUNNING); last crash is kept after recovery.
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.1** → **v1.1.0-rc.2**
+
 ## [v3.9.0-rc.2]
 
 ### Fixed

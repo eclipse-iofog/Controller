@@ -8891,6 +8891,9 @@ components:
           type: number
         lastStatusTime:
           type: number
+          description: >-
+            Controller receipt time in milliseconds of the last successful
+            agent status PUT. Not the agent's clock.
         lastCommandTime:
           type: number
         logFileCount:
@@ -9455,6 +9458,10 @@ components:
           type: string
         microserviceStatus:
           type: string
+          description: >-
+            JSON array of per-microservice observed status objects. Items may
+            include additive lastError, lastErrorAt, and restartCount. Unknown
+            keys must not fail this PUT.
         repositoryCount:
           type: number
         repositoryStatus:
@@ -9463,6 +9470,9 @@ components:
           type: number
         lastStatusTime:
           type: number
+          description: >-
+            Agent-supplied timestamp in milliseconds. Controller liveness uses
+            the PUT receipt time instead of this value.
         ipAddress:
           type: string
         ipAddressExternal:
@@ -10194,14 +10204,26 @@ components:
           properties:
             status:
               type: string
+              description: >-
+                Observed runtime state such as RUNNING, STOPPING, STOPPED,
+                UNKNOWN, or FAILED. Operator stop or application deactivate
+                sets STOPPING immediately, before the agent confirms STOPPED.
             operatingDuration:
               type: number
+              description: Live while status is RUNNING; otherwise 0.
             startTime:
               type: number
+              description: Live while status is RUNNING; otherwise 0.
             cpuUsage:
               type: number
+              description: >-
+                CPU sample for this microservice. Live only when status is
+                RUNNING (0 is valid while running). Otherwise 0.
             memoryUsage:
               type: number
+              description: >-
+                Memory sample for this microservice. Live only when status is
+                RUNNING (0 is valid while running). Otherwise 0.
             containerId:
               type: string
             podId:
@@ -10209,6 +10231,29 @@ components:
               description: >-
                 Pause/sandbox id on edgelet. Same as containerId on docker/podman
                 when set. Omitted when unknown.
+            errorMessage:
+              type: string
+              description: >-
+                Current failure text. Agent keeps this populated while the
+                workload is failing, restarting, or has been RUNNING for less
+                than 30 seconds after a crash. After 30 seconds of continuous
+                RUNNING the agent sends an empty string so this field clears.
+            lastError:
+              type: string
+              description: >-
+                Last crash text. Not cleared on recovery. Empty string when
+                Controller has never stored a crash for this microservice.
+            lastErrorAt:
+              type: integer
+              description: >-
+                Unix milliseconds for lastError. 0 when lastError is empty.
+            restartCount:
+              type: integer
+              description: >-
+                Restart events since the last operator rebuild. 0 after rebuild
+                leftover history or when never restarted. May drop to 1 after
+                an agent process restart if the container is still crashed
+                (new episode).
         execStatus:
           type: object
         models:
