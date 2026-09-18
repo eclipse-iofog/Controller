@@ -184,6 +184,9 @@ CREATE INDEX IF NOT EXISTS idx_microservice_model_items_microserviceUuid ON Micr
 CREATE INDEX IF NOT EXISTS idx_microservice_model_items_name ON MicroserviceModelItems (name);
 
 ALTER TABLE MicroserviceStatuses ADD COLUMN pod_id TEXT DEFAULT '';
+ALTER TABLE MicroserviceStatuses ADD COLUMN last_error TEXT DEFAULT '';
+ALTER TABLE MicroserviceStatuses ADD COLUMN last_error_at BIGINT DEFAULT 0;
+ALTER TABLE MicroserviceStatuses ADD COLUMN restart_count INTEGER DEFAULT 0;
 
 DROP TABLE IF EXISTS HWInfos;
 DROP TABLE IF EXISTS USBInfos;

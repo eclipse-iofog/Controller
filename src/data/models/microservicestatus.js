@@ -66,6 +66,24 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: '',
       field: 'error_message'
     },
+    lastError: {
+      type: DataTypes.TEXT,
+      defaultValue: '',
+      field: 'last_error'
+    },
+    lastErrorAt: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('lastErrorAt'))
+      },
+      defaultValue: 0,
+      field: 'last_error_at'
+    },
+    restartCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      field: 'restart_count'
+    },
     ipAddress: {
       type: DataTypes.TEXT,
       defaultValue: '',
