@@ -134,7 +134,11 @@ const microserviceStatus = {
     ipAddress: { type: 'string' },
     ipAddressExternal: { type: 'string' },
     execSessionIds: { type: 'array', items: { type: 'string' } },
-    podId: { type: 'string' }
+    podId: { type: 'string' },
+    errorMessage: { type: 'string' },
+    lastError: { type: 'string' },
+    lastErrorAt: { type: 'integer' },
+    restartCount: { type: 'integer' }
   },
   required: ['id'],
   additionalProperties: true

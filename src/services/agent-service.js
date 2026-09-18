@@ -2,7 +2,7 @@ const config = require('../config')
 // const Sequelize = require('sequelize')
 const moment = require('moment')
 // const Op = Sequelize.Op
-// const logger = require('../logger')
+const logger = require('../logger')
 
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const FogProvisionKeyManager = require('../data/managers/iofog-provision-key-manager')
@@ -28,12 +28,20 @@ const MicroserviceService = require('../services/microservices-service')
 const ApplicationManager = require('../data/managers/application-manager')
 const constants = require('../helpers/constants')
 const CatalogContainer = require('../helpers/microservice-container-catalog')
+const {
+  applyCrashExtras,
+  applyRuntimeMetrics,
+  coerceRuntimeMetric,
+  zeroRuntimeMetrics
+} = require('../helpers/microservice-runtime-metrics')
 const SecretManager = require('../data/managers/secret-manager')
 const ConfigMapManager = require('../data/managers/config-map-manager')
 const MicroserviceLogStatusManager = require('../data/managers/microservice-log-status-manager')
 const MicroserviceExecSessionManager = require('../data/managers/microservice-exec-session-manager')
 const FogLogStatusManager = require('../data/managers/fog-log-status-manager')
 const RbacRoleManager = require('../data/managers/rbac-role-manager')
+
+const AGENT_LAST_STATUS_SKEW_MS = 5 * 60 * 1000
 
 const CHANGE_TRACKING_DEFAULT = {}
 const CHANGE_TRACKING_KEYS = [
@@ -277,7 +285,6 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     repositoryCount: agentStatus.repositoryCount,
     repositoryStatus: agentStatus.repositoryStatus,
     systemTime: agentStatus.systemTime,
-    lastStatusTime: agentStatus.lastStatusTime,
     ipAddress: agentStatus.ipAddress,
     ipAddressExternal: agentStatus.ipAddressExternal,
     availableRuntimes: agentStatus.availableRuntimes != null
@@ -299,6 +306,15 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
   }
 
   fogStatus = AppHelper.deleteUndefinedFields(fogStatus)
+
+  const receiptTime = Date.now()
+  const agentLastStatusTime = Number(agentStatus.lastStatusTime)
+  if (Number.isFinite(agentLastStatusTime) && Math.abs(receiptTime - agentLastStatusTime) > AGENT_LAST_STATUS_SKEW_MS) {
+    logger.warn(
+      `Agent lastStatusTime ${agentLastStatusTime} differs from Controller receipt time ${receiptTime} for fog ${fog.uuid}`
+    )
+  }
+  fogStatus.lastStatusTime = receiptTime
 
   const existingFog = await FogManager.findOne({
     uuid: fog.uuid
@@ -332,31 +348,85 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
 }
 
 const _updateMicroserviceStatuses = async function (microserviceStatus, fog, transaction) {
-  for (const status of microserviceStatus) {
-    let microserviceStatus = {
+  const reported = Array.isArray(microserviceStatus) ? microserviceStatus : []
+  for (const status of reported) {
+    let observedStatus = {
       containerId: status.containerId,
       status: status.status,
       healthStatus: status.healthStatus,
       startTime: status.startTime,
       operatingDuration: status.operatingDuration,
-      cpuUsage: status.cpuUsage,
-      memoryUsage: status.memoryUsage,
+      cpuUsage: coerceRuntimeMetric(status.cpuUsage),
+      memoryUsage: coerceRuntimeMetric(status.memoryUsage),
       percentage: status.percentage,
       errorMessage: status.errorMessage,
       ipAddress: status.ipAddress,
       execSessionIds: status.execSessionIds,
       podId: status.podId
     }
-    microserviceStatus = AppHelper.deleteUndefinedFields(microserviceStatus)
+    applyRuntimeMetrics(observedStatus, observedStatus.status)
+    applyCrashExtras(observedStatus, status)
+    observedStatus = AppHelper.deleteUndefinedFields(observedStatus)
     const microservice = await MicroserviceManager.findOne({
       uuid: status.id
     }, transaction)
     if (microservice && fog.uuid === microservice.iofogUuid) {
       await MicroserviceStatusManager.update({
         microserviceUuid: status.id
-      }, microserviceStatus, transaction)
+      }, observedStatus, transaction)
     }
   }
+  await _reconcileOmittedMicroserviceStatuses(reported, fog, transaction)
+}
+
+const _reconcileOmittedMicroserviceStatuses = async function (reportedStatuses, fog, transaction) {
+  const reportedIds = new Set(reportedStatuses.map((item) => item.id).filter(Boolean))
+  const assigned = await MicroserviceManager.findAll({ iofogUuid: fog.uuid }, transaction)
+  const omitted = (assigned || []).filter((ms) => !reportedIds.has(ms.uuid))
+  if (!omitted.length) {
+    return
+  }
+
+  const applicationIds = [...new Set(omitted.map((ms) => ms.applicationId).filter((id) => id != null))]
+  const applications = applicationIds.length
+    ? await ApplicationManager.findAll({ id: applicationIds }, transaction)
+    : []
+  const applicationById = new Map((applications || []).map((app) => [app.id, app]))
+
+  const stoppedUuids = []
+  const unknownUuids = []
+  for (const ms of omitted) {
+    const application = applicationById.get(ms.applicationId)
+    const desiredInactive = !ms.isActivated || (application && !application.isActivated)
+    if (desiredInactive) {
+      stoppedUuids.push(ms.uuid)
+    } else {
+      unknownUuids.push(ms.uuid)
+    }
+  }
+
+  const zeros = zeroRuntimeMetrics()
+  if (stoppedUuids.length) {
+    await MicroserviceStatusManager.update(
+      { microserviceUuid: stoppedUuids },
+      Object.assign({ status: microserviceState.STOPPED }, zeros),
+      transaction
+    )
+  }
+  if (unknownUuids.length) {
+    await MicroserviceStatusManager.update(
+      { microserviceUuid: unknownUuids },
+      Object.assign({ status: microserviceState.UNKNOWN }, zeros),
+      transaction
+    )
+  }
+
+  const omittedUuids = stoppedUuids.concat(unknownUuids)
+  await MicroserviceExecStatusManager.update(
+    { microserviceUuid: omittedUuids },
+    { status: microserviceExecState.INACTIVE, execSessionId: '' },
+    transaction
+  )
 }
 
 const _mapExtraHost = function (extraHost) {

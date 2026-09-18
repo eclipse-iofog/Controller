@@ -26,6 +26,7 @@ const FogStates = require('../../../src/enums/fog-state')
 const constants = require('../../../src/helpers/constants')
 const config = require('../../../src/config')
 const Errors = require('../../../src/helpers/errors')
+const logger = require('../../../src/logger')
 
 global.appRoot = path.resolve(__dirname)
 
@@ -717,6 +718,7 @@ describe('Agent Service', () => {
     def('platformStatusResponse', () => Promise.resolve(null))
 
     beforeEach(() => {
+      $sandbox.useFakeTimers({ now: fogStatus.lastStatusTime, toFake: ['Date'] })
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.spy(AppHelper, 'deleteUndefinedFields')
       $sandbox.stub(ioFogManager, 'findOne').returns($findOneResponse)
@@ -726,6 +728,7 @@ describe('Agent Service', () => {
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').returns($deleteNotRunningResponse)
       $sandbox.stub(MicroserviceManager, 'findOne').returns($findMicroservice)
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -878,10 +881,10 @@ describe('Agent Service', () => {
     const expectedMicroserviceUpdate = {
       containerId: microserviceStatus.containerId,
       status: microserviceStatus.status,
-      startTime: microserviceStatus.startTime,
-      operatingDuration: microserviceStatus.operatingDuration,
-      cpuUsage: microserviceStatus.cpuUsage,
-      memoryUsage: microserviceStatus.memoryUsage,
+      startTime: 0,
+      operatingDuration: 0,
+      cpuUsage: 0,
+      memoryUsage: 0,
       percentage: microserviceStatus.percentage,
       errorMessage: microserviceStatus.errorMessage,
     }
@@ -980,6 +983,7 @@ describe('Agent Service', () => {
     def('platformStatusResponse', () => Promise.resolve(null))
 
     beforeEach(() => {
+      $sandbox.useFakeTimers({ now: fogStatus.lastStatusTime, toFake: ['Date'] })
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.spy(AppHelper, 'deleteUndefinedFields')
       $sandbox.stub(ioFogManager, 'findOne').returns($findOneResponse)
@@ -989,6 +993,7 @@ describe('Agent Service', () => {
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').returns($deleteNotRunningResponse)
       $sandbox.stub(MicroserviceManager, 'findOne').returns($findMicroservice)
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -1154,6 +1159,7 @@ describe('Agent Service', () => {
     def('subject', () => AgentService.updateAgentStatus(baseAgentStatus, $fog, transaction))
 
     beforeEach(() => {
+      $sandbox.stub(logger, 'warn')
       $sandbox.stub(Validator, 'validate').resolves(true)
       $sandbox.stub(ioFogManager, 'findOne').resolves({ warningMessage: $existingWarningMessage })
       $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves(
@@ -1162,6 +1168,7 @@ describe('Agent Service', () => {
       $sandbox.stub(ioFogManager, 'update').resolves()
       $sandbox.stub(JSON, 'parse').returns([])
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').resolves()
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
     })
 
     it('forces daemonStatus WARNING when platform phase is Progressing', async () => {
@@ -1857,6 +1864,7 @@ describe('Agent Service', () => {
     def('subject', () => $subject.updateAgentStatus(agentStatus, $fog, transaction))
 
     beforeEach(() => {
+      $sandbox.stub(logger, 'warn')
       $sandbox.stub(Validator, 'validate').resolves(true)
       $sandbox.spy(AppHelper, 'deleteUndefinedFields')
       $sandbox.stub(ioFogManager, 'findOne').resolves({ warningMessage: '' })
@@ -1865,6 +1873,7 @@ describe('Agent Service', () => {
       $sandbox.stub(MicroserviceStatusManager, 'update').resolves()
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').resolves()
       $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: $uuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
     })
 
     it('persists additive fog status fields and microservice podId', async () => {
@@ -1883,6 +1892,359 @@ describe('Agent Service', () => {
       expect(MicroserviceStatusManager.update).to.have.been.calledWith(
         { microserviceUuid: 'testUuid' },
         sinon.match({ podId: 'pod-1', containerId: 'ctr-1' }),
+        transaction
+      )
+    })
+  })
+
+  describe('.updateAgentStatus() observed runtime', () => {
+    const transaction = {}
+    const receiptTime = 1700000000000
+    const fogUuid = 'fog-1'
+    const reportedUuid = 'ms-reported'
+    const omittedUuid = 'ms-omitted'
+
+    function buildAgentStatus (microserviceStatusItems, extra = {}) {
+      return {
+        daemonStatus: 'RUNNING',
+        daemonOperatingDuration: 25,
+        daemonLastStart: 1,
+        warningMessage: '',
+        memoryUsage: 1,
+        diskUsage: 1,
+        cpuUsage: 1,
+        memoryViolation: false,
+        diskViolation: false,
+        cpuViolation: false,
+        systemAvailableDisk: 1,
+        systemAvailableMemory: 1,
+        systemTotalCpu: 1,
+        repositoryCount: 0,
+        repositoryStatus: '[]',
+        systemTime: 1,
+        lastStatusTime: 1,
+        ipAddress: '127.0.0.1',
+        ipAddressExternal: '127.0.0.1',
+        lastCommandTime: 1,
+        tunnelStatus: '{}',
+        version: '1.1.0',
+        isReadyToUpgrade: false,
+        isReadyToRollback: false,
+        gpsStatus: 'OK',
+        microserviceStatus: JSON.stringify(microserviceStatusItems),
+        ...extra,
+      }
+    }
+
+    beforeEach(() => {
+      $sandbox.useFakeTimers({ now: receiptTime, toFake: ['Date'] })
+      $sandbox.stub(logger, 'warn')
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(ioFogManager, 'findOne').resolves({ warningMessage: '' })
+      $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves(null)
+      $sandbox.stub(ioFogManager, 'update').resolves()
+      $sandbox.stub(MicroserviceStatusManager, 'update').resolves()
+      $sandbox.stub(MicroserviceExecStatusManager, 'update').resolves()
+      $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').resolves()
+      $sandbox.stub(ApplicationManager, 'findAll').resolves([])
+    })
+
+    it('stamps fog lastStatusTime with Controller receipt time', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(ioFogManager.update).to.have.been.calledWith(
+        { uuid: fogUuid },
+        sinon.match({ lastStatusTime: receiptTime }),
+        transaction
+      )
+      expect(ioFogManager.update.firstCall.args[1].lastStatusTime).to.not.equal(1)
+    })
+
+    it('stamps fog lastStatusTime with Controller receipt time when the agent sends 0', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }], { lastStatusTime: 0 }),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(ioFogManager.update.firstCall.args[1].lastStatusTime).to.equal(receiptTime)
+    })
+
+    it('stamps fog lastStatusTime with Controller receipt time when the agent clock is hours behind', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus(
+          [{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }],
+          { lastStatusTime: receiptTime - (6 * 60 * 60 * 1000) }
+        ),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(ioFogManager.update.firstCall.args[1].lastStatusTime).to.equal(receiptTime)
+    })
+
+    it('stores STOPPED meters as 0 when the agent omits cpu/memory', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'STOPPED', containerId: 'ctr-stop' }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({
+          status: 'STOPPED',
+          cpuUsage: 0,
+          memoryUsage: 0,
+          startTime: 0,
+          operatingDuration: 0,
+          containerId: 'ctr-stop',
+        }),
+        transaction
+      )
+    })
+
+    it('stores STOPPED leftover cpu as 0', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'STOPPED', cpuUsage: 12.5, memoryUsage: 64 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({ status: 'STOPPED', cpuUsage: 0, memoryUsage: 0 }),
+        transaction
+      )
+    })
+
+    it('stores RUNNING cpu 12.5', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 12.5, memoryUsage: 64 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({ status: 'RUNNING', cpuUsage: 12.5, memoryUsage: 64 }),
+        transaction
+      )
+    })
+
+    it('stores lastError, lastErrorAt, and restartCount from the agent', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'RUNNING',
+          cpuUsage: 1,
+          errorMessage: '',
+          lastError: 'exitCode=1 oomKilled=false error=config missing',
+          lastErrorAt: 1726660000123,
+          restartCount: 4
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({
+          lastError: 'exitCode=1 oomKilled=false error=config missing',
+          lastErrorAt: 1726660000123,
+          restartCount: 4
+        }),
+        transaction
+      )
+    })
+
+    it('stores restartCount 0 when lastError is present and restartCount is omitted', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'STARTING',
+          lastError: 'exitCode=1 oomKilled=false',
+          lastErrorAt: 1726660000123
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      const patch = MicroserviceStatusManager.update.firstCall.args[1]
+      expect(patch.lastError).to.equal('exitCode=1 oomKilled=false')
+      expect(patch.lastErrorAt).to.equal(1726660000123)
+      expect(patch.restartCount).to.equal(0)
+    })
+
+    it('does not write last crash fields when the agent omits all extras', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      const patch = MicroserviceStatusManager.update.firstCall.args[1]
+      expect(patch).to.not.have.property('lastError')
+      expect(patch).to.not.have.property('lastErrorAt')
+      expect(patch).to.not.have.property('restartCount')
+    })
+
+    it('does not fail the PUT when extras are malformed', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'RUNNING',
+          cpuUsage: 1,
+          lastError: { nested: true },
+          lastErrorAt: 'bogus',
+          restartCount: 'n/a'
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledOnce
+      const patch = MicroserviceStatusManager.update.firstCall.args[1]
+      expect(patch).to.not.have.property('lastError')
+      expect(patch.status).to.equal('RUNNING')
+    })
+
+    it('treats omitted RUNNING cpu as 0 for this sample', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING' }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({ status: 'RUNNING', cpuUsage: 0, memoryUsage: 0 }),
+        transaction
+      )
+    })
+
+    it('marks an omitted desired-active microservice UNKNOWN with zeros', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([{
+        uuid: omittedUuid,
+        iofogUuid: fogUuid,
+        isActivated: true,
+        applicationId: 7,
+      }])
+      ApplicationManager.findAll.resolves([{ id: 7, isActivated: true }])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({
+          status: microserviceState.UNKNOWN,
+          cpuUsage: 0,
+          memoryUsage: 0,
+          startTime: 0,
+          operatingDuration: 0,
+        }),
+        transaction
+      )
+      expect(MicroserviceExecStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({ status: 'INACTIVE', execSessionId: '' }),
+        transaction
+      )
+    })
+
+    it('marks an omitted desired-inactive microservice STOPPED with zeros', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([{
+        uuid: omittedUuid,
+        iofogUuid: fogUuid,
+        isActivated: true,
+        applicationId: 7,
+      }])
+      ApplicationManager.findAll.resolves([{ id: 7, isActivated: false }])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({
+          status: microserviceState.STOPPED,
+          cpuUsage: 0,
+          memoryUsage: 0,
+        }),
+        transaction
+      )
+      expect(MicroserviceExecStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({ status: 'INACTIVE', execSessionId: '' }),
+        transaction
+      )
+    })
+
+    it('marks an omitted microservice STOPPED when the microservice itself is inactive', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([{
+        uuid: omittedUuid,
+        iofogUuid: fogUuid,
+        isActivated: false,
+        applicationId: 7,
+      }])
+      ApplicationManager.findAll.resolves([{ id: 7, isActivated: true }])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({ status: microserviceState.STOPPED, cpuUsage: 0 }),
         transaction
       )
     })
