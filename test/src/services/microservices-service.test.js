@@ -1156,4 +1156,187 @@ describe('Microservices Service', () => {
       )
     })
   })
+
+  describe('.buildGetMicroserviceResponse() observed status', () => {
+    def('subject', () => $service.buildGetMicroserviceResponse($microservice, transaction))
+    def('microservice', () => ({
+      uuid: 'msvc-uuid',
+      name: 'test-msvc',
+      applicationId: 42,
+      logSize: 1024
+    }))
+
+    beforeEach(() => {
+      stubBuildGetResponseDeps($sandbox)
+      $sandbox.stub(ApplicationManager, 'findOne').resolves({ name: 'my-app' })
+    })
+
+    it('zeros CPU when status is STOPPED', async () => {
+      MicroserviceStatusManager.findAllExcludeFields.resolves([{
+        status: 'STOPPED',
+        cpuUsage: 12.5,
+        memoryUsage: 64,
+        startTime: 9,
+        operatingDuration: 10,
+        containerId: 'ctr-keep'
+      }])
+
+      const result = await $subject
+      expect(result.status).to.include({
+        status: 'STOPPED',
+        cpuUsage: 0,
+        memoryUsage: 0,
+        startTime: 0,
+        operatingDuration: 0,
+        containerId: 'ctr-keep'
+      })
+    })
+
+    it('zeros CPU when status is STOPPING', async () => {
+      MicroserviceStatusManager.findAllExcludeFields.resolves([{
+        status: 'STOPPING',
+        cpuUsage: 12.5,
+        memoryUsage: 64,
+        startTime: 9,
+        operatingDuration: 10,
+        containerId: 'ctr-keep'
+      }])
+
+      const result = await $subject
+      expect(result.status).to.include({
+        status: 'STOPPING',
+        cpuUsage: 0,
+        memoryUsage: 0,
+        startTime: 0,
+        operatingDuration: 0,
+        containerId: 'ctr-keep'
+      })
+    })
+
+    it('keeps RUNNING meters', async () => {
+      MicroserviceStatusManager.findAllExcludeFields.resolves([{
+        status: 'RUNNING',
+        cpuUsage: 12.5,
+        memoryUsage: 64,
+        startTime: 9,
+        operatingDuration: 10
+      }])
+
+      const result = await $subject
+      expect(result.status).to.include({
+        status: 'RUNNING',
+        cpuUsage: 12.5,
+        memoryUsage: 64
+      })
+    })
+
+    it('returns lastError, lastErrorAt, and restartCount on GET', async () => {
+      MicroserviceStatusManager.findAllExcludeFields.resolves([{
+        status: 'RUNNING',
+        cpuUsage: 1,
+        errorMessage: '',
+        lastError: 'exitCode=1 oomKilled=false',
+        lastErrorAt: 1726660000123,
+        restartCount: 4
+      }])
+
+      const result = await $subject
+      expect(result.status).to.include({
+        errorMessage: '',
+        lastError: 'exitCode=1 oomKilled=false',
+        lastErrorAt: 1726660000123,
+        restartCount: 4
+      })
+    })
+
+    it('returns empty last crash fields when the row has none', async () => {
+      MicroserviceStatusManager.findAllExcludeFields.resolves([{
+        status: 'STOPPED',
+        cpuUsage: 0,
+        memoryUsage: 0
+      }])
+
+      const result = await $subject
+      expect(result.status).to.include({
+        lastError: '',
+        lastErrorAt: 0,
+        restartCount: 0
+      })
+    })
+  })
+
+  describe('.stopMicroserviceEndPoint()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const microservice = buildMicroserviceRecord({
+      uuid: msvcUuid,
+      catalogItem: { category: 'USER' }
+    })
+
+    def('subject', () => $service.stopMicroserviceEndPoint(msvcUuid, isCLI, transaction))
+
+    beforeEach(() => {
+      $sandbox.stub(MicroserviceManager, 'findOneWithCategory').resolves(microservice)
+      $sandbox.stub(MicroserviceManager, 'update').resolves()
+      $sandbox.stub(MicroserviceStatusManager, 'update').resolves()
+      $sandbox.stub(MicroserviceExecStatusManager, 'update').resolves()
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
+    })
+
+    it('sets observed STOPPING with zero meters and inactive exec', async () => {
+      const result = await $subject
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        { isActivated: false },
+        transaction
+      )
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [msvcUuid] },
+        sinon.match({
+          status: 'STOPPING',
+          cpuUsage: 0,
+          memoryUsage: 0,
+          startTime: 0,
+          operatingDuration: 0
+        }),
+        transaction
+      )
+      expect(MicroserviceExecStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [msvcUuid] },
+        sinon.match({ status: 'INACTIVE', execSessionId: '' }),
+        transaction
+      )
+      expect(result).to.eql({ uuid: msvcUuid, isActivated: false })
+    })
+  })
+
+  describe('.deleteNotRunningMicroservices()', () => {
+    def('subject', () => $service.deleteNotRunningMicroservices({ uuid: 'fog-uuid' }, transaction))
+
+    beforeEach(() => {
+      $sandbox.stub(MicroserviceManager, 'findAllWithStatuses')
+      $sandbox.stub($service, 'deleteMicroserviceWithRoutesAndPortMappings').resolves()
+    })
+
+    it('awaits deletes for not-running flagged microservices', async () => {
+      MicroserviceManager.findAllWithStatuses.resolves([
+        { delete: true, microserviceStatus: { status: 'UNKNOWN' } },
+        { delete: true, microserviceStatus: { status: 'STOPPING' } },
+        { delete: true, microserviceStatus: { status: 'RUNNING' } },
+        { delete: false, microserviceStatus: { status: 'DELETING' } },
+        { delete: true, microserviceStatus: null }
+      ])
+
+      await $subject
+
+      expect($service.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledTwice
+      expect($service.deleteMicroserviceWithRoutesAndPortMappings.firstCall).to.have.been.calledWith(
+        sinon.match({ microserviceStatus: { status: 'UNKNOWN' } }),
+        transaction
+      )
+      expect($service.deleteMicroserviceWithRoutesAndPortMappings.secondCall).to.have.been.calledWith(
+        sinon.match({ microserviceStatus: { status: 'STOPPING' } }),
+        transaction
+      )
+    })
+  })
 })

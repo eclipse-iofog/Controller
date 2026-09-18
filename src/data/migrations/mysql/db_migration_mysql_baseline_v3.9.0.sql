@@ -313,6 +313,9 @@ CREATE TABLE IF NOT EXISTS MicroserviceStatuses (
     exec_session_ids TEXT,
     health_status TEXT,
     pod_id TEXT,
+    last_error TEXT,
+    last_error_at BIGINT DEFAULT 0,
+    restart_count INT DEFAULT 0,
     FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
 );
 

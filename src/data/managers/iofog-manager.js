@@ -76,6 +76,25 @@ class FogManager extends BaseManager {
     return rows.map((row) => row.uuid)
   }
 
+  async findStatusLivenessCandidates ({ afterUuid, limit, heardBefore, daemonStatuses }, transaction) {
+    const where = {
+      daemonStatus: { [Op.in]: daemonStatuses }
+    }
+    if (heardBefore != null) {
+      where.lastStatusTime = { [Op.lt]: heardBefore }
+    }
+    if (afterUuid) {
+      where.uuid = { [Op.gt]: afterUuid }
+    }
+    return Fog.findAll({
+      attributes: ['uuid', 'statusFrequency', 'lastStatusTime', 'daemonStatus'],
+      where,
+      order: [['uuid', 'ASC']],
+      limit,
+      transaction
+    })
+  }
+
   updateLastActive (uuid, timestamp, transaction) {
     return Fog.update({
       lastActive: timestamp

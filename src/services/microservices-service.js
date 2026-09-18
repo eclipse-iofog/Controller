@@ -19,6 +19,7 @@ const CatalogItemImageManager = require('../data/managers/catalog-item-image-man
 const RegistryManager = require('../data/managers/registry-manager')
 // const RouterManager = require('../data/managers/router-manager')
 const MicroserviceStates = require('../enums/microservice-state')
+const { microserviceState, microserviceExecState } = MicroserviceStates
 const VolumeMappingManager = require('../data/managers/volume-mapping-manager')
 const ChangeTrackingService = require('./change-tracking-service')
 const AppHelper = require('../helpers/app-helper')
@@ -51,6 +52,11 @@ const NatsUserRuleManager = require('../data/managers/nats-user-rule-manager')
 const NatsRuleJwtValidation = require('../helpers/nats-rule-jwt-validation')
 const NatsInstanceManager = require('../data/managers/nats-instance-manager')
 const { resolveNatsServerUrl } = require('../helpers/nats-server-url')
+const {
+  applyRuntimeMetrics,
+  projectStatusForApi,
+  zeroRuntimeMetrics
+} = require('../helpers/microservice-runtime-metrics')
 
 const Op = require('sequelize').Op
 const FogManager = require('../data/managers/iofog-manager')
@@ -2032,13 +2038,22 @@ async function deleteMicroserviceEndPoint (microserviceUuid, microserviceData, i
 
 async function deleteNotRunningMicroservices (fog, transaction) {
   const microservices = await MicroserviceManager.findAllWithStatuses({ iofogUuid: fog.uuid }, transaction)
-  microservices
-    .filter((microservice) => microservice.delete)
-    .filter((microservice) => microservice.microserviceStatus.status === MicroserviceStates.UNKNOWN ||
-      microservice.microserviceStatus.status === MicroserviceStates.STOPPING ||
-      microservice.microserviceStatus.status === MicroserviceStates.DELETING ||
-      microservice.microserviceStatus.status === MicroserviceStates.MARKED_FOR_DELETION)
-    .forEach(async (microservice) => { await deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction) })
+  const toDelete = (microservices || []).filter((microservice) => {
+    if (!microservice.delete) {
+      return false
+    }
+    const status = microservice.microserviceStatus && microservice.microserviceStatus.status
+    if (!status) {
+      return false
+    }
+    return status === microserviceState.UNKNOWN ||
+      status === microserviceState.STOPPING ||
+      status === microserviceState.DELETING ||
+      status === microserviceState.MARKED_FOR_DELETION
+  })
+  for (const microservice of toDelete) {
+    await module.exports.deleteMicroserviceWithRoutesAndPortMappings(microservice, transaction)
+  }
 }
 
 async function createPortMappingEndPoint (microserviceUuid, portMappingData, isCLI, transaction) {
@@ -2959,7 +2974,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.extraHosts = extraHosts.map(eH => ({ name: eH.name, address: eH.template, value: eH.value }))
   res.images = images.map(i => ({ containerImage: i.containerImage, archId: i.archId }))
   if (status && status.length) {
-    res.status = status[0]
+    res.status = projectStatusForApi(status[0])
   }
   if (execStatus && execStatus.length) {
     res.execStatus = execStatus[0]
@@ -3037,6 +3052,24 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   return res
 }
 
+async function setMicroservicesObservedStopping (microserviceUuids, transaction) {
+  const uuids = (microserviceUuids || []).filter(Boolean)
+  if (!uuids.length) {
+    return
+  }
+  const observedStatus = applyRuntimeMetrics(
+    Object.assign({ status: microserviceState.STOPPING }, zeroRuntimeMetrics()),
+    microserviceState.STOPPING
+  )
+  await MicroserviceStatusManager.update({ microserviceUuid: uuids }, observedStatus, transaction)
+  await MicroserviceExecStatusManager.update({
+    microserviceUuid: uuids
+  }, {
+    status: microserviceExecState.INACTIVE,
+    execSessionId: ''
+  }, transaction)
+}
+
 async function startMicroserviceEndPoint (microserviceUuid, isCLI, transaction) {
   const microservice = await MicroserviceManager.findOneWithCategory({ uuid: microserviceUuid }, transaction)
   if (!microservice) {
@@ -3071,6 +3104,7 @@ async function stopMicroserviceEndPoint (microserviceUuid, isCLI, transaction) {
   }
 
   await MicroserviceManager.update({ uuid: microservice.uuid }, { isActivated: false }, transaction)
+  await setMicroservicesObservedStopping([microservice.uuid], transaction)
   await ChangeTrackingService.update(microservice.iofogUuid, ChangeTrackingService.events.microserviceList, transaction)
 
   return {
@@ -3136,6 +3170,7 @@ module.exports = {
   updateChangeTracking: _updateChangeTracking,
   startMicroserviceEndPoint: TransactionDecorator.generateTransaction(startMicroserviceEndPoint),
   stopMicroserviceEndPoint: TransactionDecorator.generateTransaction(stopMicroserviceEndPoint),
+  setMicroservicesObservedStopping,
   reconcileNatsForApplication: TransactionDecorator.generateTransaction(reconcileNatsForApplication),
   injectServiceAccountVolume: _injectServiceAccountVolume,
   stripUserServiceAccountVolumeMappings: _stripUserServiceAccountVolumeMappings,
