@@ -8,6 +8,8 @@ const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const MicroserviceService = require('../../../src/services/microservices-service')
 const NatsAuthService = require('../../../src/services/nats-auth-service')
+const MicroserviceStatusManager = require('../../../src/data/managers/microservice-status-manager')
+const MicroserviceExecStatusManager = require('../../../src/data/managers/microservice-exec-status-manager')
 const Errors = require('../../../src/helpers/errors')
 
 const transaction = {}
@@ -255,6 +257,41 @@ describe('Application Service', () => {
       def('patchData', () => ({ name: 'new-name' }))
 
       it('rejects rename attempts', () => expect($subject).to.be.rejectedWith('Application Resource Name is immutable'))
+    })
+
+    context('when deactivating', () => {
+      const members = [
+        { uuid: 'ms-active', iofogUuid: 'fog-1', isActivated: true },
+        { uuid: 'ms-already-off', iofogUuid: 'fog-1', isActivated: false }
+      ]
+      def('patchData', () => ({ isActivated: false }))
+
+      beforeEach(() => {
+        $sandbox.stub(ApplicationManager, 'findApplicationMicroservices').resolves(members)
+        $sandbox.stub(MicroserviceStatusManager, 'update').resolves()
+        $sandbox.stub(MicroserviceExecStatusManager, 'update').resolves()
+        $sandbox.stub(ChangeTrackingService, 'update').resolves()
+      })
+
+      it('sets observed STOPPING and zero meters on all member microservices', async () => {
+        await $subject
+        expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+          { microserviceUuid: ['ms-active', 'ms-already-off'] },
+          sinon.match({
+            status: 'STOPPING',
+            cpuUsage: 0,
+            memoryUsage: 0,
+            startTime: 0,
+            operatingDuration: 0
+          }),
+          transaction
+        )
+        expect(MicroserviceExecStatusManager.update).to.have.been.calledWith(
+          { microserviceUuid: ['ms-active', 'ms-already-off'] },
+          sinon.match({ status: 'INACTIVE', execSessionId: '' }),
+          transaction
+        )
+      })
     })
   })
 

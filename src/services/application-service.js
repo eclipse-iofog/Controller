@@ -189,6 +189,13 @@ const patchApplicationEndPoint = async function (applicationData, conditions, is
   }
 
   if (oldApplication.isActivated !== applicationData.isActivated) {
+    if (oldApplication.isActivated && applicationData.isActivated === false) {
+      const microservices = await ApplicationManager.findApplicationMicroservices(conditions, transaction)
+      await MicroserviceService.setMicroservicesObservedStopping(
+        (microservices || []).map((ms) => ms.uuid),
+        transaction
+      )
+    }
     await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(conditions, false, transaction)
   }
 }
@@ -257,6 +264,13 @@ const updateApplicationEndPoint = async function (applicationData, name, isCLI, 
     await _updateMicroservices(application.name, applicationData.microservices, isCLI, transaction)
   }
   if (oldApplication.isActivated !== applicationData.isActivated) {
+    if (oldApplication.isActivated && applicationData.isActivated === false) {
+      const microservices = await ApplicationManager.findApplicationMicroservices({ name }, transaction)
+      await MicroserviceService.setMicroservicesObservedStopping(
+        (microservices || []).map((ms) => ms.uuid),
+        transaction
+      )
+    }
     await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId({ name }, false, transaction)
   }
 }
