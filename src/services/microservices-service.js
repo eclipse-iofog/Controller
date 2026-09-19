@@ -62,6 +62,7 @@ const Op = require('sequelize').Op
 const FogManager = require('../data/managers/iofog-manager')
 const MicroserviceExtraHostManager = require('../data/managers/microservice-extra-host-manager')
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
+const { applyVolumeMappingScope, PRIVATE_SCOPE } = require('../helpers/volume-mapping-scope')
 const constants = require('../helpers/constants')
 const logger = require('../logger')
 
@@ -946,15 +947,12 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
   return res
 }
 
-function _validateVolumeMappings (volumeMappings) {
+function _validateVolumeMappings (volumeMappings, options = {}) {
   _stripUserServiceAccountVolumeMappings(volumeMappings)
   if (volumeMappings) {
     for (const mapping of volumeMappings) {
       mapping.type = mapping.type || VOLUME_MAPPING_DEFAULT
-      if (mapping.type === 'volume' && (!/^[a-zA-Z0-9_.-]/.test(mapping.hostDestination))) {
-        throw new Errors.InvalidArgumentError('hostDestination includes invalid characters for a local volume name, only ' +
-          '"[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed. If you intended to pass a host directory, use type: bind')
-      }
+      applyVolumeMappingScope(mapping, options)
       if (mapping.type === 'volumeMount') {
         if (!mapping.hostDestination || mapping.hostDestination === '') {
           throw new Errors.ValidationError('hostDestination is required when type is volumeMount')
@@ -962,6 +960,14 @@ function _validateVolumeMappings (volumeMappings) {
       }
     }
   }
+}
+
+async function _rejectsSharedVolumeScope (microservice, transaction) {
+  if (microservice.isController) {
+    return true
+  }
+  const app = await ApplicationManager.findOne({ id: microservice.applicationId }, transaction)
+  return !!(app && app.isSystem === true)
 }
 
 function _validateKeyPath (data, keyPath, resourceName, resourceType, volumeMountName) {
@@ -2249,6 +2255,13 @@ async function isMicroserviceNats (microservice, transaction) {
   return !!(app && app.isSystem === true)
 }
 
+async function _applyVolumeMappingChangeTracking (microservice, transaction) {
+  await MicroserviceManager.update({ uuid: microservice.uuid }, { rebuild: true }, transaction)
+  if (microservice.iofogUuid) {
+    await _updateChangeTracking(true, microservice.iofogUuid, transaction)
+  }
+}
+
 async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData, isCLI, transaction) {
   await Validator.validate(volumeMappingData, Validator.schemas.volumeMappings)
 
@@ -2279,7 +2292,9 @@ async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData,
     throw new Errors.ValidationError(ErrorMessages.VOLUME_MAPPING_ALREADY_EXISTS)
   }
 
-  _validateVolumeMappings([volumeMappingData])
+  _validateVolumeMappings([volumeMappingData], {
+    rejectShared: await _rejectsSharedVolumeScope(microservice, transaction)
+  })
 
   // Validate volume mount references before creating mapping
   // When type is 'volumeMount', validates that the volume mount exists and is linked to the fog node
@@ -2292,10 +2307,13 @@ async function createVolumeMappingEndPoint (microserviceUuid, volumeMappingData,
     hostDestination: volumeMappingData.hostDestination,
     containerDestination: volumeMappingData.containerDestination,
     accessMode: volumeMappingData.accessMode,
-    type
+    type: volumeMappingData.type || type,
+    scope: volumeMappingData.scope || PRIVATE_SCOPE
   }
 
-  return VolumeMappingManager.create(volumeMappingObj, transaction)
+  const created = await VolumeMappingManager.create(volumeMappingObj, transaction)
+  await _applyVolumeMappingChangeTracking(microservice, transaction)
+  return created
 }
 
 async function createSystemVolumeMappingEndPoint (microserviceUuid, volumeMappingData, isCLI, transaction) {
@@ -2328,7 +2346,9 @@ async function createSystemVolumeMappingEndPoint (microserviceUuid, volumeMappin
     throw new Errors.ValidationError(ErrorMessages.VOLUME_MAPPING_ALREADY_EXISTS)
   }
 
-  _validateVolumeMappings([volumeMappingData])
+  _validateVolumeMappings([volumeMappingData], {
+    rejectShared: await _rejectsSharedVolumeScope(microservice, transaction)
+  })
 
   // Validate volume mount references before creating mapping
   // When type is 'volumeMount', validates that the volume mount exists and is linked to the fog node
@@ -2341,10 +2361,13 @@ async function createSystemVolumeMappingEndPoint (microserviceUuid, volumeMappin
     hostDestination: volumeMappingData.hostDestination,
     containerDestination: volumeMappingData.containerDestination,
     accessMode: volumeMappingData.accessMode,
-    type
+    type: volumeMappingData.type || type,
+    scope: volumeMappingData.scope || PRIVATE_SCOPE
   }
 
-  return VolumeMappingManager.create(volumeMappingObj, transaction)
+  const created = await VolumeMappingManager.create(volumeMappingObj, transaction)
+  await _applyVolumeMappingChangeTracking(microservice, transaction)
+  return created
 }
 
 async function deleteVolumeMappingEndPoint (microserviceUuid, volumeMappingUuid, isCLI, transaction) {
@@ -2377,6 +2400,8 @@ async function deleteVolumeMappingEndPoint (microserviceUuid, volumeMappingUuid,
   if (affectedRows === 0) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_VOLUME_MAPPING_UUID, volumeMappingUuid))
   }
+
+  await _applyVolumeMappingChangeTracking(microservice, transaction)
 }
 
 async function deleteSystemVolumeMappingEndPoint (microserviceUuid, volumeMappingUuid, isCLI, transaction) {
@@ -2409,6 +2434,8 @@ async function deleteSystemVolumeMappingEndPoint (microserviceUuid, volumeMappin
   if (affectedRows === 0) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_VOLUME_MAPPING_UUID, volumeMappingUuid))
   }
+
+  await _applyVolumeMappingChangeTracking(microservice, transaction)
 }
 
 async function listVolumeMappingsEndPoint (microserviceUuid, isCLI, transaction) {
@@ -2643,22 +2670,29 @@ async function _createVolumeMappings (microservice, volumeMappings, transaction)
 
   const mappings = []
   for (const volumeMapping of volumeMappings) {
-    const mapping = Object.assign({}, volumeMapping)
-    mapping.microserviceUuid = microservice.uuid
-    mappings.push(mapping)
+    mappings.push({
+      microserviceUuid: microservice.uuid,
+      hostDestination: volumeMapping.hostDestination,
+      containerDestination: volumeMapping.containerDestination,
+      accessMode: volumeMapping.accessMode,
+      type: volumeMapping.type || VOLUME_MAPPING_DEFAULT,
+      scope: volumeMapping.scope || PRIVATE_SCOPE
+    })
   }
 
   await VolumeMappingManager.bulkCreate(mappings, transaction)
 }
 
 async function _updateVolumeMappings (volumeMappings, microserviceUuid, transaction) {
-  _validateVolumeMappings(volumeMappings)
-
   // Get microservice to find fogUuid for volume mount validation
   const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
   if (!microservice) {
     throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
   }
+
+  _validateVolumeMappings(volumeMappings, {
+    rejectShared: await _rejectsSharedVolumeScope(microservice, transaction)
+  })
 
   // Validate volume mount references before updating mappings
   // When type is 'volumeMount', validates that the volume mount exists and is linked to the fog node
@@ -2682,7 +2716,8 @@ async function _updateVolumeMappings (volumeMappings, microserviceUuid, transact
       hostDestination: volumeMapping.hostDestination,
       containerDestination: volumeMapping.containerDestination,
       accessMode: volumeMapping.accessMode,
-      type
+      type,
+      scope: volumeMapping.scope || PRIVATE_SCOPE
     }
 
     await VolumeMappingManager.create(volumeMappingObj, transaction)
