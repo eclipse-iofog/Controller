@@ -405,6 +405,176 @@ describe('Microservices Service', () => {
       })
     })
 
+    context('when volumeMappings include scope', () => {
+      const basePayload = {
+        name: 'new-msvc',
+        application: 'my-app',
+        iofogUuid: 'fog-uuid',
+        images: [{ containerImage: 'demo:latest', archId: 1 }],
+        registryId: 1
+      }
+
+      it('stores private when type is volume and scope is omitted', async () => {
+        await $service.createMicroserviceEndPoint({
+          ...basePayload,
+          volumeMappings: [{
+            hostDestination: 'data',
+            containerDestination: '/data',
+            accessMode: 'rw',
+            type: 'volume'
+          }]
+        }, isCLI, transaction)
+
+        const [mappings] = VolumeMappingManager.bulkCreate.firstCall.args
+        expect(mappings[0].scope).to.equal('private')
+      })
+
+      it('stores private when type is volume and scope is empty or null', async () => {
+        for (const scope of ['', null]) {
+          VolumeMappingManager.bulkCreate.resetHistory()
+          await $service.createMicroserviceEndPoint({
+            ...basePayload,
+            volumeMappings: [{
+              hostDestination: 'data',
+              containerDestination: '/data',
+              accessMode: 'rw',
+              type: 'volume',
+              scope
+            }]
+          }, isCLI, transaction)
+
+          const [mappings] = VolumeMappingManager.bulkCreate.firstCall.args
+          expect(mappings[0].scope).to.equal('private')
+        }
+      })
+
+      it('stores shared when type is volume and scope is Shared', async () => {
+        await $service.createMicroserviceEndPoint({
+          ...basePayload,
+          volumeMappings: [{
+            hostDestination: 'nodered-config',
+            containerDestination: '/data',
+            accessMode: 'rw',
+            type: 'volume',
+            scope: 'Shared'
+          }]
+        }, isCLI, transaction)
+
+        const [mappings] = VolumeMappingManager.bulkCreate.firstCall.args
+        expect(mappings[0]).to.include({
+          hostDestination: 'nodered-config',
+          type: 'volume',
+          scope: 'shared'
+        })
+      })
+
+      it('rejects unknown scope on type volume', async () => {
+        await expect($service.createMicroserviceEndPoint({
+          ...basePayload,
+          volumeMappings: [{
+            hostDestination: 'data',
+            containerDestination: '/data',
+            accessMode: 'rw',
+            type: 'volume',
+            scope: 'Shareed'
+          }]
+        }, isCLI, transaction)).to.be.rejectedWith(Errors.ValidationError, /Unknown volume mapping scope/)
+      })
+
+      it('stores private when type is omitted and scope is shared', async () => {
+        await $service.createMicroserviceEndPoint({
+          ...basePayload,
+          volumeMappings: [{
+            hostDestination: '/host/data',
+            containerDestination: '/data',
+            accessMode: 'rw',
+            scope: 'shared'
+          }]
+        }, isCLI, transaction)
+
+        const [mappings] = VolumeMappingManager.bulkCreate.firstCall.args
+        expect(mappings[0]).to.include({ type: 'bind', scope: 'private' })
+      })
+
+      it('stores private when type is bind and scope is unknown', async () => {
+        await $service.createMicroserviceEndPoint({
+          ...basePayload,
+          volumeMappings: [{
+            hostDestination: '/host/data',
+            containerDestination: '/data',
+            accessMode: 'rw',
+            type: 'bind',
+            scope: 'nope'
+          }]
+        }, isCLI, transaction)
+
+        const [mappings] = VolumeMappingManager.bulkCreate.firstCall.args
+        expect(mappings[0]).to.include({ type: 'bind', scope: 'private' })
+      })
+
+      it('persists both a private and a shared mapping with the same volume name', async () => {
+        await $service.createMicroserviceEndPoint({
+          ...basePayload,
+          volumeMappings: [{
+            hostDestination: 'config',
+            containerDestination: '/private-config',
+            accessMode: 'rw',
+            type: 'volume'
+          }, {
+            hostDestination: 'config',
+            containerDestination: '/shared-config',
+            accessMode: 'rw',
+            type: 'volume',
+            scope: 'shared'
+          }]
+        }, isCLI, transaction)
+
+        const [mappings] = VolumeMappingManager.bulkCreate.firstCall.args
+        expect(mappings).to.have.length(2)
+        expect(mappings[0]).to.include({
+          hostDestination: 'config',
+          containerDestination: '/private-config',
+          scope: 'private'
+        })
+        expect(mappings[1]).to.include({
+          hostDestination: 'config',
+          containerDestination: '/shared-config',
+          scope: 'shared'
+        })
+      })
+
+      it('persists shared with read-only access', async () => {
+        await $service.createMicroserviceEndPoint({
+          ...basePayload,
+          volumeMappings: [{
+            hostDestination: 'nodered-config',
+            containerDestination: '/data',
+            accessMode: 'ro',
+            type: 'volume',
+            scope: 'shared'
+          }]
+        }, isCLI, transaction)
+
+        const [mappings] = VolumeMappingManager.bulkCreate.firstCall.args
+        expect(mappings[0]).to.include({
+          accessMode: 'ro',
+          scope: 'shared'
+        })
+      })
+
+      it('rejects a volume name that is not a valid local volume name', async () => {
+        await expect($service.createMicroserviceEndPoint({
+          ...basePayload,
+          volumeMappings: [{
+            hostDestination: '../x',
+            containerDestination: '/data',
+            accessMode: 'rw',
+            type: 'volume'
+          }]
+        }, isCLI, transaction)).to.be.rejectedWith(Errors.InvalidArgumentError, /invalid characters/)
+      })
+    })
+
     context('when runtime is set', () => {
       it('auto-links the runtime class on an edgelet fog', async () => {
         FogManager.findOne.resolves({
@@ -668,6 +838,41 @@ describe('Microservices Service', () => {
         })
       })
     })
+
+    context('when volumeMappings change scope', () => {
+      def('updateData', () => ({
+        volumeMappings: [{
+          hostDestination: 'nodered-config',
+          containerDestination: '/data',
+          accessMode: 'rw',
+          type: 'volume',
+          scope: 'shared'
+        }]
+      }))
+
+      it('marks the microservice for rebuild and notifies the node', async () => {
+        await $subject
+        expect(MicroserviceManager.updateAndFind).to.have.been.calledWith(
+          { uuid: msvcUuid },
+          sinon.match({ rebuild: true }),
+          transaction
+        )
+        expect(VolumeMappingManager.create).to.have.been.calledWith(
+          sinon.match({
+            microserviceUuid: msvcUuid,
+            hostDestination: 'nodered-config',
+            type: 'volume',
+            scope: 'shared'
+          }),
+          transaction
+        )
+        expect(ChangeTrackingService.update).to.have.been.calledWith(
+          existing.iofogUuid,
+          ChangeTrackingService.events.microserviceCommon,
+          transaction
+        )
+      })
+    })
   })
 
   describe('.updateSystemMicroserviceEndPoint()', () => {
@@ -707,6 +912,25 @@ describe('Microservices Service', () => {
         sinon.match({ schedule: 0 }),
         transaction
       )
+    })
+
+    context('when a controller microservice is sent a shared volume', () => {
+      def('updateData', () => ({
+        volumeMappings: [{
+          hostDestination: 'data',
+          containerDestination: '/data',
+          accessMode: 'rw',
+          type: 'volume',
+          scope: 'shared'
+        }]
+      }))
+
+      it('rejects shared scope on a controller microservice', () => {
+        return expect($subject).to.be.rejectedWith(
+          Errors.ValidationError,
+          /not allowed on controller or system/
+        )
+      })
     })
 
     context('when microservice is not controller', () => {
@@ -864,13 +1088,185 @@ describe('Microservices Service', () => {
     beforeEach(() => {
       $sandbox.stub(Validator, 'validate').resolves(true)
       $sandbox.stub(MicroserviceManager, 'findMicroserviceOnGet').resolves(microservice)
+      $sandbox.stub(ApplicationManager, 'findOne').resolves({ id: microservice.applicationId, isSystem: false })
       $sandbox.stub(VolumeMappingManager, 'findOne').resolves(null)
       $sandbox.stub(VolumeMappingManager, 'create').resolves({ uuid: 'vol-uuid' })
+      $sandbox.stub(MicroserviceManager, 'update').resolves()
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
     })
 
     it('creates a user volume mapping', async () => {
       await $subject
       expect(VolumeMappingManager.create).to.have.been.calledOnce
+    })
+
+    it('persists default private scope and marks the microservice for rebuild', async () => {
+      await $subject
+      expect(VolumeMappingManager.create).to.have.been.calledWith(
+        sinon.match({
+          microserviceUuid: msvcUuid,
+          hostDestination: 'data',
+          type: 'volume',
+          scope: 'private'
+        }),
+        transaction
+      )
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        { rebuild: true },
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        microservice.iofogUuid,
+        ChangeTrackingService.events.microserviceCommon,
+        transaction
+      )
+    })
+
+    it('persists shared scope on type volume', async () => {
+      await $service.createVolumeMappingEndPoint(msvcUuid, {
+        hostDestination: 'nodered-config',
+        containerDestination: '/data',
+        accessMode: 'rw',
+        type: 'volume',
+        scope: 'Shared'
+      }, isCLI, transaction)
+
+      expect(VolumeMappingManager.create).to.have.been.calledWith(
+        sinon.match({
+          hostDestination: 'nodered-config',
+          type: 'volume',
+          scope: 'shared'
+        }),
+        transaction
+      )
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        { rebuild: true },
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        microservice.iofogUuid,
+        ChangeTrackingService.events.microserviceCommon,
+        transaction
+      )
+    })
+
+      it('rejects bind when hostDestination is not an absolute path', () => {
+        return expect($service.createVolumeMappingEndPoint(msvcUuid, {
+          hostDestination: 'nodered-config',
+          containerDestination: '/data',
+          accessMode: 'rw',
+          type: 'bind'
+        }, isCLI, transaction)).to.be.rejectedWith(Errors.InvalidArgumentError, /absolute host path/)
+      })
+
+      it('stores private when type is bind and scope is shared', async () => {
+        await $service.createVolumeMappingEndPoint(msvcUuid, {
+          hostDestination: '/host/data',
+          containerDestination: '/data',
+          accessMode: 'rw',
+          type: 'bind',
+          scope: 'shared'
+        }, isCLI, transaction)
+
+      expect(VolumeMappingManager.create).to.have.been.calledWith(
+        sinon.match({
+          type: 'bind',
+          scope: 'private'
+        }),
+        transaction
+      )
+    })
+
+    it('rejects unknown scope on type volume', () => {
+      return expect($service.createVolumeMappingEndPoint(msvcUuid, {
+        hostDestination: 'data',
+        containerDestination: '/data',
+        accessMode: 'rw',
+        type: 'volume',
+        scope: 'Shareed'
+      }, isCLI, transaction)).to.be.rejectedWith(Errors.ValidationError, /Unknown volume mapping scope/)
+    })
+
+    it('rejects shared scope on a system microservice', () => {
+      ApplicationManager.findOne.resolves({ id: microservice.applicationId, isSystem: true })
+      return expect($service.createVolumeMappingEndPoint(msvcUuid, {
+        hostDestination: 'data',
+        containerDestination: '/data',
+        accessMode: 'rw',
+        type: 'volume',
+        scope: 'shared'
+      }, isCLI, transaction)).to.be.rejectedWith(
+        Errors.ValidationError,
+        /not allowed on controller or system/
+      )
+    })
+
+    it('rejects shared scope on a controller microservice', () => {
+      MicroserviceManager.findMicroserviceOnGet.resolves(buildMicroserviceRecord({
+        uuid: msvcUuid,
+        isController: true
+      }))
+      return expect($service.createVolumeMappingEndPoint(msvcUuid, {
+        hostDestination: 'data',
+        containerDestination: '/data',
+        accessMode: 'rw',
+        type: 'volume',
+        scope: 'shared'
+      }, isCLI, transaction)).to.be.rejectedWith(
+        Errors.ValidationError,
+        /not allowed on controller or system/
+      )
+    })
+
+    it('allows the same shared volume name on two user microservices on one node', async () => {
+      const otherMs = buildMicroserviceRecord({ uuid: 'other-msvc', iofogUuid: 'fog-uuid' })
+      MicroserviceManager.findMicroserviceOnGet.callsFake((where) => {
+        if (where && where.uuid === 'other-msvc') {
+          return Promise.resolve(otherMs)
+        }
+        return Promise.resolve(microservice)
+      })
+      const mapping = {
+        hostDestination: 'nodered-config',
+        containerDestination: '/data',
+        accessMode: 'rw',
+        type: 'volume',
+        scope: 'shared'
+      }
+
+      await $service.createVolumeMappingEndPoint(msvcUuid, mapping, isCLI, transaction)
+      await $service.createVolumeMappingEndPoint('other-msvc', { ...mapping }, isCLI, transaction)
+
+      expect(VolumeMappingManager.create).to.have.been.calledTwice
+      expect(VolumeMappingManager.create.firstCall.args[0]).to.include({
+        microserviceUuid: msvcUuid,
+        hostDestination: 'nodered-config',
+        scope: 'shared'
+      })
+      expect(VolumeMappingManager.create.secondCall.args[0]).to.include({
+        microserviceUuid: 'other-msvc',
+        hostDestination: 'nodered-config',
+        scope: 'shared'
+      })
+    })
+
+    it('skips fog change tracking when the microservice has no node', async () => {
+      MicroserviceManager.findMicroserviceOnGet.resolves(buildMicroserviceRecord({
+        uuid: msvcUuid,
+        iofogUuid: null
+      }))
+
+      await $subject
+
+      expect(VolumeMappingManager.create).to.have.been.calledOnce
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        { rebuild: true },
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.not.have.been.called
     })
 
     context('when type is serviceAccount', () => {
@@ -886,6 +1282,170 @@ describe('Microservices Service', () => {
           'Volume mappings of type serviceAccount are system-managed and cannot be created by users'
         )
       })
+    })
+  })
+
+  describe('.createSystemVolumeMappingEndPoint()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const microservice = buildMicroserviceRecord({ uuid: msvcUuid })
+
+    def('subject', () => $service.createSystemVolumeMappingEndPoint(msvcUuid, $volumeMappingData, isCLI, transaction))
+    def('volumeMappingData', () => ({
+      hostDestination: 'data',
+      containerDestination: '/data',
+      accessMode: 'rw',
+      type: 'volume'
+    }))
+
+    beforeEach(() => {
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves(microservice)
+      $sandbox.stub(ApplicationManager, 'findOne').resolves({ id: microservice.applicationId, isSystem: true })
+      $sandbox.stub(VolumeMappingManager, 'findOne').resolves(null)
+      $sandbox.stub(VolumeMappingManager, 'create').resolves({ uuid: 'vol-uuid' })
+      $sandbox.stub(MicroserviceManager, 'update').resolves()
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
+    })
+
+    it('persists private scope and marks the system microservice for rebuild', async () => {
+      await $subject
+      expect(VolumeMappingManager.create).to.have.been.calledWith(
+        sinon.match({
+          microserviceUuid: msvcUuid,
+          type: 'volume',
+          scope: 'private'
+        }),
+        transaction
+      )
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        { rebuild: true },
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        microservice.iofogUuid,
+        ChangeTrackingService.events.microserviceCommon,
+        transaction
+      )
+    })
+
+    it('rejects explicit shared scope on a system microservice volume', () => {
+      return expect($service.createSystemVolumeMappingEndPoint(msvcUuid, {
+        hostDestination: 'data',
+        containerDestination: '/data',
+        accessMode: 'rw',
+        type: 'volume',
+        scope: 'shared'
+      }, isCLI, transaction)).to.be.rejectedWith(
+        Errors.ValidationError,
+        /not allowed on controller or system/
+      )
+    })
+  })
+
+  describe('.deleteVolumeMappingEndPoint()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const mappingUuid = 'vol-uuid'
+    const microservice = buildMicroserviceRecord({ uuid: msvcUuid })
+
+    def('subject', () => $service.deleteVolumeMappingEndPoint(msvcUuid, mappingUuid, isCLI, transaction))
+
+    beforeEach(() => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves(microservice)
+      $sandbox.stub(VolumeMappingManager, 'findOne').resolves({
+        uuid: mappingUuid,
+        microserviceUuid: msvcUuid,
+        type: 'volume'
+      })
+      $sandbox.stub(VolumeMappingManager, 'delete').resolves(1)
+      $sandbox.stub(MicroserviceManager, 'update').resolves()
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
+    })
+
+    it('deletes the mapping and marks the microservice for rebuild', async () => {
+      await $subject
+      expect(VolumeMappingManager.delete).to.have.been.calledWith(
+        { uuid: mappingUuid, microserviceUuid: msvcUuid },
+        transaction
+      )
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        { rebuild: true },
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        microservice.iofogUuid,
+        ChangeTrackingService.events.microserviceCommon,
+        transaction
+      )
+    })
+
+    it('rejects delete of system-managed serviceAccount mappings', () => {
+      VolumeMappingManager.findOne.resolves({
+        uuid: mappingUuid,
+        microserviceUuid: msvcUuid,
+        type: 'serviceAccount'
+      })
+      return expect($subject).to.be.rejectedWith(
+        'Volume mappings of type serviceAccount are system-managed and cannot be deleted by users'
+      )
+    })
+  })
+
+  describe('.deleteSystemVolumeMappingEndPoint()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const mappingUuid = 'vol-uuid'
+    const microservice = buildMicroserviceRecord({ uuid: msvcUuid })
+
+    beforeEach(() => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves(microservice)
+      $sandbox.stub(VolumeMappingManager, 'findOne').resolves({
+        uuid: mappingUuid,
+        microserviceUuid: msvcUuid,
+        type: 'volume'
+      })
+      $sandbox.stub(VolumeMappingManager, 'delete').resolves(1)
+      $sandbox.stub(MicroserviceManager, 'update').resolves()
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
+    })
+
+    it('deletes the mapping and marks the system microservice for rebuild', async () => {
+      await $service.deleteSystemVolumeMappingEndPoint(msvcUuid, mappingUuid, isCLI, transaction)
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        { rebuild: true },
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledWith(
+        microservice.iofogUuid,
+        ChangeTrackingService.events.microserviceCommon,
+        transaction
+      )
+    })
+  })
+
+  describe('.listVolumeMappingsEndPoint()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const microservice = buildMicroserviceRecord({ uuid: msvcUuid })
+    const mappings = [{
+      hostDestination: 'nodered-config',
+      containerDestination: '/data',
+      accessMode: 'rw',
+      id: 7,
+      type: 'volume',
+      scope: 'shared'
+    }]
+
+    beforeEach(() => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves(microservice)
+      $sandbox.stub(VolumeMappingManager, 'findAll').resolves(mappings)
+    })
+
+    it('returns stored mapping scope', async () => {
+      const result = await $service.listVolumeMappingsEndPoint(msvcUuid, isCLI, transaction)
+      expect(VolumeMappingManager.findAll).to.have.been.calledWith({ microserviceUuid: msvcUuid }, transaction)
+      expect(result).to.eql(mappings)
+      expect(result[0].scope).to.equal('shared')
     })
   })
 

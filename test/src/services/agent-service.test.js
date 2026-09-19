@@ -1398,6 +1398,24 @@ describe('Agent Service', () => {
             expect(msvc.isNats).to.equal(false)
           })
 
+          it('includes volume mapping scope from the persisted mapping', async () => {
+            const volumeMappings = [{
+              hostDestination: 'nodered-config',
+              containerDestination: '/data',
+              accessMode: 'rw',
+              type: 'volume',
+              scope: 'shared'
+            }]
+            MicroserviceManager.findAllActiveApplicationMicroservices.resolves([{
+              ...microserviceWithValidImage,
+              volumeMappings
+            }])
+
+            const result = await $subject
+            expect(result.microservices[0].volumeMappings).to.eql(volumeMappings)
+            expect(result.microservices[0].volumeMappings[0].scope).to.equal('shared')
+          })
+
           it('emits catalog models and omits empty argv arrays', async () => {
             MicroserviceManager.findAllActiveApplicationMicroservices.resolves([{
               ...microserviceWithValidImage,
