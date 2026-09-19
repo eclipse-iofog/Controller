@@ -174,5 +174,7 @@ ALTER TABLE MicroserviceStatuses ADD COLUMN last_error TEXT;
 ALTER TABLE MicroserviceStatuses ADD COLUMN last_error_at BIGINT DEFAULT 0;
 ALTER TABLE MicroserviceStatuses ADD COLUMN restart_count INT DEFAULT 0;
 
+ALTER TABLE VolumeMappings ADD COLUMN scope VARCHAR(16) NOT NULL DEFAULT 'private';
+
 DROP TABLE IF EXISTS HWInfos;
 DROP TABLE IF EXISTS USBInfos;

@@ -132,7 +132,7 @@ class MicroserviceManager extends BaseManager {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type', 'scope']
         },
         {
           model: CatalogItemImage,
@@ -229,7 +229,7 @@ class MicroserviceManager extends BaseManager {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type', 'scope']
         },
         {
           model: CatalogItemImage,
@@ -350,7 +350,7 @@ class MicroserviceManager extends BaseManager {
           model: VolumeMapping,
           as: 'volumeMappings',
           required: false,
-          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type']
+          attributes: ['hostDestination', 'containerDestination', 'accessMode', 'type', 'scope']
         },
         {
           model: CatalogItemImage,

@@ -166,6 +166,27 @@ describe('Controller MS Service', () => {
       expect(MicroservicesService.createOrUpdateServiceAccountForMicroservice).to.not.have.been.called
     })
 
+    context('when register sends a shared volume mapping', () => {
+      def('body', () => ({
+        ...registerData,
+        volumeMappings: [{
+          hostDestination: 'db',
+          containerDestination: '/data',
+          accessMode: 'rw',
+          type: 'volume',
+          scope: 'shared'
+        }]
+      }))
+
+      it('rejects shared scope on controller volumes', async () => {
+        await expect($subject).to.be.rejectedWith(
+          Errors.ValidationError,
+          /not allowed on controller or system/
+        )
+        expect(VolumeMappingManager.bulkCreate).to.not.have.been.called
+      })
+    })
+
     context('when container workload fields are sent on create', () => {
       def('body', () => ({
         ...registerData,

@@ -327,6 +327,7 @@ CREATE TABLE IF NOT EXISTS VolumeMappings (
     container_destination TEXT,
     access_mode TEXT,
     type TEXT,
+    scope VARCHAR(16) NOT NULL DEFAULT 'private',
     microservice_uuid VARCHAR(36),
     FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
 );

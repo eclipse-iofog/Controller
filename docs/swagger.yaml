@@ -9807,6 +9807,18 @@ components:
         accessMode:
           type: string
           example: rw
+        scope:
+          type: string
+          enum:
+            - private
+            - shared
+          default: private
+          description: >-
+            Meaningful only when type is volume. Omit, null, or empty stores
+            private. Unknown values on type volume return 400. Other mapping
+            types always store private. Runtime accepts any case and stores
+            lowercase.
+          example: private
     VolumeMappingResponse:
       type: object
       properties:
@@ -9821,6 +9833,10 @@ components:
           type: number
         hostDestination:
           type: string
+          description: >-
+            When type is volume, a managed volume name
+            ([a-zA-Z0-9][a-zA-Z0-9_.-]*). When type is bind (default), an
+            absolute host path (Unix or Windows drive path).
           example: /var/dest
         containerDestination:
           type: string
@@ -9831,6 +9847,18 @@ components:
         type: 
           type: string
           example: bind
+        scope:
+          type: string
+          enum:
+            - private
+            - shared
+          default: private
+          description: >-
+            Meaningful only when type is volume. Omit, null, or empty stores
+            private. Unknown values on type volume return 400. Other mapping
+            types always store private. Runtime accepts any case and stores
+            lowercase. GET always returns private or shared in lowercase.
+          example: private
     PortMappingsResponse:
       type: object
       properties:

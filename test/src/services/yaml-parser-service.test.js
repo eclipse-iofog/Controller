@@ -210,6 +210,31 @@ spec:
       expect(result).to.not.have.property('volumes')
     })
 
+    it('passes container volume scope through to volumeMappings', async () => {
+      const yaml = `
+kind: Microservice
+metadata:
+  name: app-a/ms-shared-volume
+spec:
+  container:
+    volumes:
+      - hostDestination: nodered-config
+        containerDestination: /data
+        accessMode: rw
+        type: volume
+        scope: shared
+    env: []
+`
+      const result = await YamlParserService.parseMicroserviceFile(yaml)
+      expect(result.volumeMappings).to.eql([{
+        hostDestination: 'nodered-config',
+        containerDestination: '/data',
+        accessMode: 'rw',
+        type: 'volume',
+        scope: 'shared'
+      }])
+    })
+
     it('does not map deprecated top-level natsAccess', async () => {
       const yaml = `
 kind: Microservice
