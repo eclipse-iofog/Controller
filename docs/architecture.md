@@ -109,7 +109,7 @@ Used by EdgeOps Console, `potctl`, `iofogctl`, and automation.
 | Certificates | `/api/v3/certificate` | PKI operations |
 | WebSocket | `ws` routes in `src/routes/` | Exec and logs (Bearer token) |
 
-Browser login uses the OAuth BFF (`GET /api/v3/user/oauth/authorize`); CLI uses `POST /api/v3/user/login`. See [oidc-configuration.md](oidc-configuration.md), [external-oidc-client-setup.md](external-oidc-client-setup.md), and [rbac-reference.md](rbac-reference.md).
+Browser login uses the OAuth BFF (`GET /api/v3/user/oauth/authorize`); CLI uses `POST /api/v3/user/login`. See [oidc-configuration.md](oidc-configuration.md), [external-oidc-client-setup.md](external-oidc-client-setup.md), [external-oidc-providers.md](external-oidc-providers.md), and [rbac-reference.md](rbac-reference.md).
 
 ### Agent API (fog token — no OIDC)
 
@@ -356,6 +356,8 @@ Controller v3.8 and Edgelet share a **frozen field-agent REST contract** on `/ap
 
 **Volume mounts** — `GET volumeMounts` returns bind/volume shapes plus system-injected immutable `serviceAccount` entries.
 
+**Volume mapping scope** — microservice `volumeMappings[]` may include `scope` (`private` default / `shared`). Meaningful only when `type` is `volume`. Shared names are node-global on that fog. Reclaim is on-node (`edgelet volume` / `deprovision --purge-volumes`); Controller does not prune volumes. `deleteWithCleanup` remains unused.
+
 **Service account RBAC** — microservice roles use apiGroup **`edgelet.iofog.org/v1`**; SA/role changes trigger `microserviceList` change tracking.
 
 For the full bilateral contract (including ControlPlane env vars and verification references), see Edgelet documentation:
@@ -466,6 +468,7 @@ Agent routes and WebSocket exec/logs for agents are **outside** OIDC — see [rb
 | [pki.md](pki.md) | Central CAs, cert renewal, NATS operator rotation |
 | [oidc-configuration.md](oidc-configuration.md) | Embedded/external auth modes and env vars |
 | [external-oidc-client-setup.md](external-oidc-client-setup.md) | External IdP client configuration |
+| [external-oidc-providers.md](external-oidc-providers.md) | Default groups/roles and IdP recipes |
 | [operations/database-transactions.md](operations/database-transactions.md) | Transaction runner, OTEL metrics, SQLITE_BUSY runbook |
 | [operations/sizing.md](operations/sizing.md) | Hardware sizing by fog count (K8s and Remote CP) |
 | [CONTRIBUTING](../CONTRIBUTING) | Dual-mirror CI and development |

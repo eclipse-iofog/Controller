@@ -32,7 +32,7 @@ Client request
 | **User** | `preferred_username`, `username`, `email`, or `sub` |
 | **Group** | `resource_access[<OIDC_CLIENT_ID>].roles`, `roles[]`, `groups[]` (lowercased) |
 
-Group names should match RoleBinding subjects and IdP role names (for example `admin`, `developer`, `viewer`). See [external-oidc-client-setup.md](external-oidc-client-setup.md) for external IdP claim mapping.
+Group names should match RoleBinding subjects and IdP role names (for example `admin`, `developer`, `viewer`). Direct mapping of those names (no RoleBinding) and per-provider recipes: [external-oidc-providers.md](external-oidc-providers.md). Client registration: [external-oidc-client-setup.md](external-oidc-client-setup.md).
 
 ### Password-change gate
 
@@ -191,5 +191,6 @@ Optional CI wiring is planned.
 | Authorizer | `src/lib/rbac/authorizer.js` |
 | Route inventory (generated) | `node scripts/route-inventory.js` |
 | Drift script | `scripts/rbac-audit.js`, `npm run rbac-audit` |
-| External IdP groups | `docs/external-oidc-client-setup.md` |
+| External IdP client | [external-oidc-client-setup.md](external-oidc-client-setup.md) |
+| External IdP groups and providers | [external-oidc-providers.md](external-oidc-providers.md) |
 | HTTP API spec | `docs/swagger.yaml` |
