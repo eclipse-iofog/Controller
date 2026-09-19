@@ -1,5 +1,28 @@
 # Changelog
 
+## [v3.9.0-rc.4]
+
+Additive microservice `VOLUME` mapping `scope` for Edgelet private vs node-global shared claims. Reclaim stays on-node (`edgelet volume`); no new Controller prune flag.
+
+### Added
+
+- **`volumeMappings[].scope`** — `private` (default) or `shared`. Meaningful only when `type` is `volume`. Omit, null, or empty → `private`. Unknown values on `type: volume` are **400**. Other mapping types always store `private`.
+- **`VolumeMappings.scope`** column on 3.9.0 baseline and 3.8→3.9 upgrade (sqlite, mysql, postgres).
+
+### Changed
+
+- **Agent microservice list** includes `scope` on each volume mapping (lowercase).
+- **Volume-mapping create/delete** sets microservice `rebuild` and `microserviceCommon` so the agent applies the change.
+- **`type: volume` `hostDestination`** charset matches Edgelet: `[a-zA-Z0-9][a-zA-Z0-9_.-]*`.
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.2** → **v1.1.0-rc.3**
+
+### Notes
+
+- Shared names are node-global. Controller does not unique-check names or `runAsUser` across consumers (local workloads exist). Use distinct names (`nodered-config`).
+- Controller and system microservices always persist `private`. Explicit `scope: shared` on those workloads is **400**.
+- `deleteWithCleanup` remains unused; operators reclaim with `edgelet volume` / `deprovision --purge-volumes`.
+- Switching private → shared does not copy existing UUID directories. Older agents ignore `scope` (every `VOLUME` stays per-UUID) with no merge after upgrade.
+
 ## [v3.9.0-rc.3]
 
 Observed microservice status and fog liveness: live CPU/memory only while a microservice is RUNNING, and node quietness judged by when Controller last received a status PUT.
