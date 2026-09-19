@@ -125,7 +125,9 @@ API: `http://localhost:51121` · Console (embedded or split): set `CONSOLE_URL` 
 |-------|-----|
 | Architecture | [docs/architecture.md](docs/architecture.md) |
 | RBAC | [docs/rbac-reference.md](docs/rbac-reference.md) |
-| External OIDC | [docs/external-oidc-client-setup.md](docs/external-oidc-client-setup.md) |
+| OIDC (embedded and external) | [docs/oidc-configuration.md](docs/oidc-configuration.md) |
+| External OIDC client | [docs/external-oidc-client-setup.md](docs/external-oidc-client-setup.md) |
+| External OIDC providers | [docs/external-oidc-providers.md](docs/external-oidc-providers.md) |
 
 ## License
 
