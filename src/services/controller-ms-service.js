@@ -19,6 +19,7 @@ const WorkloadSpec = require('./microservice-workload-spec')
 const isEqual = require('lodash/isEqual')
 const Op = require('sequelize').Op
 const { VOLUME_MAPPING_DEFAULT } = require('../helpers/constants')
+const { applyVolumeMappingScope, PRIVATE_SCOPE } = require('../helpers/volume-mapping-scope')
 
 const CONTROLLER_MS_NAME = 'controller'
 const SERVICE_ACCOUNT_VOLUME_TYPE = 'serviceAccount'
@@ -78,10 +79,7 @@ function _validateVolumeMappingFields (volumeMappings) {
   }
   for (const mapping of volumeMappings) {
     mapping.type = mapping.type || VOLUME_MAPPING_DEFAULT
-    if (mapping.type === 'volume' && (!/^[a-zA-Z0-9_.-]/.test(mapping.hostDestination))) {
-      throw new Errors.InvalidArgumentError('hostDestination includes invalid characters for a local volume name, only ' +
-        '"[a-zA-Z0-9][a-zA-Z0-9_.-]" are allowed. If you intended to pass a host directory, use type: bind')
-    }
+    applyVolumeMappingScope(mapping, { rejectShared: true })
     if (mapping.type === 'volumeMount') {
       if (!mapping.hostDestination || mapping.hostDestination === '') {
         throw new Errors.ValidationError('hostDestination is required when type is volumeMount')
@@ -211,7 +209,8 @@ async function _createVolumeMappings (microserviceUuid, volumeMappings, transact
     hostDestination: volumeMapping.hostDestination,
     containerDestination: volumeMapping.containerDestination,
     accessMode: volumeMapping.accessMode,
-    type: volumeMapping.type || VOLUME_MAPPING_DEFAULT
+    type: volumeMapping.type || VOLUME_MAPPING_DEFAULT,
+    scope: volumeMapping.scope || PRIVATE_SCOPE
   }))
   await VolumeMappingManager.bulkCreate(mappings, transaction)
 }
