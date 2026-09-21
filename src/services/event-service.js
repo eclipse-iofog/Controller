@@ -30,6 +30,7 @@ function extractResourceType (path) {
     { pattern: /^\/api\/v3\/registries/, type: 'registry' },
     { pattern: /^\/api\/v3\/volumeMounts/, type: 'volumeMount' },
     { pattern: /^\/api\/v3\/models/, type: 'model' },
+    { pattern: /^\/api\/v3\/knowledge/, type: 'knowledge' },
     { pattern: /^\/api\/v3\/runtimeClasses/, type: 'runtimeClass' },
     { pattern: /^\/api\/v3\/microserviceTemplates/, type: 'microserviceTemplate' },
     { pattern: /^\/api\/v3\/configMaps/, type: 'configMap' },
