@@ -135,6 +135,7 @@ const microserviceCreate = {
       items: { $ref: '/containerTmpfs' }
     },
     models: { $ref: '/microserviceCatalog' },
+    knowledge: { $ref: '/microserviceCatalog' },
     natsConfig: { $ref: '/microserviceNatsConfig' },
     healthCheck: {
       type: 'object',
@@ -289,6 +290,7 @@ const microserviceUpdate = {
       items: { $ref: '/containerTmpfs' }
     },
     models: { $ref: '/microserviceCatalog' },
+    knowledge: { $ref: '/microserviceCatalog' },
     natsConfig: { $ref: '/microserviceNatsConfig' },
     healthCheck: {
       type: 'object',

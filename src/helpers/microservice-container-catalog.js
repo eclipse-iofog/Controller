@@ -181,6 +181,45 @@ function collectMountPaths (volumeMappings, tmpfs) {
   return paths
 }
 
+function catalogMountPaths (catalog) {
+  if (isCatalogEmpty(catalog)) {
+    return []
+  }
+  const paths = []
+  if (catalog.bindPath) {
+    paths.push(catalog.bindPath)
+  }
+  for (const item of catalog.items) {
+    if (item && item.name) {
+      paths.push(joinCatalogItemPath(catalog.bindPath, item.name))
+    }
+  }
+  return paths
+}
+
+function catalogValidationMessages (kind) {
+  if (kind === 'knowledge') {
+    return {
+      permissions: ErrorMessages.MICROSERVICE_KNOWLEDGE_PERMISSIONS,
+      bindRequired: ErrorMessages.MICROSERVICE_KNOWLEDGE_BIND_PATH_REQUIRED,
+      bindRequiresItems: ErrorMessages.MICROSERVICE_KNOWLEDGE_BIND_PATH_REQUIRES_ITEMS,
+      bindAbsolute: ErrorMessages.MICROSERVICE_KNOWLEDGE_BIND_PATH_ABSOLUTE,
+      itemName: ErrorMessages.MICROSERVICE_KNOWLEDGE_ITEM_NAME,
+      duplicate: ErrorMessages.MICROSERVICE_KNOWLEDGE_DUPLICATE_ITEM,
+      collision: ErrorMessages.MICROSERVICE_KNOWLEDGE_PATH_COLLISION
+    }
+  }
+  return {
+    permissions: ErrorMessages.MICROSERVICE_CATALOG_PERMISSIONS,
+    bindRequired: ErrorMessages.MICROSERVICE_CATALOG_BIND_PATH_REQUIRED,
+    bindRequiresItems: ErrorMessages.MICROSERVICE_CATALOG_BIND_PATH_REQUIRES_ITEMS,
+    bindAbsolute: ErrorMessages.MICROSERVICE_CATALOG_BIND_PATH_ABSOLUTE,
+    itemName: ErrorMessages.MICROSERVICE_CATALOG_ITEM_NAME,
+    duplicate: ErrorMessages.MICROSERVICE_CATALOG_DUPLICATE_ITEM,
+    collision: ErrorMessages.MICROSERVICE_CATALOG_PATH_COLLISION
+  }
+}
+
 function pathsCollide (left, right) {
   if (!left || !right) {
     return false
@@ -190,42 +229,46 @@ function pathsCollide (left, right) {
   return a === b
 }
 
-function validateCatalog (catalog, { volumeMappings, tmpfs } = {}) {
+function validateCatalog (catalog, { volumeMappings, tmpfs, otherCatalog, kind } = {}) {
   if (catalog == null) {
     return
   }
+  const messages = catalogValidationMessages(kind)
   if (catalog.permissions != null && catalog.permissions !== 'ro' && catalog.permissions !== 'rw') {
-    throw new Errors.ValidationError(ErrorMessages.MICROSERVICE_CATALOG_PERMISSIONS)
+    throw new Errors.ValidationError(messages.permissions)
   }
   const items = Array.isArray(catalog.items) ? catalog.items : []
   if (items.length === 0) {
+    if (typeof catalog.bindPath === 'string' && catalog.bindPath.trim() !== '') {
+      throw new Errors.ValidationError(messages.bindRequiresItems)
+    }
     return
   }
   if (!catalog.bindPath) {
-    throw new Errors.ValidationError(ErrorMessages.MICROSERVICE_CATALOG_BIND_PATH_REQUIRED)
+    throw new Errors.ValidationError(messages.bindRequired)
   }
   if (!isAbsoluteContainerPath(catalog.bindPath) && catalog.bindPath !== '/') {
-    throw new Errors.ValidationError(ErrorMessages.MICROSERVICE_CATALOG_BIND_PATH_ABSOLUTE)
+    throw new Errors.ValidationError(messages.bindAbsolute)
   }
 
   const seen = new Set()
   for (const item of items) {
     const name = item && item.name
     if (!name || !SERVICE_NAME_RE.test(name)) {
-      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_CATALOG_ITEM_NAME, name || ''))
+      throw new Errors.ValidationError(AppHelper.formatMessage(messages.itemName, name || ''))
     }
     if (seen.has(name)) {
-      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_CATALOG_DUPLICATE_ITEM, name))
+      throw new Errors.ValidationError(AppHelper.formatMessage(messages.duplicate, name))
     }
     seen.add(name)
   }
 
-  const mountPaths = collectMountPaths(volumeMappings, tmpfs)
+  const mountPaths = collectMountPaths(volumeMappings, tmpfs).concat(catalogMountPaths(otherCatalog))
   const catalogPaths = [catalog.bindPath, ...items.map((item) => joinCatalogItemPath(catalog.bindPath, item.name))]
   for (const catalogPath of catalogPaths) {
     for (const mountPath of mountPaths) {
       if (pathsCollide(catalogPath, mountPath)) {
-        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_CATALOG_PATH_COLLISION, catalogPath))
+        throw new Errors.ValidationError(AppHelper.formatMessage(messages.collision, catalogPath))
       }
     }
   }
@@ -483,8 +526,11 @@ function containerFieldsRequireRebuild (spec, existing) {
       spec.devices !== undefined || spec.tmpfs !== undefined) {
     return true
   }
-  if (spec.models !== undefined) {
-    return catalogRequiresRebuild(existing.models, normalizeCatalog(spec.models))
+  if (spec.models !== undefined && catalogRequiresRebuild(existing.models, normalizeCatalog(spec.models))) {
+    return true
+  }
+  if (spec.knowledge !== undefined && catalogRequiresRebuild(existing.knowledge, normalizeCatalog(spec.knowledge))) {
+    return true
   }
   return false
 }
@@ -600,6 +646,9 @@ function applyAgentContainerFields (response, microservice, extras = {}) {
   }
   if (!isCatalogEmpty(extras.models)) {
     response.models = extras.models
+  }
+  if (!isCatalogEmpty(extras.knowledge)) {
+    response.knowledge = extras.knowledge
   }
 
   return response
