@@ -59,6 +59,10 @@ resources:
         methods:
           PATCH: [patch]
         resourceNameParam: uuid
+      - path: /api/v3/microservices/:uuid/knowledge
+        methods:
+          PATCH: [patch]
+        resourceNameParam: uuid
       - path: /api/v3/microservices/:uuid/start
         methods:
           PATCH: [patch]
@@ -553,6 +557,34 @@ resources:
           DELETE: [patch]
         resourceNameParam: name
 
+  # Fleet Knowledge
+  knowledge:
+    basePath: /api/v3/knowledge
+    routes:
+      - path: /api/v3/knowledge
+        methods:
+          GET: [list]
+          POST: [create]
+      - path: /api/v3/knowledge/yaml
+        methods:
+          POST: [create]
+      - path: /api/v3/knowledge/:name
+        methods:
+          GET: [get]
+          PATCH: [patch]
+          DELETE: [delete]
+        resourceNameParam: name
+      - path: /api/v3/knowledge/yaml/:name
+        methods:
+          PUT: [update]
+        resourceNameParam: name
+      - path: /api/v3/knowledge/:name/link
+        methods:
+          GET: [get]
+          POST: [patch]
+          DELETE: [patch]
+        resourceNameParam: name
+
   # Runtime classes
   runtimeClasses:
     basePath: /api/v3/runtimeClasses
@@ -719,6 +751,9 @@ resources:
         methods:
           GET: [list]
       - path: /api/v3/agent/models
+        methods:
+          GET: [list]
+      - path: /api/v3/agent/knowledge
         methods:
           GET: [list]
       - path: /api/v3/agent/runtimeClasses

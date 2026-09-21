@@ -1,6 +1,31 @@
 # Changelog
 
-## [v3.9.0-rc.4]
+## [v3.9.0-rc.6]
+
+Fleet Knowledge artifacts: curated documents, datasets, and vector indexes distributed like Models, with a separate name namespace and Hub dataset pulls.
+
+### Added
+
+- **Fleet Knowledge API** — `GET/POST/PATCH/DELETE /api/v3/knowledge`, YAML create/upsert (`kind: Knowledge`), and volumeMount-style `GET/POST/DELETE …/knowledge/:name/link`; server-generated uuid; agent `GET /api/v3/agent/knowledge` returns linked rows only (`{ "knowledge": [ … ] }`).
+- **`PATCH /api/v3/microservices/:uuid/knowledge`** — user microservices only; `microserviceKnowledge` change flag and rebuild rules for bind path / permissions / empty↔non-empty catalog transitions.
+- **Fog status** — `knowledgeStatus` (JSON string), `activeKnowledge` (managed count), `knowledgeLastUpdate` (Unix ms).
+- **v3.9.0 schema** — `Knowledge`, `FogKnowledge`, catalog tables, change-tracking flags, fog status columns on baseline and 3.8→3.9 upgrade.
+
+### Changed
+
+- **`modelLastUpdate`** — documented as Unix milliseconds (same clock as `knowledgeLastUpdate`).
+- **MS catalog validation** — `knowledge.bindPath` must not collide with volumes, tmpfs, or the models catalog path. A non-empty `bindPath` on a models or knowledge catalog requires at least one item.
+- **RBAC + swagger** — resource `knowledge`; viewer get/list; SRE/developer/admin full + link.
+- Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder stages)
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.3** → **v1.1.0-rc.4**
+
+### Notes
+
+- Knowledge names are a separate namespace from Models. HF Knowledge uses the Hub dataset API; there is no `repoType` field.
+- `format` is a soft hint. Known values persist; anything else stores `unknown`. Unknown format is not a 400.
+- `getChanges.prune` still does not delete volumes. Unused **local** Knowledge prune is agent-side on the same flag. `system prune` does not drop Knowledge trees.
+
+## [v3.9.0-rc.5]
 
 Additive microservice `VOLUME` mapping `scope` for Edgelet private vs node-global shared claims. Reclaim stays on-node (`edgelet volume`); no new Controller prune flag.
 
