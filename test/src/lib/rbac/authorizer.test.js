@@ -120,6 +120,30 @@ describe('RBAC authorizer fast path', () => {
   })
 
   describe('authorize() full path', () => {
+    it('allows viewer get and list on knowledge and denies writes', async () => {
+      const getResult = await authorizer.authorize(
+        VIEWER_SUBJECTS, '', 'knowledge', 'get', null, $fakeTransaction
+      )
+      const listResult = await authorizer.authorize(
+        VIEWER_SUBJECTS, '', 'knowledge', 'list', null, $fakeTransaction
+      )
+      const createResult = await authorizer.authorize(
+        VIEWER_SUBJECTS, '', 'knowledge', 'create', null, $fakeTransaction
+      )
+      const patchResult = await authorizer.authorize(
+        VIEWER_SUBJECTS, '', 'knowledge', 'patch', null, $fakeTransaction
+      )
+      const deleteResult = await authorizer.authorize(
+        VIEWER_SUBJECTS, '', 'knowledge', 'delete', null, $fakeTransaction
+      )
+
+      expect(getResult.allowed).to.equal(true)
+      expect(listResult.allowed).to.equal(true)
+      expect(createResult.allowed).to.equal(false)
+      expect(patchResult.allowed).to.equal(false)
+      expect(deleteResult.allowed).to.equal(false)
+    })
+
     it('allows viewer system role for microservices get', async () => {
       const result = await authorizer.authorize(
         VIEWER_SUBJECTS,

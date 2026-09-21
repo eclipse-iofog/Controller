@@ -71,6 +71,27 @@ describe('Microservice container catalog helpers', () => {
       })).to.throw(Errors.ValidationError)
     })
 
+    it('rejects a model bindPath when there are no items', () => {
+      expect(() => CatalogContainer.validateCatalog({
+        bindPath: '/models',
+        items: []
+      })).to.throw(Errors.ValidationError, /requires at least one item/)
+    })
+
+    it('rejects a knowledge bindPath when items are omitted', () => {
+      expect(() => CatalogContainer.validateCatalog({
+        bindPath: '/knowledge'
+      }, { kind: 'knowledge' })).to.throw(Errors.ValidationError, /requires at least one item/)
+    })
+
+    it('accepts an empty catalog without bindPath', () => {
+      expect(() => CatalogContainer.validateCatalog({ items: [] })).to.not.throw()
+      expect(() => CatalogContainer.validateCatalog({
+        bindPath: '',
+        items: []
+      }, { kind: 'knowledge' })).to.not.throw()
+    })
+
     it('rejects duplicate item names', () => {
       expect(() => CatalogContainer.validateCatalog({
         bindPath: '/models',
@@ -85,6 +106,48 @@ describe('Microservice container catalog helpers', () => {
       }, {
         volumeMappings: [{ containerDestination: '/data' }]
       })).to.throw(Errors.ValidationError)
+    })
+
+    it('rejects a knowledge bindPath that matches the models catalog', () => {
+      expect(() => CatalogContainer.validateCatalog({
+        bindPath: '/models',
+        permissions: 'ro',
+        items: [{ name: 'product-docs' }]
+      }, {
+        kind: 'knowledge',
+        otherCatalog: {
+          bindPath: '/models',
+          permissions: 'ro',
+          items: [{ name: 'test-model' }]
+        }
+      })).to.throw(Errors.ValidationError, /Knowledge catalog path/)
+    })
+
+    it('rejects a knowledge item path that matches a volume destination', () => {
+      expect(() => CatalogContainer.validateCatalog({
+        bindPath: '/knowledge',
+        items: [{ name: 'product-docs' }]
+      }, {
+        kind: 'knowledge',
+        volumeMappings: [{ containerDestination: '/knowledge/product-docs' }]
+      })).to.throw(Errors.ValidationError, /Knowledge catalog path/)
+    })
+
+    it('rejects a knowledge bindPath that matches a tmpfs mount', () => {
+      expect(() => CatalogContainer.validateCatalog({
+        bindPath: '/run/knowledge',
+        items: [{ name: 'product-docs' }]
+      }, {
+        kind: 'knowledge',
+        tmpfs: [{ containerPath: '/run/knowledge' }]
+      })).to.throw(Errors.ValidationError, /Knowledge catalog path/)
+    })
+
+    it('rejects duplicate knowledge item names', () => {
+      expect(() => CatalogContainer.validateCatalog({
+        bindPath: '/knowledge',
+        items: [{ name: 'product-docs' }, { name: 'product-docs' }]
+      }, { kind: 'knowledge' })).to.throw(Errors.ValidationError, /duplicated/)
     })
   })
 
@@ -152,6 +215,11 @@ describe('Microservice container catalog helpers', () => {
           bindPath: '/models',
           permissions: 'ro',
           items: [{ name: 'test-model' }]
+        },
+        knowledge: {
+          bindPath: '/knowledge',
+          permissions: 'ro',
+          items: [{ name: 'product-docs' }]
         }
       })
 
@@ -159,6 +227,8 @@ describe('Microservice container catalog helpers', () => {
       expect(response).to.not.have.property('commands')
       expect(response.cmd).to.eql([])
       expect(response.models.items).to.eql([{ name: 'test-model' }])
+      expect(response.knowledge.items).to.eql([{ name: 'product-docs' }])
+      expect(response.knowledge.items[0]).to.not.have.property('uuid')
     })
 
     it('emits commands from MicroserviceArgs rows', () => {

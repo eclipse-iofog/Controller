@@ -582,6 +582,9 @@ describe('Agent Service', () => {
       expect(result.models).to.equal(false)
       expect(result.runtimeClasses).to.equal(false)
       expect(result.microserviceModels).to.equal(false)
+      expect(result.knowledge).to.equal(false)
+      expect(result.microserviceKnowledge).to.equal(false)
+      expect(result.prune).to.equal(false)
     })
 
     context('when ChangeTrackingService#getByIoFogUuid() fails', () => {
@@ -1437,8 +1440,25 @@ describe('Agent Service', () => {
               permissions: 'ro',
               items: [{ name: 'test-model' }]
             })
+            expect(msvc).to.not.have.property('knowledge')
             expect(msvc.cpus).to.equal(1.5)
             expect(msvc.workingDir).to.equal('/app')
+          })
+
+          it('emits knowledge item names and omits an empty catalog', async () => {
+            MicroserviceManager.findAllActiveApplicationMicroservices.resolves([{
+              ...microserviceWithValidImage,
+              microserviceKnowledge: { bindPath: '/knowledge', permissions: 'ro' },
+              knowledgeItems: [{ id: 1, name: 'product-docs' }]
+            }])
+
+            const result = await $subject
+            expect(result.microservices[0].knowledge).to.eql({
+              bindPath: '/knowledge',
+              permissions: 'ro',
+              items: [{ name: 'product-docs' }]
+            })
+            expect(result.microservices[0].knowledge.items[0]).to.not.have.property('uuid')
           })
         })
       })
@@ -1801,6 +1821,86 @@ describe('Agent Service', () => {
     })
   })
 
+  describe('.getAgentLinkedKnowledge()', () => {
+    const transaction = {}
+
+    def('uuid', () => 'testUuid')
+    def('getKnowledge', () => $sandbox.stub().resolves([]))
+    def('fog', () => ({
+      uuid: $uuid,
+      getKnowledge: $getKnowledge,
+    }))
+    def('subject', () => $subject.getAgentLinkedKnowledge($fog, transaction))
+
+    it('returns an empty list when the fog has no linked knowledge', async () => {
+      await expect($subject).to.eventually.eql([])
+      expect($getKnowledge).to.have.been.calledWith({
+        attributes: ['uuid', 'name', 'repo', 'revision', 'files', 'format', 'registryId'],
+        joinTableAttributes: [],
+        transaction,
+      })
+    })
+
+    it('maps linked knowledge and omits an unset format', async () => {
+      $getKnowledge.resolves([
+        {
+          toJSON () {
+            return {
+              uuid: '3f2c1111-2222-3333-4444-555566667777',
+              name: 'product-docs',
+              repo: 'acme/product-manuals',
+              revision: null,
+              registryId: 3,
+              files: '["data/**/*.jsonl"]',
+              format: 'jsonl'
+            }
+          }
+        },
+        {
+          toJSON () {
+            return {
+              uuid: '',
+              name: 'missing-uuid'
+            }
+          }
+        },
+        {
+          toJSON () {
+            return {
+              uuid: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+              name: 'wiki',
+              repo: 'acme/wiki',
+              revision: 'main',
+              registryId: 1,
+              files: ['index.md'],
+              format: ''
+            }
+          }
+        }
+      ])
+
+      await expect($subject).to.eventually.eql([
+        {
+          uuid: '3f2c1111-2222-3333-4444-555566667777',
+          name: 'product-docs',
+          repo: 'acme/product-manuals',
+          revision: '',
+          registryId: 3,
+          files: ['data/**/*.jsonl'],
+          format: 'jsonl'
+        },
+        {
+          uuid: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+          name: 'wiki',
+          repo: 'acme/wiki',
+          revision: 'main',
+          registryId: 1,
+          files: ['index.md']
+        }
+      ])
+    })
+  })
+
   describe('.getAgentLinkedRuntimeClasses()', () => {
     const transaction = {}
 
@@ -1912,6 +2012,96 @@ describe('Agent Service', () => {
         sinon.match({ podId: 'pod-1', containerId: 'ctr-1' }),
         transaction
       )
+    })
+
+    it('stringifies a knowledge status array and keeps explicit zeros', async () => {
+      const status = {
+        ...agentStatus,
+        knowledgeStatus: [{ name: 'product-docs', state: 'Ready', source: 'managed' }],
+        activeKnowledge: 0,
+        knowledgeLastUpdate: 1710000000000
+      }
+      await AgentService.updateAgentStatus(status, $fog, transaction)
+      expect(ioFogManager.update).to.have.been.calledWith(
+        { uuid: $uuid },
+        sinon.match({
+          knowledgeStatus: JSON.stringify(status.knowledgeStatus),
+          activeKnowledge: 0,
+          knowledgeLastUpdate: 1710000000000
+        }),
+        transaction
+      )
+    })
+
+    it('leaves stored knowledge status unchanged when the keys are omitted', async () => {
+      await $subject
+      const update = ioFogManager.update.firstCall.args[1]
+      expect(update).to.not.have.property('knowledgeStatus')
+      expect(update).to.not.have.property('activeKnowledge')
+      expect(update).to.not.have.property('knowledgeLastUpdate')
+    })
+
+    it('stores the managed knowledge count separately from the status list length', async () => {
+      const status = {
+        ...agentStatus,
+        knowledgeStatus: [
+          { name: 'product-docs', source: 'managed', uuid: '3f2c1111-2222-3333-4444-555566667777' },
+          { name: 'local-notes', source: 'local' }
+        ],
+        activeKnowledge: 1,
+        knowledgeLastUpdate: 1710000000000
+      }
+      await AgentService.updateAgentStatus(status, $fog, transaction)
+      const update = ioFogManager.update.firstCall.args[1]
+      expect(update.knowledgeStatus).to.equal(JSON.stringify(status.knowledgeStatus))
+      expect(update.activeKnowledge).to.equal(1)
+      expect(JSON.parse(update.knowledgeStatus)).to.have.length(2)
+      expect(update.activeKnowledge).to.not.equal(JSON.parse(update.knowledgeStatus).length)
+    })
+
+    it('ignores unknown status fields', async () => {
+      const status = {
+        ...agentStatus,
+        knowledgeStatus: '[]',
+        activeKnowledge: 0,
+        knowledgeLastUpdate: 0,
+        futureKnowledgeHint: 'ignore-me'
+      }
+      await AgentService.updateAgentStatus(status, $fog, transaction)
+      const update = ioFogManager.update.firstCall.args[1]
+      expect(update).to.not.have.property('futureKnowledgeHint')
+      expect(update.knowledgeStatus).to.equal('[]')
+      expect(update.modelLastUpdate).to.equal(1710000000)
+    })
+  })
+
+  describe('agent status schema', () => {
+    it('accepts a knowledge status string, an array, and omitted keys', async () => {
+      await expect(Validator.validate({
+        knowledgeStatus: '[]',
+        activeKnowledge: 0,
+        knowledgeLastUpdate: 0
+      }, Validator.schemas.updateAgentStatus)).to.be.fulfilled
+
+      await expect(Validator.validate({
+        knowledgeStatus: [{ name: 'product-docs' }]
+      }, Validator.schemas.updateAgentStatus)).to.be.fulfilled
+
+      await expect(Validator.validate({
+        daemonStatus: 'RUNNING'
+      }, Validator.schemas.updateAgentStatus)).to.be.fulfilled
+
+      await expect(Validator.validate({
+        modelLastUpdate: 1710000000000,
+        knowledgeLastUpdate: 1710000000000,
+        unexpectedStatusExtra: true
+      }, Validator.schemas.updateAgentStatus)).to.be.fulfilled
+    })
+
+    it('rejects a negative managed knowledge count', async () => {
+      await expect(Validator.validate({
+        activeKnowledge: -1
+      }, Validator.schemas.updateAgentStatus)).to.be.rejected
     })
   })
 

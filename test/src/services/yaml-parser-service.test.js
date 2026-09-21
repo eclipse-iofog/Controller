@@ -48,6 +48,30 @@ spec:
         }
       })
     })
+
+    it('copies knowledge from an inline microservice', async () => {
+      const yaml = `
+kind: Application
+metadata:
+  name: app-a
+spec:
+  microservices:
+    - name: ms-a
+      knowledge:
+        bindPath: /knowledge
+        permissions: rw
+        items:
+          - name: product-docs
+      container:
+        env: []
+`
+      const result = await YamlParserService.parseAppFile(yaml)
+      expect(result.microservices[0].knowledge).to.eql({
+        bindPath: '/knowledge',
+        permissions: 'rw',
+        items: [{ name: 'product-docs' }]
+      })
+    })
   })
 
   describe('.parseMicroserviceFile()', () => {
@@ -163,6 +187,28 @@ spec:
       expect(result.commands).to.eql(['python', 'app.py'])
       expect(result.cmd).to.eql(['python', 'app.py'])
       expect(result).to.not.have.property('volumes')
+    })
+
+    it('maps spec.knowledge next to models', async () => {
+      const yaml = `
+kind: Microservice
+metadata:
+  name: app-a/ms-knowledge
+spec:
+  knowledge:
+    bindPath: /knowledge
+    permissions: ro
+    items:
+      - name: product-docs
+  container:
+    env: []
+`
+      const result = await YamlParserService.parseMicroserviceFile(yaml)
+      expect(result.knowledge).to.eql({
+        bindPath: '/knowledge',
+        permissions: 'ro',
+        items: [{ name: 'product-docs' }]
+      })
     })
 
     it('maps container devices, tmpfs, sysctls, and ulimits', async () => {
@@ -419,6 +465,72 @@ spec:
     })
   })
 
+  describe('.parseKnowledgeFile()', () => {
+    it('parses kind Knowledge into the wire object', async () => {
+      const yaml = `
+apiVersion: datasance.com/v3
+kind: Knowledge
+metadata:
+  name: product-docs
+spec:
+  repo: acme/product-manuals
+  revision: abc123
+  registryId: 3
+  files:
+    - data/**/*.jsonl
+  format: JSONL
+`
+      const result = await YamlParserService.parseKnowledgeFile(yaml)
+      expect(result).to.eql({
+        name: 'product-docs',
+        repo: 'acme/product-manuals',
+        revision: 'abc123',
+        registryId: 3,
+        files: ['data/**/*.jsonl'],
+        format: 'JSONL'
+      })
+    })
+
+    it('accepts spec.registry as an alias for registryId', async () => {
+      const yaml = `
+apiVersion: iofog.org/v3
+kind: Knowledge
+metadata:
+  name: product-docs
+spec:
+  repo: acme/product-manuals
+  registry: 3
+  files:
+    - data/**/*.jsonl
+`
+      const result = await YamlParserService.parseKnowledgeFile(yaml)
+      expect(result.registryId).to.equal(3)
+      expect(result).to.not.have.property('labels')
+    })
+
+    it('omits name on upsert and rejects a path mismatch', async () => {
+      const yaml = `
+kind: Knowledge
+metadata:
+  name: product-docs
+spec:
+  repo: acme/product-manuals
+  registryId: 3
+`
+      const updated = await YamlParserService.parseKnowledgeFile(yaml, {
+        isUpdate: true,
+        knowledgeName: 'product-docs'
+      })
+      expect(updated).to.not.have.property('name')
+      expect(updated.repo).to.equal('acme/product-manuals')
+
+      await expect(YamlParserService.parseKnowledgeFile(yaml, {
+        isUpdate: true,
+        knowledgeName: 'other-docs'
+      })).to.be.rejectedWith(/doesn't match endpoint path/)
+    })
+  })
+
   describe('.parseRuntimeClassFile()', () => {
     it('parses metadata.name and top-level handler matching the wire object', async () => {
       const yaml = `
@@ -511,6 +623,11 @@ spec:
       permissions: ro
       items:
         - name: test-model
+    knowledge:
+      bindPath: /knowledge
+      permissions: ro
+      items:
+        - name: product-docs
     container:
       commands:
         - nginx
@@ -533,6 +650,11 @@ spec:
         bindPath: '/models',
         permissions: 'ro',
         items: [{ name: 'test-model' }]
+      })
+      expect(result.microservice.knowledge).to.eql({
+        bindPath: '/knowledge',
+        permissions: 'ro',
+        items: [{ name: 'product-docs' }]
       })
       expect(result.microservice.commands).to.eql(['nginx', '-g', 'daemon off;'])
       expect(result.microservice.env).to.eql([{ key: 'PORT', value: '{{ port }}' }])
