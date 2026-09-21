@@ -24,6 +24,8 @@ const MicroserviceTmpfsManager = require('../../../src/data/managers/microservic
 const MicroserviceUlimitManager = require('../../../src/data/managers/microservice-ulimit-manager')
 const MicroserviceModelManager = require('../../../src/data/managers/microservice-model-manager')
 const MicroserviceModelItemManager = require('../../../src/data/managers/microservice-model-item-manager')
+const MicroserviceKnowledgeManager = require('../../../src/data/managers/microservice-knowledge-manager')
+const MicroserviceKnowledgeItemManager = require('../../../src/data/managers/microservice-knowledge-item-manager')
 const MicroserviceCdiDevManager = require('../../../src/data/managers/microservice-cdi-device-manager')
 const MicroserviceCapAddManager = require('../../../src/data/managers/microservice-cap-add-manager')
 const MicroserviceCapDropManager = require('../../../src/data/managers/microservice-cap-drop-manager')
@@ -31,8 +33,10 @@ const MicroserviceHealthCheckManager = require('../../../src/data/managers/micro
 const VolumeMountService = require('../../../src/services/volume-mount-service')
 const RuntimeClassService = require('../../../src/services/runtime-class-service')
 const ModelService = require('../../../src/services/model-service')
+const KnowledgeService = require('../../../src/services/knowledge-service')
 const MicroserviceTemplateService = require('../../../src/services/microservice-template-service')
 const FleetModelManager = require('../../../src/data/managers/fleet-model-manager')
+const FleetKnowledgeManager = require('../../../src/data/managers/fleet-knowledge-manager')
 const RbacRoleManager = require('../../../src/data/managers/rbac-role-manager')
 const ErrorMessages = require('../../../src/helpers/error-messages')
 const RbacServiceAccountManager = require('../../../src/data/managers/rbac-service-account-manager')
@@ -81,6 +85,12 @@ function stubChildTableDeps (sandbox) {
   sandbox.stub(MicroserviceModelItemManager, 'findAll').resolves([])
   sandbox.stub(MicroserviceModelItemManager, 'create').resolves()
   sandbox.stub(MicroserviceModelItemManager, 'delete').resolves()
+  sandbox.stub(MicroserviceKnowledgeManager, 'findOne').resolves(null)
+  sandbox.stub(MicroserviceKnowledgeManager, 'create').resolves()
+  sandbox.stub(MicroserviceKnowledgeManager, 'delete').resolves()
+  sandbox.stub(MicroserviceKnowledgeItemManager, 'findAll').resolves([])
+  sandbox.stub(MicroserviceKnowledgeItemManager, 'create').resolves()
+  sandbox.stub(MicroserviceKnowledgeItemManager, 'delete').resolves()
 }
 
 function stubBuildGetResponseDeps (sandbox) {
@@ -1501,6 +1511,63 @@ describe('Microservices Service', () => {
       expect(created).to.not.have.property('commands')
     })
 
+    it('persists a knowledge catalog and auto-attaches names to the target agent', async () => {
+      $sandbox.stub(FleetKnowledgeManager, 'findOne').resolves({ uuid: 'knowledge-uuid', name: 'product-docs' })
+      const attach = $sandbox.stub(KnowledgeService, 'ensureKnowledgeLinkedToFog').resolves(['product-docs'])
+
+      await $service.createMicroserviceEndPoint({
+        ...microserviceData,
+        knowledge: {
+          bindPath: '/knowledge',
+          items: [{ name: 'product-docs' }]
+        }
+      }, isCLI, transaction)
+
+      expect(attach).to.have.been.calledWith('fog-uuid', ['product-docs'], transaction)
+      expect(MicroserviceKnowledgeManager.create).to.have.been.calledWith(
+        sinon.match({ bindPath: '/knowledge', permissions: 'ro' }),
+        transaction
+      )
+      expect(MicroserviceKnowledgeItemManager.create).to.have.been.calledWith(
+        sinon.match({ name: 'product-docs' }),
+        transaction
+      )
+      const created = MicroserviceManager.create.firstCall.args[0]
+      expect(created).to.not.have.property('knowledge')
+    })
+
+    it('rejects an unknown knowledge catalog item', async () => {
+      $sandbox.stub(FleetKnowledgeManager, 'findOne').resolves(null)
+
+      return expect($service.createMicroserviceEndPoint({
+        ...microserviceData,
+        knowledge: {
+          bindPath: '/knowledge',
+          items: [{ name: 'missing-docs' }]
+        }
+      }, isCLI, transaction)).to.be.rejectedWith(
+        AppHelper.formatMessage(ErrorMessages.MICROSERVICE_KNOWLEDGE_NOT_FOUND, 'missing-docs')
+      )
+    })
+
+    it('rejects knowledge on a system catalog microservice', async () => {
+      const CatalogService = require('../../../src/services/catalog-service')
+      $sandbox.stub(CatalogService, 'getCatalogItem').resolves({
+        category: 'SYSTEM',
+        images: microserviceData.images,
+        registryId: 1
+      })
+
+      return expect($service.createMicroserviceEndPoint({
+        ...microserviceData,
+        catalogItemId: 9,
+        knowledge: {
+          bindPath: '/knowledge',
+          items: [{ name: 'product-docs' }]
+        }
+      }, isCLI, transaction)).to.be.rejectedWith(ErrorMessages.MICROSERVICE_KNOWLEDGE_SYSTEM_FORBIDDEN)
+    })
+
     it('persists commands when cmd is sent as an alias', async () => {
       await $service.createMicroserviceEndPoint({
         ...microserviceData,
@@ -1602,6 +1669,12 @@ describe('Microservices Service', () => {
       sandbox.stub(MicroserviceModelManager, 'create').resolves()
       sandbox.stub(MicroserviceModelItemManager, 'delete').resolves()
       sandbox.stub(MicroserviceModelItemManager, 'create').resolves()
+      sandbox.stub(MicroserviceKnowledgeManager, 'findOne').resolves(null)
+      sandbox.stub(MicroserviceKnowledgeItemManager, 'findAll').resolves([])
+      sandbox.stub(MicroserviceKnowledgeManager, 'delete').resolves()
+      sandbox.stub(MicroserviceKnowledgeManager, 'create').resolves()
+      sandbox.stub(MicroserviceKnowledgeItemManager, 'delete').resolves()
+      sandbox.stub(MicroserviceKnowledgeItemManager, 'create').resolves()
     }
 
     it('rebuilds when the catalog goes from empty to non-empty', async () => {
@@ -1715,6 +1788,216 @@ describe('Microservices Service', () => {
         transaction
       )
     })
+
+    it('rejects a model bindPath that matches the knowledge catalog', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubCatalogPatch($sandbox, existing, existingCatalog)
+      MicroserviceKnowledgeManager.findOne.resolves({ bindPath: '/models', permissions: 'ro' })
+      MicroserviceKnowledgeItemManager.findAll.resolves([{ id: 1, name: 'product-docs' }])
+
+      return expect($service.updateMicroserviceCatalogEndPoint(msvcUuid, {
+        bindPath: '/models',
+        permissions: 'ro',
+        items: [{ name: 'test-model' }]
+      }, isCLI, transaction)).to.be.rejectedWith(Errors.ValidationError)
+    })
+  })
+
+  describe('.updateMicroserviceKnowledgeEndPoint()', () => {
+    const msvcUuid = 'msvc-uuid'
+    const existingCatalog = {
+      bindPath: '/knowledge',
+      permissions: 'ro',
+      items: [{ name: 'product-docs' }]
+    }
+
+    function stubKnowledgePatch (sandbox, existing, previousCatalog = null) {
+      sandbox.stub(MicroserviceManager, 'findOneWithCategory').resolves(existing)
+      sandbox.stub(VolumeMappingManager, 'findAll').resolves([])
+      sandbox.stub(FleetKnowledgeManager, 'findOne').resolves({ uuid: 'knowledge-uuid', name: 'product-docs' })
+      sandbox.stub(KnowledgeService, 'ensureKnowledgeLinkedToFog').resolves([])
+      sandbox.stub(MicroserviceManager, 'update').resolves()
+      sandbox.stub(ChangeTrackingService, 'update').resolves()
+      sandbox.stub(MicroserviceTmpfsManager, 'findAll').resolves([])
+      sandbox.stub(MicroserviceModelManager, 'findOne').resolves(null)
+      sandbox.stub(MicroserviceModelItemManager, 'findAll').resolves([])
+      sandbox.stub(MicroserviceKnowledgeManager, 'findOne').resolves(
+        previousCatalog && previousCatalog.bindPath
+          ? { bindPath: previousCatalog.bindPath, permissions: previousCatalog.permissions || 'ro' }
+          : null
+      )
+      sandbox.stub(MicroserviceKnowledgeItemManager, 'findAll').resolves(
+        previousCatalog && Array.isArray(previousCatalog.items)
+          ? previousCatalog.items.map((item, id) => ({ id, name: item.name }))
+          : []
+      )
+      sandbox.stub(MicroserviceKnowledgeManager, 'delete').resolves()
+      sandbox.stub(MicroserviceKnowledgeManager, 'create').resolves()
+      sandbox.stub(MicroserviceKnowledgeItemManager, 'delete').resolves()
+      sandbox.stub(MicroserviceKnowledgeItemManager, 'create').resolves()
+    }
+
+    it('rebuilds when the catalog goes from empty to non-empty and flags knowledge only', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubKnowledgePatch($sandbox, existing)
+
+      await $service.updateMicroserviceKnowledgeEndPoint(msvcUuid, {
+        bindPath: '/knowledge',
+        items: [{ name: 'product-docs' }]
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: true }),
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledOnceWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceKnowledge,
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.not.have.been.calledWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceList,
+        transaction
+      )
+    })
+
+    it('rebuilds when the last item is removed', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubKnowledgePatch($sandbox, existing, existingCatalog)
+
+      await $service.updateMicroserviceKnowledgeEndPoint(msvcUuid, {
+        items: []
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: true }),
+        transaction
+      )
+      expect(MicroserviceKnowledgeManager.create).to.not.have.been.called
+      expect(ChangeTrackingService.update).to.have.been.calledOnceWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceKnowledge,
+        transaction
+      )
+    })
+
+    it('does not rebuild when only items change on a non-empty catalog', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubKnowledgePatch($sandbox, existing, existingCatalog)
+      FleetKnowledgeManager.findOne.callsFake(async (where) => ({ uuid: 'knowledge-uuid', name: where.name }))
+
+      await $service.updateMicroserviceKnowledgeEndPoint(msvcUuid, {
+        bindPath: '/knowledge',
+        permissions: 'ro',
+        items: [{ name: 'product-docs' }, { name: 'wiki-faiss' }]
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: false }),
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledOnceWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceKnowledge,
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.not.have.been.calledWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceList,
+        transaction
+      )
+      expect(KnowledgeService.ensureKnowledgeLinkedToFog).to.have.been.calledWith(
+        existing.iofogUuid,
+        ['product-docs', 'wiki-faiss'],
+        transaction
+      )
+    })
+
+    it('rebuilds when bindPath changes and flags knowledge only', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubKnowledgePatch($sandbox, existing, existingCatalog)
+
+      await $service.updateMicroserviceKnowledgeEndPoint(msvcUuid, {
+        bindPath: '/data',
+        permissions: 'ro',
+        items: [{ name: 'product-docs' }]
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: true }),
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledOnceWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceKnowledge,
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.not.have.been.calledWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceList,
+        transaction
+      )
+    })
+
+    it('rebuilds when permissions change and flags knowledge only', async () => {
+      const existing = buildMicroserviceRecord({ rebuild: false })
+      stubKnowledgePatch($sandbox, existing, existingCatalog)
+
+      await $service.updateMicroserviceKnowledgeEndPoint(msvcUuid, {
+        bindPath: '/knowledge',
+        permissions: 'rw',
+        items: [{ name: 'product-docs' }]
+      }, isCLI, transaction)
+
+      expect(MicroserviceManager.update).to.have.been.calledWith(
+        { uuid: msvcUuid },
+        sinon.match({ rebuild: true }),
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.have.been.calledOnceWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceKnowledge,
+        transaction
+      )
+      expect(ChangeTrackingService.update).to.not.have.been.calledWith(
+        existing.iofogUuid,
+        ChangeTrackingService.events.microserviceList,
+        transaction
+      )
+    })
+
+    it('rejects a system microservice', async () => {
+      stubKnowledgePatch($sandbox, buildMicroserviceRecord({
+        catalogItem: { category: 'SYSTEM' }
+      }))
+
+      return expect($service.updateMicroserviceKnowledgeEndPoint(msvcUuid, {
+        bindPath: '/knowledge',
+        items: [{ name: 'product-docs' }]
+      }, isCLI, transaction)).to.be.rejectedWith(Errors.ValidationError)
+    })
+
+    it('rejects a controller microservice', async () => {
+      stubKnowledgePatch($sandbox, buildMicroserviceRecord({ isController: true }))
+
+      return expect($service.updateMicroserviceKnowledgeEndPoint(msvcUuid, {
+        bindPath: '/knowledge',
+        items: [{ name: 'product-docs' }]
+      }, isCLI, transaction)).to.be.rejectedWith(Errors.ValidationError)
+    })
+
+    it('returns not found when the microservice is missing', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOneWithCategory').resolves(null)
+
+      return expect($service.updateMicroserviceKnowledgeEndPoint(msvcUuid, {
+        items: []
+      }, isCLI, transaction)).to.be.rejectedWith(Errors.NotFoundError)
+    })
   })
 
   describe('.buildGetMicroserviceResponse() observed status', () => {
@@ -1729,6 +2012,19 @@ describe('Microservices Service', () => {
     beforeEach(() => {
       stubBuildGetResponseDeps($sandbox)
       $sandbox.stub(ApplicationManager, 'findOne').resolves({ name: 'my-app' })
+    })
+
+    it('returns the knowledge catalog with item names only', async () => {
+      MicroserviceKnowledgeManager.findOne.resolves({ bindPath: '/knowledge', permissions: 'rw' })
+      MicroserviceKnowledgeItemManager.findAll.resolves([{ id: 2, name: 'product-docs' }])
+
+      const result = await $subject
+      expect(result.knowledge).to.eql({
+        bindPath: '/knowledge',
+        permissions: 'rw',
+        items: [{ name: 'product-docs' }]
+      })
+      expect(result.knowledge.items[0]).to.not.have.property('uuid')
     })
 
     it('zeros CPU when status is STOPPED', async () => {

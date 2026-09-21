@@ -178,3 +178,58 @@ ALTER TABLE VolumeMappings ADD COLUMN scope VARCHAR(16) NOT NULL DEFAULT 'privat
 
 DROP TABLE IF EXISTS HWInfos;
 DROP TABLE IF EXISTS USBInfos;
+
+CREATE TABLE IF NOT EXISTS Knowledge (
+    uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    repo TEXT,
+    revision TEXT,
+    registry_id INT,
+    files TEXT,
+    format VARCHAR(255),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (registry_id) REFERENCES Registries (id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_knowledge_registry_id ON Knowledge (registry_id);
+CREATE INDEX idx_knowledge_name ON Knowledge (name);
+
+CREATE TABLE IF NOT EXISTS FogKnowledge (
+    id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    fog_uuid VARCHAR(36),
+    knowledge_uuid VARCHAR(36),
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (knowledge_uuid) REFERENCES Knowledge (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_fog_knowledge_fog_uuid ON FogKnowledge (fog_uuid);
+CREATE INDEX idx_fog_knowledge_knowledge_uuid ON FogKnowledge (knowledge_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceKnowledge (
+    id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    bind_path TEXT,
+    permissions TEXT,
+    microservice_uuid VARCHAR(36) NOT NULL,
+    UNIQUE (microservice_uuid),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS MicroserviceKnowledgeItems (
+    id INT AUTO_INCREMENT PRIMARY KEY NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    microservice_uuid VARCHAR(36) NOT NULL,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (name) REFERENCES Knowledge (name) ON DELETE RESTRICT,
+    UNIQUE (microservice_uuid, name)
+);
+
+CREATE INDEX idx_microservice_knowledge_items_microserviceUuid ON MicroserviceKnowledgeItems (microservice_uuid);
+CREATE INDEX idx_microservice_knowledge_items_name ON MicroserviceKnowledgeItems (name);
+
+ALTER TABLE ChangeTrackings ADD COLUMN knowledge BOOLEAN DEFAULT false;
+ALTER TABLE ChangeTrackings ADD COLUMN microservice_knowledge BOOLEAN DEFAULT false;
+
+ALTER TABLE Fogs ADD COLUMN knowledge_status TEXT;
+ALTER TABLE Fogs ADD COLUMN active_knowledge BIGINT DEFAULT 0;
+ALTER TABLE Fogs ADD COLUMN knowledge_last_update BIGINT DEFAULT 0;

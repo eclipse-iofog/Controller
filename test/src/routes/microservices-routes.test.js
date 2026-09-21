@@ -8,5 +8,8 @@ describe('Microservice routes', () => {
   it('registers catalog-only PATCH on a microservice', () => {
     expect(source).to.include("path: '/api/v3/microservices/:uuid/models'")
     expect(source).to.include('updateMicroserviceCatalogEndPoint')
+    expect(source).to.include("path: '/api/v3/microservices/:uuid/knowledge'")
+    expect(source).to.include('updateMicroserviceKnowledgeEndPoint')
+    expect(source).to.not.include("path: '/api/v3/microservices/system/:uuid/knowledge'")
   })
 })

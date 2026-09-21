@@ -548,6 +548,28 @@ describe('Agent Controller', () => {
     })
   })
 
+  describe('getAgentLinkedKnowledgeEndpoint()', () => {
+    def('fog', () => 'fog!')
+    def('req', () => ({ body: {} }))
+    def('response', () => Promise.resolve([]))
+    def('subject', () => $subject.getAgentLinkedKnowledgeEndpoint($req, $fog))
+
+    beforeEach(() => {
+      $sandbox.stub(AgentService, 'getAgentLinkedKnowledge').returns($response)
+    })
+
+    it('returns linked knowledge for the requesting fog', async () => {
+      await expect($subject).to.eventually.eql({ knowledge: [] })
+      expect(AgentService.getAgentLinkedKnowledge).to.have.been.calledWith($fog)
+    })
+
+    it('keeps linked rows under the knowledge key', async () => {
+      const rows = [{ uuid: 'k-1', name: 'product-docs' }]
+      AgentService.getAgentLinkedKnowledge.resolves(rows)
+      await expect($subject).to.eventually.eql({ knowledge: rows })
+    })
+  })
+
   describe('getAgentLinkedRuntimeClassesEndpoint()', () => {
     def('fog', () => 'fog!')
     def('req', () => ({ body: {} }))

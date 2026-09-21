@@ -412,6 +412,7 @@ const parseMicroserviceYAML = async (microservice) => {
     extraHosts: lget(microservice, 'container.extraHosts', []),
     application: microservice.application,
     models: microservice.models,
+    knowledge: microservice.knowledge,
     template: parseMicroserviceTemplateRef(microservice.template),
     schedule: lget(microservice, 'schedule', 50),
     serviceAccount: lget(microservice, 'serviceAccount', undefined),
@@ -778,6 +779,55 @@ async function parseModelFile (fileContent, options = {}) {
   }
 }
 
+async function parseKnowledgeFile (fileContent, options = {}) {
+  try {
+    const doc = yaml.load(fileContent)
+    if (!doc || !doc.kind) {
+      throw new Errors.ValidationError('Invalid YAML format: missing kind field')
+    }
+    if (doc.kind !== 'Knowledge') {
+      throw new Errors.ValidationError(`Invalid kind ${doc.kind}`)
+    }
+    if (doc.metadata == null || doc.spec == null) {
+      throw new Errors.ValidationError('Invalid YAML format: missing metadata or spec')
+    }
+
+    const allowedApiVersions = new Set(['iofog.org/v3', 'datasance.com/v3'])
+    if (doc.apiVersion && !allowedApiVersions.has(doc.apiVersion)) {
+      throw new Errors.ValidationError(`Invalid apiVersion ${doc.apiVersion}`)
+    }
+
+    if (options.isUpdate && options.knowledgeName) {
+      if (doc.metadata.name !== options.knowledgeName) {
+        throw new Errors.ValidationError(`Knowledge name in YAML (${doc.metadata.name}) doesn't match endpoint path (${options.knowledgeName})`)
+      }
+    }
+
+    const spec = doc.spec || {}
+    const registryId = spec.registryId != null ? spec.registryId : spec.registry
+    const result = {
+      name: lget(doc, 'metadata.name', undefined),
+      repo: spec.repo,
+      revision: spec.revision,
+      registryId,
+      files: spec.files,
+      format: spec.format
+    }
+    _deleteUndefinedFields(result)
+
+    if (options.isUpdate && options.knowledgeName) {
+      delete result.name
+    }
+
+    return result
+  } catch (error) {
+    if (error instanceof Errors.ValidationError) {
+      throw error
+    }
+    throw new Errors.ValidationError(`Error parsing YAML: ${error.message}`)
+  }
+}
+
 async function parseRuntimeClassFile (fileContent, options = {}) {
   try {
     const doc = yaml.load(fileContent)
@@ -860,6 +910,9 @@ async function parseMicroserviceTemplateYAML (microservice) {
   }
   if (microservice.models !== undefined) {
     microserviceData.models = microservice.models
+  }
+  if (microservice.knowledge !== undefined) {
+    microserviceData.knowledge = microservice.knowledge
   }
   if (microservice.schedule !== undefined) {
     microserviceData.schedule = microservice.schedule
@@ -989,6 +1042,7 @@ module.exports = {
   parseRoleBindingFile,
   parseServiceAccountFile,
   parseModelFile,
+  parseKnowledgeFile,
   parseRuntimeClassFile,
   parseMicroserviceTemplateFile
 }

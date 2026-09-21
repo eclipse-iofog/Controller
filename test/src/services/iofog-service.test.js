@@ -547,6 +547,48 @@ describe('ioFog Service', () => {
       expect(result).to.have.property('platformStatus', null)
     })
 
+    context('when knowledge status is stored as a JSON string', () => {
+      beforeEach(() => {
+        ioFogManager.findOneWithTags.resolves(buildFogModel({
+          uuid,
+          name: 'testName',
+          knowledgeStatus: JSON.stringify([{ name: 'product-docs', source: 'managed' }]),
+          activeKnowledge: 1,
+          knowledgeLastUpdate: 1710000000000
+        }))
+      })
+
+      it('parses knowledgeStatus to an array on user GET', async () => {
+        const result = await $subject
+        expect(result.knowledgeStatus).to.eql([{ name: 'product-docs', source: 'managed' }])
+        expect(result.activeKnowledge).to.equal(1)
+        expect(result.knowledgeLastUpdate).to.equal(1710000000000)
+      })
+    })
+
+    context('when the status list is longer than the managed count', () => {
+      beforeEach(() => {
+        ioFogManager.findOneWithTags.resolves(buildFogModel({
+          uuid,
+          name: 'testName',
+          knowledgeStatus: JSON.stringify([
+            { name: 'product-docs', source: 'managed', uuid: '3f2c1111-2222-3333-4444-555566667777' },
+            { name: 'local-notes', source: 'local' }
+          ]),
+          activeKnowledge: 1,
+          knowledgeLastUpdate: 1710000000000
+        }))
+      })
+
+      it('keeps activeKnowledge as the managed count', async () => {
+        const result = await $subject
+        expect(result.knowledgeStatus).to.have.length(2)
+        expect(result.activeKnowledge).to.equal(1)
+        expect(result.activeKnowledge).to.not.equal(result.knowledgeStatus.length)
+        expect(result.knowledgeStatus[1]).to.not.have.property('uuid')
+      })
+    })
+
     context('when platform status exists', () => {
       const lastTransitionAt = new Date('2026-06-24T12:00:00.000Z')
 

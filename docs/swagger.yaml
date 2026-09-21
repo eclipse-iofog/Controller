@@ -1454,6 +1454,30 @@ paths:
           description: Not Authorized
         "500":
           description: Internal Server Error
+  /agent/knowledge:
+    get:
+      tags:
+        - Agent
+      summary: Gets fleet Knowledge linked to this fog
+      description: >-
+        Fog-token only. Returns Knowledge linked to the authenticated fog.
+        Rows missing uuid or name are omitted. An unlinked fog returns
+        { "knowledge": [] }. A missing route is treated as an empty list
+        by the agent.
+      operationId: getAgentLinkedKnowledge
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentKnowledgeListResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
   /agent/runtimeClasses:
     get:
       tags:
@@ -2714,6 +2738,46 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/MicroserviceCatalog"
+      responses:
+        "204":
+          description: Catalog updated
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+  "/microservices/{uuid}/knowledge":
+    patch:
+      tags:
+        - Microservices
+      summary: Updates the microservice Knowledge catalog
+      description: >-
+        User microservices only. Catalog-only update. Sets the
+        microserviceKnowledge change flag only (does not set microserviceList).
+        Rebuilds the workload when the catalog goes empty to non-empty or
+        non-empty to empty, or when bindPath or permissions change. Adding or
+        removing items with the same bindPath and permissions does not rebuild
+        when the catalog is already non-empty. Catalog items reference managed
+        Knowledge names only. System and controller microservices are rejected.
+      operationId: patchMicroserviceKnowledge
+      parameters:
+        - in: path
+          name: uuid
+          description: Microservice Uuid
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeCatalog"
       responses:
         "204":
           description: Catalog updated
@@ -5844,6 +5908,338 @@ paths:
         "500":
           description: Internal Server Error
 
+  /knowledge:
+    get:
+      tags:
+        - Knowledge
+      summary: Returns fleet Knowledge
+      operationId: listKnowledge
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: List of fleet Knowledge
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeListResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - Knowledge
+      summary: Creates fleet Knowledge
+      description: >-
+        Server generates uuid. Name is unique and immutable after create.
+        Names are a separate namespace from Models. Hugging Face pulls use
+        the dataset API. files is Hugging Face only; a non-empty files array on an
+        OCI registry is rejected. format is an optional soft hint (see
+        Knowledge.format).
+      operationId: createKnowledge
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeCreate"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  /knowledge/yaml:
+    post:
+      tags:
+        - Knowledge
+      summary: Creates fleet Knowledge from YAML
+      description: >-
+        kind Knowledge. spec.registry is an alias of registryId.
+        apiVersion iofog.org/v3 or datasance.com/v3.
+      operationId: createKnowledgeYaml
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                knowledge:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  "/knowledge/{name}":
+    get:
+      tags:
+        - Knowledge
+      summary: Gets fleet Knowledge
+      description: Does not include linked fog uuids. Use GET /knowledge/{name}/link.
+      operationId: getKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    patch:
+      tags:
+        - Knowledge
+      summary: Updates fleet Knowledge
+      description: Name is immutable. format follows the same soft-hint rules as create.
+      operationId: updateKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - Knowledge
+      summary: Deletes fleet Knowledge
+      description: Refused when any microservice binds the Knowledge name.
+      operationId: deleteKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "202":
+          description: Accepted
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Knowledge is bound by a microservice
+        "500":
+          description: Internal Server Error
+
+  "/knowledge/yaml/{name}":
+    put:
+      tags:
+        - Knowledge
+      summary: Creates or updates fleet Knowledge from YAML
+      operationId: upsertKnowledgeYaml
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                knowledge:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upserted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+
+  "/knowledge/{name}/link":
+    get:
+      tags:
+        - Knowledge
+      summary: Gets fogs linked to fleet Knowledge
+      operationId: getKnowledgeLink
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - Knowledge
+      summary: Links fleet Knowledge to fog nodes
+      operationId: linkKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FogLinkRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - Knowledge
+      summary: Unlinks fleet Knowledge from fog nodes
+      description: Refused when a microservice on that fog still binds the Knowledge name.
+      operationId: unlinkKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FogLinkRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Knowledge is bound by a microservice on the fog
+        "500":
+          description: Internal Server Error
+
   /runtimeClasses:
     get:
       tags:
@@ -8374,6 +8770,8 @@ tags:
     description: Manage your volume mounts
   - name: Models
     description: Manage your AI Model Catalogs 
+  - name: Knowledge
+    description: Manage fleet Knowledge artifacts (documents, datasets, and vector indexes)
   - name: RuntimeClasses
     description: Manage your runtime classes
   - name: ConfigMap
@@ -9052,7 +9450,20 @@ components:
           description: Count of managed fleet models only.
         modelLastUpdate:
           type: integer
-          description: Unix seconds; 0 when the managed list is empty.
+          description: Unix milliseconds; 0 when the managed list is empty.
+        knowledgeStatus:
+          type: string
+          description: >-
+            JSON string of local and managed Knowledge status items. Parse for
+            display. Managed rows include uuid; local rows omit uuid and set
+            source to local. source is local or managed. activeKnowledge is
+            the managed count, not the length of this array.
+        activeKnowledge:
+          type: integer
+          description: Count of managed fleet Knowledge only, not the knowledgeStatus row count.
+        knowledgeLastUpdate:
+          type: integer
+          description: Unix milliseconds; 0 when the managed list is empty.
         platformStatus:
           description: Present on GET single fog only; omitted on list responses
           allOf:
@@ -9320,6 +9731,12 @@ components:
         microserviceModels:
           type: boolean
           description: Catalog-only refresh; agent uses GET microservices (no dedicated GET).
+        knowledge:
+          type: boolean
+          description: Replace managed Knowledge from GET /agent/knowledge.
+        microserviceKnowledge:
+          type: boolean
+          description: Catalog-only refresh; agent uses GET microservices (no dedicated GET).
     IOFogNodeConfig:
       type: object
       properties:
@@ -9529,7 +9946,18 @@ components:
           description: Count of managed fleet models only.
         modelLastUpdate:
           type: integer
-          description: Unix seconds; 0 when the managed list is empty.
+          description: Unix milliseconds; 0 when the managed list is empty.
+        knowledgeStatus:
+          type: string
+          description: >-
+            JSON string of local and managed Knowledge status items. Managed
+            rows include uuid; local rows omit uuid. source is local or managed.
+        activeKnowledge:
+          type: integer
+          description: Count of managed fleet Knowledge only, not the knowledgeStatus row count.
+        knowledgeLastUpdate:
+          type: integer
+          description: Unix milliseconds; 0 when the managed list is empty.
     IOFogNodeTunnelConfigResponse:
       type: object
       properties:
@@ -9650,6 +10078,11 @@ components:
             $ref: "#/components/schemas/ContainerTmpfs"
         models:
           $ref: "#/components/schemas/MicroserviceCatalog"
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeCatalog"
+          description: >-
+            Fleet Knowledge bound at {bindPath}/{name}/. Items are Knowledge
+            names only.
         idConsumer:
           type: boolean
         isRouter:
@@ -10286,6 +10719,11 @@ components:
           type: object
         models:
           $ref: "#/components/schemas/MicroserviceCatalog"
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeCatalog"
+          description: >-
+            Fleet Knowledge bound at {bindPath}/{name}/. Items are Knowledge
+            names only. User microservices only.
         sysctls:
           type: object
         ulimits:
@@ -10483,6 +10921,11 @@ components:
           $ref: "#/components/schemas/MicroserviceHealthCheck"
         models:
           $ref: "#/components/schemas/MicroserviceCatalog"
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeCatalog"
+          description: >-
+            Fleet Knowledge bound at {bindPath}/{name}/. Items are Knowledge
+            names only. User microservices only.
         template:
           $ref: "#/components/schemas/MicroserviceTemplateRef"
         natsConfig:
@@ -10614,6 +11057,11 @@ components:
           $ref: "#/components/schemas/MicroserviceHealthCheck"
         models:
           $ref: "#/components/schemas/MicroserviceCatalog"
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeCatalog"
+          description: >-
+            Fleet Knowledge bound at {bindPath}/{name}/. Items are Knowledge
+            names only. User microservices only.
         template:
           $ref: "#/components/schemas/MicroserviceTemplateRef"
         natsConfig:
@@ -12003,6 +12451,119 @@ components:
             - pytorch
             - tensorrt
             - unknown
+    Knowledge:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+          description: DNS-1123. Unique on the controller and immutable. Separate namespace from Models.
+        repo:
+          type: string
+          description: Hub dataset id or OCI path without host
+        revision:
+          type: string
+          description: Optional pin. Empty means latest (OCI) or main (HF).
+        registryId:
+          type: integer
+          description: Registry row. Hugging Face uses the dataset API. OCI uses ORAS.
+        files:
+          type: array
+          items:
+            type: string
+          description: Hugging Face only. Empty or omitted means the full dataset. Non-empty files on an OCI registry is rejected.
+        format:
+          type: string
+          description: >-
+            Optional soft hint. Known values persist lowercase: markdown, pdf,
+            jsonl, parquet, arrow, sqlite, faiss, chroma, lance. Any other
+            non-empty string is stored as unknown. Omit, null, or empty stays
+            omitted. Unknown format is not rejected.
+    KnowledgeListResponse:
+      type: object
+      properties:
+        knowledge:
+          type: array
+          items:
+            $ref: "#/components/schemas/Knowledge"
+    AgentKnowledgeListResponse:
+      type: object
+      properties:
+        knowledge:
+          type: array
+          items:
+            $ref: "#/components/schemas/Knowledge"
+    KnowledgeCreate:
+      type: object
+      required:
+        - name
+        - repo
+        - registryId
+      properties:
+        name:
+          type: string
+        repo:
+          type: string
+        revision:
+          type: string
+        registryId:
+          type: integer
+        files:
+          type: array
+          items:
+            type: string
+        format:
+          type: string
+          description: >-
+            Optional soft hint. Known values persist lowercase: markdown, pdf,
+            jsonl, parquet, arrow, sqlite, faiss, chroma, lance. Any other
+            non-empty string is stored as unknown. Omit, null, or empty stays
+            omitted. Unknown format is not rejected.
+    KnowledgeUpdate:
+      type: object
+      properties:
+        repo:
+          type: string
+        revision:
+          type: string
+        registryId:
+          type: integer
+        files:
+          type: array
+          items:
+            type: string
+        format:
+          type: string
+          description: >-
+            Optional soft hint. Known values persist lowercase: markdown, pdf,
+            jsonl, parquet, arrow, sqlite, faiss, chroma, lance. Any other
+            non-empty string is stored as unknown. Omit, null, or empty stays
+            omitted. Unknown format is not rejected.
+    KnowledgeCatalogItem:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Managed fleet Knowledge name. Never uuid or a host path.
+    KnowledgeCatalog:
+      type: object
+      properties:
+        bindPath:
+          type: string
+          description: Required when items is non-empty. A non-empty bindPath requires at least one item. Absolute container path. Projection is {bindPath}/{name}/.
+        permissions:
+          type: string
+          enum:
+            - ro
+            - rw
+          default: ro
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/KnowledgeCatalogItem"
     RuntimeClass:
       type: object
       properties:
@@ -12052,7 +12613,7 @@ components:
       properties:
         bindPath:
           type: string
-          description: Required when items is non-empty. Absolute container path.
+          description: Required when items is non-empty. A non-empty bindPath requires at least one item. Absolute container path.
         permissions:
           type: string
           enum:

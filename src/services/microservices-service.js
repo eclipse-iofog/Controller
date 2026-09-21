@@ -9,6 +9,8 @@ const MicroserviceTmpfsManager = require('../data/managers/microservice-tmpfs-ma
 const MicroserviceUlimitManager = require('../data/managers/microservice-ulimit-manager')
 const MicroserviceModelManager = require('../data/managers/microservice-model-manager')
 const MicroserviceModelItemManager = require('../data/managers/microservice-model-item-manager')
+const MicroserviceKnowledgeManager = require('../data/managers/microservice-knowledge-manager')
+const MicroserviceKnowledgeItemManager = require('../data/managers/microservice-knowledge-item-manager')
 const MicroserviceCdiDevManager = require('../data/managers/microservice-cdi-device-manager')
 const MicroserviceCapAddManager = require('../data/managers/microservice-cap-add-manager')
 const MicroserviceCapDropManager = require('../data/managers/microservice-cap-drop-manager')
@@ -42,8 +44,10 @@ const SecretManager = require('../data/managers/secret-manager')
 const VolumeMountService = require('./volume-mount-service')
 const RuntimeClassService = require('./runtime-class-service')
 const ModelService = require('./model-service')
+const KnowledgeService = require('./knowledge-service')
 const RegistryService = require('./registry-service')
 const FleetModelManager = require('../data/managers/fleet-model-manager')
+const FleetKnowledgeManager = require('../data/managers/fleet-knowledge-manager')
 const CatalogContainer = require('../helpers/microservice-container-catalog')
 const RbacServiceAccountManager = require('../data/managers/rbac-service-account-manager')
 const RbacRoleManager = require('../data/managers/rbac-role-manager')
@@ -502,9 +506,48 @@ async function _autoAttachCatalogModels (fogUuid, catalog, transaction) {
   await ModelService.ensureModelsLinkedToFog(fogUuid, names, transaction)
 }
 
+async function _assertCatalogKnowledgeExist (catalog, transaction) {
+  const names = CatalogContainer.catalogItemNames(catalog)
+  for (const name of names) {
+    const knowledge = await FleetKnowledgeManager.findOne({ name }, transaction)
+    if (!knowledge) {
+      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.MICROSERVICE_KNOWLEDGE_NOT_FOUND, name))
+    }
+  }
+}
+
+async function _autoAttachCatalogKnowledge (fogUuid, catalog, transaction) {
+  if (!fogUuid) {
+    return
+  }
+  const names = CatalogContainer.catalogItemNames(catalog)
+  if (names.length === 0) {
+    return
+  }
+  await KnowledgeService.ensureKnowledgeLinkedToFog(fogUuid, names, transaction)
+}
+
+function _assertKnowledgeCatalogAllowed (microserviceData, microservice) {
+  if (!microserviceData || microserviceData.knowledge === undefined) {
+    return
+  }
+  const catalogItem = microservice && microservice.catalogItem
+  const isSystem = catalogItem && catalogItem.category === 'SYSTEM'
+  const isController = microservice && microservice.isController
+  if (isSystem || isController) {
+    throw new Errors.ValidationError(ErrorMessages.MICROSERVICE_KNOWLEDGE_SYSTEM_FORBIDDEN)
+  }
+}
+
 async function _loadCatalog (microserviceUuid, transaction) {
   const catalogRow = await MicroserviceModelManager.findOne({ microserviceUuid }, transaction)
   const itemRows = await MicroserviceModelItemManager.findAll({ microserviceUuid }, transaction)
+  return CatalogContainer.catalogFromRows(catalogRow, itemRows)
+}
+
+async function _loadKnowledgeCatalog (microserviceUuid, transaction) {
+  const catalogRow = await MicroserviceKnowledgeManager.findOne({ microserviceUuid }, transaction)
+  const itemRows = await MicroserviceKnowledgeItemManager.findAll({ microserviceUuid }, transaction)
   return CatalogContainer.catalogFromRows(catalogRow, itemRows)
 }
 
@@ -513,13 +556,34 @@ async function _loadTmpfs (microserviceUuid, transaction) {
   return CatalogContainer.tmpfsFromRows(rows)
 }
 
+function _catalogMountContext (microserviceData, existing, volumeMappings, tmpfs) {
+  return {
+    volumeMappings: volumeMappings !== undefined ? volumeMappings : existing.volumeMappings,
+    tmpfs: tmpfs !== undefined ? tmpfs : (microserviceData.tmpfs !== undefined ? microserviceData.tmpfs : existing.tmpfs)
+  }
+}
+
 function _prepareCatalogAndContainerFields (microserviceData, existing = {}, volumeMappings, tmpfs) {
   CatalogContainer.validateContainerFields(microserviceData, existing)
+  const mountContext = _catalogMountContext(microserviceData, existing, volumeMappings, tmpfs)
+  const nextModels = microserviceData.models !== undefined
+    ? CatalogContainer.normalizeCatalog(microserviceData.models)
+    : existing.models
+  const nextKnowledge = microserviceData.knowledge !== undefined
+    ? CatalogContainer.normalizeCatalog(microserviceData.knowledge)
+    : existing.knowledge
   if (microserviceData.models !== undefined) {
-    const catalog = CatalogContainer.normalizeCatalog(microserviceData.models)
-    CatalogContainer.validateCatalog(catalog, {
-      volumeMappings: volumeMappings !== undefined ? volumeMappings : existing.volumeMappings,
-      tmpfs: tmpfs !== undefined ? tmpfs : (microserviceData.tmpfs !== undefined ? microserviceData.tmpfs : existing.tmpfs)
+    CatalogContainer.validateCatalog(nextModels, {
+      ...mountContext,
+      otherCatalog: nextKnowledge,
+      kind: 'model'
+    })
+  }
+  if (microserviceData.knowledge !== undefined) {
+    CatalogContainer.validateCatalog(nextKnowledge, {
+      ...mountContext,
+      otherCatalog: nextModels,
+      kind: 'knowledge'
     })
   }
 }
@@ -606,6 +670,26 @@ async function _replaceCatalog (catalogInput, microserviceUuid, transaction) {
   }
 }
 
+async function _replaceKnowledgeCatalog (catalogInput, microserviceUuid, transaction) {
+  await MicroserviceKnowledgeItemManager.delete({ microserviceUuid }, transaction)
+  await MicroserviceKnowledgeManager.delete({ microserviceUuid }, transaction)
+  const catalog = CatalogContainer.normalizeCatalog(catalogInput)
+  if (CatalogContainer.isCatalogEmpty(catalog)) {
+    return
+  }
+  await MicroserviceKnowledgeManager.create({
+    bindPath: catalog.bindPath,
+    permissions: catalog.permissions || 'ro',
+    microserviceUuid
+  }, transaction)
+  for (const item of catalog.items) {
+    await MicroserviceKnowledgeItemManager.create({
+      name: item.name,
+      microserviceUuid
+    }, transaction)
+  }
+}
+
 async function _createContainerChildRows (microservice, microserviceData, transaction) {
   if (microserviceData.entrypoint !== undefined) {
     await _replaceEntrypoint(microserviceData.entrypoint, microservice.uuid, transaction)
@@ -622,6 +706,9 @@ async function _createContainerChildRows (microservice, microserviceData, transa
   if (microserviceData.models !== undefined) {
     await _replaceCatalog(microserviceData.models, microservice.uuid, transaction)
   }
+  if (microserviceData.knowledge !== undefined) {
+    await _replaceKnowledgeCatalog(microserviceData.knowledge, microservice.uuid, transaction)
+  }
 }
 
 async function _applyCatalogContainerUpdate (microserviceData, microservice, microserviceDataUpdate, fogUuid, transaction) {
@@ -632,7 +719,10 @@ async function _applyCatalogContainerUpdate (microserviceData, microservice, mic
     ? microserviceData.tmpfs
     : await _loadTmpfs(microservice.uuid, transaction)
   const existingCatalog = await _loadCatalog(microservice.uuid, transaction)
+  const existingKnowledge = await _loadKnowledgeCatalog(microservice.uuid, transaction)
   microservice.models = existingCatalog
+  microservice.knowledge = existingKnowledge
+  _assertKnowledgeCatalogAllowed(microserviceData, microservice)
   _prepareCatalogAndContainerFields(microserviceData, microservice, volumeMappings, tmpfs)
   _assignContainerColumns(microserviceDataUpdate, microserviceData)
   const argv = CatalogContainer.resolveProcessArgv(microserviceData)
@@ -644,6 +734,11 @@ async function _applyCatalogContainerUpdate (microserviceData, microservice, mic
     const catalog = CatalogContainer.normalizeCatalog(microserviceData.models)
     await _assertCatalogModelsExist(catalog, transaction)
     await _autoAttachCatalogModels(fogUuid, catalog, transaction)
+  }
+  if (microserviceData.knowledge !== undefined) {
+    const catalog = CatalogContainer.normalizeCatalog(microserviceData.knowledge)
+    await _assertCatalogKnowledgeExist(catalog, transaction)
+    await _autoAttachCatalogKnowledge(fogUuid, catalog, transaction)
   }
   await _createContainerChildRows(microservice, microserviceData, transaction)
 }
@@ -791,9 +886,10 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
   await _validateMicroserviceRuntime(microserviceData.runtime, fog, transaction)
 
   // validate images
+  let catalogItem = null
   if (microserviceData.catalogItemId) {
     // validate catalog item
-    const catalogItem = await CatalogService.getCatalogItem(microserviceData.catalogItemId, isCLI, transaction)
+    catalogItem = await CatalogService.getCatalogItem(microserviceData.catalogItemId, isCLI, transaction)
     validateImagesAgainstCatalog(catalogItem, microserviceData.images || [])
     microserviceData.images = catalogItem.images
     _validateImageArch(microserviceData, fog, catalogItem.images)
@@ -820,8 +916,12 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
   _validateVolumeMappings(microserviceData.volumeMappings)
 
   _prepareCatalogAndContainerFields(microserviceData, {}, microserviceData.volumeMappings, microserviceData.tmpfs)
+  _assertKnowledgeCatalogAllowed(microserviceData, { catalogItem })
   if (microserviceData.models !== undefined) {
     await _assertCatalogModelsExist(CatalogContainer.normalizeCatalog(microserviceData.models), transaction)
+  }
+  if (microserviceData.knowledge !== undefined) {
+    await _assertCatalogKnowledgeExist(CatalogContainer.normalizeCatalog(microserviceData.knowledge), transaction)
   }
 
   const microservice = await _createMicroservice({ ...microserviceData, iofogUuid: fog.uuid }, isCLI, transaction)
@@ -901,6 +1001,9 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
 
   if (microserviceData.models !== undefined) {
     await _autoAttachCatalogModels(fog.uuid, CatalogContainer.normalizeCatalog(microserviceData.models), transaction)
+  }
+  if (microserviceData.knowledge !== undefined) {
+    await _autoAttachCatalogKnowledge(fog.uuid, CatalogContainer.normalizeCatalog(microserviceData.knowledge), transaction)
   }
 
   if (microserviceData.iofogUuid) {
@@ -1757,6 +1860,12 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
   if (changeTrackingEnabled) {
     await _updateChangeTracking(true, microservice.iofogUuid, transaction)
     await _updateChangeTracking(true, updatedMicroservice.iofogUuid, transaction)
+    if (microserviceData.knowledge !== undefined) {
+      await _flagMicroserviceKnowledge(microservice.iofogUuid, transaction)
+      if (updatedMicroservice.iofogUuid !== microservice.iofogUuid) {
+        await _flagMicroserviceKnowledge(updatedMicroservice.iofogUuid, transaction)
+      }
+    }
   } else {
     return {
       microserviceIofogUuid: microservice.iofogUuid,
@@ -1810,9 +1919,12 @@ async function updateMicroserviceCatalogEndPoint (microserviceUuid, catalogData,
   const catalog = CatalogContainer.normalizeCatalog(catalogData)
   const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid }, transaction)
   const tmpfs = await _loadTmpfs(microserviceUuid, transaction)
+  const knowledgeCatalog = await _loadKnowledgeCatalog(microserviceUuid, transaction)
   CatalogContainer.validateCatalog(catalog, {
     volumeMappings,
-    tmpfs
+    tmpfs,
+    otherCatalog: knowledgeCatalog,
+    kind: 'model'
   })
   await _assertCatalogModelsExist(catalog, transaction)
   await _autoAttachCatalogModels(microservice.iofogUuid, catalog, transaction)
@@ -1830,6 +1942,51 @@ async function updateMicroserviceCatalogEndPoint (microserviceUuid, catalogData,
       : ChangeTrackingService.events.microserviceModels
     await ChangeTrackingService.update(microservice.iofogUuid, event, transaction)
   }
+
+  return {
+    uuid: microserviceUuid
+  }
+}
+
+async function updateMicroserviceKnowledgeEndPoint (microserviceUuid, catalogData, isCLI, transaction) {
+  await Validator.validate(catalogData, Validator.schemas.microserviceCatalogPatch)
+
+  const query = { uuid: microserviceUuid }
+  const microservice = await MicroserviceManager.findOneWithCategory(query, transaction)
+  if (!microservice) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, microserviceUuid))
+  }
+  if (microservice.catalogItem && microservice.catalogItem.category === 'SYSTEM') {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
+  }
+  if (microservice.isController) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.SYSTEM_MICROSERVICE_UPDATE, microserviceUuid))
+  }
+  if (!isCLI) {
+    await _validateMicroserviceOnGet(microserviceUuid, transaction)
+  }
+
+  const catalog = CatalogContainer.normalizeCatalog(catalogData)
+  const volumeMappings = await VolumeMappingManager.findAll({ microserviceUuid }, transaction)
+  const tmpfs = await _loadTmpfs(microserviceUuid, transaction)
+  const modelsCatalog = await _loadCatalog(microserviceUuid, transaction)
+  CatalogContainer.validateCatalog(catalog, {
+    volumeMappings,
+    tmpfs,
+    otherCatalog: modelsCatalog,
+    kind: 'knowledge'
+  })
+  await _assertCatalogKnowledgeExist(catalog, transaction)
+  await _autoAttachCatalogKnowledge(microservice.iofogUuid, catalog, transaction)
+
+  const previousCatalog = await _loadKnowledgeCatalog(microserviceUuid, transaction)
+  const rebuild = CatalogContainer.catalogRequiresRebuild(previousCatalog, catalog)
+  await _replaceKnowledgeCatalog(catalog, microserviceUuid, transaction)
+  await MicroserviceManager.update(query, {
+    rebuild: rebuild || !!microservice.rebuild
+  }, transaction)
+
+  await _flagMicroserviceKnowledge(microservice.iofogUuid, transaction)
 
   return {
     uuid: microserviceUuid
@@ -2876,6 +3033,13 @@ async function _updateSystemPorts (newPortMappings, microservice, transaction) {
   }
 }
 
+async function _flagMicroserviceKnowledge (fogUuid, transaction) {
+  if (!fogUuid) {
+    return
+  }
+  await ChangeTrackingService.update(fogUuid, ChangeTrackingService.events.microserviceKnowledge, transaction)
+}
+
 async function _updateChangeTracking (configUpdated, fogNodeUuid, transaction) {
   if (configUpdated) {
     // Spec updates other than a catalog-only PATCH reload the full microservice list.
@@ -2966,6 +3130,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   const ulimitRows = await MicroserviceUlimitManager.findAll({ microserviceUuid }, transaction)
   const ulimits = CatalogContainer.ulimitsFromRows(ulimitRows)
   const catalog = await _loadCatalog(microserviceUuid, transaction)
+  const knowledge = await _loadKnowledgeCatalog(microserviceUuid, transaction)
   const cdiDevices = await MicroserviceCdiDevManager.findAllExcludeFields({ microserviceUuid }, transaction)
   const cdiDevs = cdiDevices.map((it) => it.cdiDevices)
   const capAdd = await MicroserviceCapAddManager.findAllExcludeFields({ microserviceUuid }, transaction)
@@ -3002,6 +3167,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.devices = devices
   res.tmpfs = tmpfs
   res.models = catalog
+  res.knowledge = knowledge
   res.runAsGroup = res.runAsGroup || ''
   res.cdiDevices = cdiDevs
   res.capAdd = capAdds
@@ -3194,6 +3360,7 @@ module.exports = {
   updateSystemMicroserviceEndPoint: TransactionDecorator.generateTransaction(updateSystemMicroserviceEndPoint),
   updateMicroserviceConfigEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceConfigEndPoint),
   updateMicroserviceCatalogEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceCatalogEndPoint),
+  updateMicroserviceKnowledgeEndPoint: TransactionDecorator.generateTransaction(updateMicroserviceKnowledgeEndPoint),
   getMicroserviceConfigEndPoint: TransactionDecorator.generateTransaction(getMicroserviceConfigEndPoint),
   getSystemMicroserviceConfigEndPoint: TransactionDecorator.generateTransaction(getSystemMicroserviceConfigEndPoint),
   deleteMicroserviceConfigEndPoint: TransactionDecorator.generateTransaction(deleteMicroserviceConfigEndPoint),

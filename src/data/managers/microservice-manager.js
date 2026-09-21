@@ -15,6 +15,8 @@ const MicroserviceTmpfs = models.MicroserviceTmpfs
 const MicroserviceUlimit = models.MicroserviceUlimit
 const MicroserviceModel = models.MicroserviceModel
 const MicroserviceModelItem = models.MicroserviceModelItem
+const MicroserviceKnowledge = models.MicroserviceKnowledge
+const MicroserviceKnowledgeItem = models.MicroserviceKnowledgeItem
 const CatalogItem = models.CatalogItem
 const CatalogItemImage = models.CatalogItemImage
 const Fog = models.Fog
@@ -72,6 +74,18 @@ function containerChildIncludes () {
     {
       model: MicroserviceModelItem,
       as: 'modelItems',
+      required: false,
+      attributes: ['id', 'name']
+    },
+    {
+      model: MicroserviceKnowledge,
+      as: 'microserviceKnowledge',
+      required: false,
+      attributes: ['bindPath', 'permissions']
+    },
+    {
+      model: MicroserviceKnowledgeItem,
+      as: 'knowledgeItems',
       required: false,
       attributes: ['id', 'name']
     }

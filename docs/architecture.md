@@ -358,6 +358,10 @@ Controller v3.8 and Edgelet share a **frozen field-agent REST contract** on `/ap
 
 **Volume mapping scope** — microservice `volumeMappings[]` may include `scope` (`private` default / `shared`). Meaningful only when `type` is `volume`. Shared names are node-global on that fog. Reclaim is on-node (`edgelet volume` / `deprovision --purge-volumes`); Controller does not prune volumes. `deleteWithCleanup` remains unused.
 
+**Fleet models** — weight artifacts at `/api/v3/models`, linked per fog. Agent `GET /api/v3/agent/models` returns linked rows only. User microservices bind them with a `models` catalog (`bindPath`, `permissions`, `items[].name`).
+
+**Fleet Knowledge** — documents, datasets, and vector indexes, same distribution shape as models and a separate name namespace. Operator CRUD, YAML (`kind: Knowledge`), and per-fog link live at `/api/v3/knowledge`. User microservices bind a `knowledge` catalog and can change it with `PATCH /api/v3/microservices/:uuid/knowledge`. Agent `GET /api/v3/agent/knowledge` returns linked rows only. `format` is a soft hint. Hugging Face pulls use the dataset API. Fog `modelLastUpdate` and `knowledgeLastUpdate` are Unix milliseconds.
+
 **Service account RBAC** — microservice roles use apiGroup **`edgelet.iofog.org/v1`**; SA/role changes trigger `microserviceList` change tracking.
 
 For the full bilateral contract (including ControlPlane env vars and verification references), see Edgelet documentation:

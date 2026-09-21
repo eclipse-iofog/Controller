@@ -26,6 +26,11 @@ describe('Microservice Template Service', () => {
         bindPath: '/models',
         permissions: 'ro',
         items: [{ name: 'test-model' }]
+      },
+      knowledge: {
+        bindPath: '/knowledge',
+        permissions: 'ro',
+        items: [{ name: 'product-docs' }]
       }
     }
   }
@@ -72,6 +77,7 @@ describe('Microservice Template Service', () => {
       expect(storedMicroservice.agentName).to.equal('{{ agent-name }}')
       expect(storedMicroservice).to.not.have.property('iofogUuid')
       expect(storedMicroservice.models.items).to.eql([{ name: 'test-model' }])
+      expect(storedMicroservice.knowledge.items).to.eql([{ name: 'product-docs' }])
       expect(result.microservice.commands).to.eql(['nginx', '-g', 'daemon off;'])
       expect(result.variables[0].key).to.equal('port')
       expect(result.variables[0].defaultValue).to.equal('80')
@@ -109,6 +115,11 @@ describe('Microservice Template Service', () => {
       expect(result.microserviceTemplates).to.have.length(1)
       expect(result.microserviceTemplates[0].name).to.equal('nginx-edge')
       expect(result.microserviceTemplates[0].microservice.models.bindPath).to.equal('/models')
+      expect(result.microserviceTemplates[0].microservice.knowledge).to.eql({
+        bindPath: '/knowledge',
+        permissions: 'ro',
+        items: [{ name: 'product-docs' }]
+      })
       expect(result.microserviceTemplates[0].variables[0].defaultValue).to.equal('80')
     })
 

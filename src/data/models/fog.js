@@ -355,6 +355,25 @@ module.exports = (sequelize, DataTypes) => {
       },
       field: 'model_last_update'
     },
+    knowledgeStatus: {
+      type: DataTypes.TEXT,
+      field: 'knowledge_status'
+    },
+    activeKnowledge: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      get () {
+        return convertToInt(this.getDataValue('activeKnowledge'), 0)
+      },
+      field: 'active_knowledge'
+    },
+    knowledgeLastUpdate: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('knowledgeLastUpdate'), 0)
+      },
+      field: 'knowledge_last_update'
+    },
     warningMessage: {
       type: DataTypes.TEXT,
       field: 'warning_message',
@@ -426,6 +445,12 @@ module.exports = (sequelize, DataTypes) => {
       as: 'models',
       foreignKey: 'fog_uuid',
       otherKey: 'model_uuid'
+    })
+    Fog.belongsToMany(models.FleetKnowledge, {
+      through: models.FogKnowledge,
+      as: 'knowledge',
+      foreignKey: 'fog_uuid',
+      otherKey: 'knowledge_uuid'
     })
     Fog.belongsToMany(models.RuntimeClass, {
       through: models.FogRuntimeClasses,

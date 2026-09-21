@@ -19,7 +19,9 @@ const events = Object.freeze({
     execSessions: false,
     models: false,
     runtimeClasses: false,
-    microserviceModels: false
+    microserviceModels: false,
+    knowledge: false,
+    microserviceKnowledge: false
   },
   microserviceFull: {
     microserviceConfig: true,
@@ -81,6 +83,12 @@ const events = Object.freeze({
   },
   microserviceModels: {
     microserviceModels: true
+  },
+  knowledge: {
+    knowledge: true
+  },
+  microserviceKnowledge: {
+    microserviceKnowledge: true
   }
 })
 

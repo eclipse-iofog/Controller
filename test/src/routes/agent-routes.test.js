@@ -8,6 +8,7 @@ describe('Agent routes', () => {
   it('registers fog-token model and runtime class list routes', () => {
     expect(source).to.include("path: '/api/v3/agent/models'")
     expect(source).to.include("path: '/api/v3/agent/runtimeClasses'")
+    expect(source).to.include("path: '/api/v3/agent/knowledge'")
   })
 
   it('does not register agent hardware inventory routes', () => {

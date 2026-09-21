@@ -56,6 +56,10 @@ const getAgentLinkedModelsEndpoint = async function (req, fog) {
   return { models: await AgentService.getAgentLinkedModels(fog) }
 }
 
+const getAgentLinkedKnowledgeEndpoint = async function (req, fog) {
+  return { knowledge: await AgentService.getAgentLinkedKnowledge(fog) }
+}
+
 const getAgentLinkedRuntimeClassesEndpoint = async function (req, fog) {
   return { runtimeClasses: await AgentService.getAgentLinkedRuntimeClasses(fog) }
 }
@@ -115,6 +119,7 @@ module.exports = {
   resetAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(resetAgentConfigChangesEndPoint),
   getAgentLinkedVolumeMountsEndpoint: AuthDecorator.checkFogToken(getAgentLinkedVolumeMountsEndpoint),
   getAgentLinkedModelsEndpoint: AuthDecorator.checkFogToken(getAgentLinkedModelsEndpoint),
+  getAgentLinkedKnowledgeEndpoint: AuthDecorator.checkFogToken(getAgentLinkedKnowledgeEndpoint),
   getAgentLinkedRuntimeClassesEndpoint: AuthDecorator.checkFogToken(getAgentLinkedRuntimeClassesEndpoint),
   getControllerCAEndPoint: AuthDecorator.checkFogToken(getControllerCAEndPoint),
   getAgentLogSessionsEndPoint: AuthDecorator.checkFogToken(getAgentLogSessionsEndPoint),

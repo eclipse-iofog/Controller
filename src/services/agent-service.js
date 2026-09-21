@@ -61,7 +61,9 @@ const CHANGE_TRACKING_KEYS = [
   'fogLogs',
   'models',
   'runtimeClasses',
-  'microserviceModels'
+  'microserviceModels',
+  'knowledge',
+  'microserviceKnowledge'
 ]
 for (const key of CHANGE_TRACKING_KEYS) {
   CHANGE_TRACKING_DEFAULT[key] = false
@@ -302,7 +304,10 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
     availableCdiDevices: _stringifyStatusField(agentStatus.availableCdiDevices),
     modelStatus: _stringifyStatusField(agentStatus.modelStatus),
     activeModels: agentStatus.activeModels,
-    modelLastUpdate: agentStatus.modelLastUpdate
+    modelLastUpdate: agentStatus.modelLastUpdate,
+    knowledgeStatus: _stringifyStatusField(agentStatus.knowledgeStatus),
+    activeKnowledge: agentStatus.activeKnowledge,
+    knowledgeLastUpdate: agentStatus.knowledgeLastUpdate
   }
 
   fogStatus = AppHelper.deleteUndefinedFields(fogStatus)
@@ -575,7 +580,8 @@ const getAgentMicroservices = async function (fog, transaction) {
       devices: CatalogContainer.devicesFromRows(microservice.devices),
       tmpfs: CatalogContainer.tmpfsFromRows(microservice.tmpfs),
       ulimits: CatalogContainer.ulimitsFromRows(microservice.ulimits),
-      models: CatalogContainer.catalogFromRows(microservice.microserviceModel, microservice.modelItems)
+      models: CatalogContainer.catalogFromRows(microservice.microserviceModel, microservice.modelItems),
+      knowledge: CatalogContainer.catalogFromRows(microservice.microserviceKnowledge, microservice.knowledgeItems)
     })
 
     // Resolve service account with rules from relationship
@@ -900,6 +906,57 @@ const getAgentLinkedModels = async function (fog, transaction) {
   return models
 }
 
+function _knowledgeFiles (value) {
+  if (Array.isArray(value)) {
+    return value
+  }
+  if (value == null || value === '') {
+    return []
+  }
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed : []
+    } catch (e) {
+      return []
+    }
+  }
+  return []
+}
+
+const getAgentLinkedKnowledge = async function (fog, transaction) {
+  if (!fog || typeof fog.getKnowledge !== 'function') {
+    return []
+  }
+
+  const resources = await fog.getKnowledge({
+    attributes: ['uuid', 'name', 'repo', 'revision', 'files', 'format', 'registryId'],
+    joinTableAttributes: [],
+    transaction
+  })
+
+  const knowledge = []
+  for (const resource of resources) {
+    const row = _toPlain(resource)
+    if (!row || !row.uuid || !row.name) {
+      continue
+    }
+    const item = {
+      uuid: row.uuid,
+      name: row.name,
+      repo: row.repo,
+      revision: row.revision != null ? row.revision : '',
+      registryId: row.registryId,
+      files: _knowledgeFiles(row.files)
+    }
+    if (row.format != null && row.format !== '') {
+      item.format = row.format
+    }
+    knowledge.push(item)
+  }
+  return knowledge
+}
+
 const getAgentLinkedRuntimeClasses = async function (fog, transaction) {
   if (!fog || typeof fog.getRuntimeClassLinks !== 'function') {
     return []
@@ -942,6 +999,7 @@ module.exports = {
   deleteNode: TransactionDecorator.generateTransaction(deleteNode),
   getAgentLinkedVolumeMounts: TransactionDecorator.generateTransaction(getAgentLinkedVolumeMounts),
   getAgentLinkedModels: TransactionDecorator.generateTransaction(getAgentLinkedModels),
+  getAgentLinkedKnowledge: TransactionDecorator.generateTransaction(getAgentLinkedKnowledge),
   getAgentLinkedRuntimeClasses: TransactionDecorator.generateTransaction(getAgentLinkedRuntimeClasses),
   getControllerCA,
   getAgentLogSessions: TransactionDecorator.generateTransaction(getAgentLogSessions),

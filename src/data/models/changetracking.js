@@ -93,6 +93,16 @@ module.exports = (sequelize, DataTypes) => {
       field: 'microservice_models',
       defaultValue: false
     },
+    knowledge: {
+      type: DataTypes.BOOLEAN,
+      field: 'knowledge',
+      defaultValue: false
+    },
+    microserviceKnowledge: {
+      type: DataTypes.BOOLEAN,
+      field: 'microservice_knowledge',
+      defaultValue: false
+    },
     lastUpdated: {
       type: DataTypes.STRING,
       field: 'last_updated',

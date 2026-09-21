@@ -1,7 +1,7 @@
 # Controller RBAC — operator reference
 
 **Audience:** Platform operators, SREs, and integrators configuring access to Controller v3.8  
-**Applies to:** User and admin HTTP APIs under `/api/v3/*` (not Edgelet agent wire protocol). Includes fleet models, RuntimeClass, and microservice templates.
+**Applies to:** User and admin HTTP APIs under `/api/v3/*` (not Edgelet agent wire protocol). Includes fleet models, fleet Knowledge, RuntimeClass, and microservice templates.
 
 ## Overview
 
@@ -86,7 +86,7 @@ The table below lists **user API** resources in `rbac-resources.yaml` and which 
 | natsOperator, natsBootstrap, natsHub | read / ✓ | read | read | SRE has full NATS CRUD except operator objects (read) |
 | natsAccounts, natsUsers, natsAccountRules, natsUserRules | ✓ | ✓ | ✓ | |
 | catalog, registries | ✓ | ✓ | ✓ | |
-| secrets, configMaps, volumeMounts, models, runtimeClasses | ✓ | ✓ | ✓ | Model/RuntimeClass link uses `patch` (same as volumeMounts) |
+| secrets, configMaps, volumeMounts, models, knowledge, runtimeClasses | ✓ | ✓ | ✓ | Model, Knowledge, and RuntimeClass link uses `patch` (same as volumeMounts). Viewer is get/list only |
 | tunnels | ✓ | read | — | Viewer intentionally omits exec/tunnel paths |
 | certificates, capabilities | ✓ | ✓ | ✓ | |
 | execSessions, logs | ✓ | ✓ | — | |
@@ -140,7 +140,7 @@ Some sub-resource actions map to `patch` (for example microservice start/stop). 
 | `POST /api/v3/agent/controller/register` | Added under **`agent`** resource (fog token) |
 | OIDC auth routes (OAuth BFF, interactions) | Catalogued under **`users`** with auth-only verbs |
 
-Fleet models, RuntimeClass, and microservice templates are user RBAC resources (`models`, `runtimeClasses`, `microserviceTemplates`). Viewer gets `get`/`list`. SRE, developer, and admin get full CRUD including link (`patch` on `…/:name/link`). Agent `GET /api/v3/agent/models` and `GET /api/v3/agent/runtimeClasses` are fog-token routes catalogued under **`agent`** for drift auditing only.
+Fleet models, fleet Knowledge, RuntimeClass, and microservice templates are user RBAC resources (`models`, `knowledge`, `runtimeClasses`, `microserviceTemplates`). Viewer gets `get`/`list`. SRE, developer, and admin get full CRUD including link (`patch` on `…/:name/link`). Agent `GET /api/v3/agent/models`, `GET /api/v3/agent/knowledge`, and `GET /api/v3/agent/runtimeClasses` are fog-token routes catalogued under **`agent`** for drift auditing only. Catalog `PATCH /api/v3/microservices/:uuid/models` and `PATCH /api/v3/microservices/:uuid/knowledge` stay on the **`microservices`** resource.
 
 Removed user HAL/USB inventory routes (`GET /api/v3/iofog/:uuid/hal/hw`, `GET /api/v3/iofog/:uuid/hal/usb`) and agent HAL PUT routes have no yaml entries.
 

@@ -329,6 +329,35 @@ module.exports = [
   },
   {
     method: 'get',
+    path: '/api/v3/agent/knowledge',
+    middleware: async (req, res) => {
+      logger.apiReq(req)
+
+      const successCode = constants.HTTP_CODE_SUCCESS
+      const errorCodes = [
+        {
+          code: constants.HTTP_CODE_UNAUTHORIZED,
+          errors: [Errors.AgentAuthenticationError, Errors.AuthenticationError]
+        },
+        {
+          code: constants.HTTP_CODE_SERVICE_UNAVAILABLE,
+          errors: [Errors.ServiceUnavailableError]
+        }
+      ]
+
+      const getAgentLinkedKnowledgeEndpoint = ResponseDecorator.handleErrors(AgentController.getAgentLinkedKnowledgeEndpoint,
+        successCode, errorCodes)
+      const responseObject = await getAgentLinkedKnowledgeEndpoint(req)
+
+      res
+        .status(responseObject.code)
+        .send(responseObject.body)
+
+      logger.apiRes({ req, res, responseObject })
+    }
+  },
+  {
+    method: 'get',
     path: '/api/v3/agent/runtimeClasses',
     middleware: async (req, res) => {
       logger.apiReq(req)
