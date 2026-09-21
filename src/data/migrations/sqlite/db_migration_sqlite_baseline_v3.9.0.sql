@@ -124,6 +124,9 @@ CREATE TABLE IF NOT EXISTS Fogs (
     available_cdi_devices TEXT,
     active_models BIGINT DEFAULT 0,
     model_last_update BIGINT DEFAULT 0,
+    knowledge_status TEXT,
+    active_knowledge BIGINT DEFAULT 0,
+    knowledge_last_update BIGINT DEFAULT 0,
     FOREIGN KEY (arch_id) REFERENCES Architectures (id)
 );
 
@@ -150,6 +153,8 @@ CREATE TABLE IF NOT EXISTS ChangeTrackings (
     models BOOLEAN DEFAULT false,
     runtime_classes BOOLEAN DEFAULT false,
     microservice_models BOOLEAN DEFAULT false,
+    knowledge BOOLEAN DEFAULT false,
+    microservice_knowledge BOOLEAN DEFAULT false,
     FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
 );
 
@@ -1346,3 +1351,50 @@ CREATE TABLE IF NOT EXISTS MicroserviceModelItems (
 
 CREATE INDEX IF NOT EXISTS idx_microservice_model_items_microserviceUuid ON MicroserviceModelItems (microservice_uuid);
 CREATE INDEX IF NOT EXISTS idx_microservice_model_items_name ON MicroserviceModelItems (name);
+
+CREATE TABLE IF NOT EXISTS Knowledge (
+    uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    repo TEXT,
+    revision TEXT,
+    registry_id INT,
+    files TEXT,
+    format VARCHAR(255),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (registry_id) REFERENCES Registries (id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_registry_id ON Knowledge (registry_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_name ON Knowledge (name);
+
+CREATE TABLE IF NOT EXISTS FogKnowledge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    fog_uuid VARCHAR(36),
+    knowledge_uuid VARCHAR(36),
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (knowledge_uuid) REFERENCES Knowledge (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_fog_knowledge_fog_uuid ON FogKnowledge (fog_uuid);
+CREATE INDEX IF NOT EXISTS idx_fog_knowledge_knowledge_uuid ON FogKnowledge (knowledge_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceKnowledge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    bind_path TEXT,
+    permissions TEXT,
+    microservice_uuid VARCHAR(36) NOT NULL UNIQUE,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS MicroserviceKnowledgeItems (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    microservice_uuid VARCHAR(36) NOT NULL,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (name) REFERENCES Knowledge (name) ON DELETE RESTRICT,
+    UNIQUE (microservice_uuid, name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_microservice_knowledge_items_microserviceUuid ON MicroserviceKnowledgeItems (microservice_uuid);
+CREATE INDEX IF NOT EXISTS idx_microservice_knowledge_items_name ON MicroserviceKnowledgeItems (name);

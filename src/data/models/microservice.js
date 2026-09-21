@@ -292,6 +292,16 @@ module.exports = (sequelize, DataTypes) => {
       as: 'modelItems'
     })
 
+    Microservice.hasOne(models.MicroserviceKnowledge, {
+      foreignKey: 'microservice_uuid',
+      as: 'microserviceKnowledge'
+    })
+
+    Microservice.hasMany(models.MicroserviceKnowledgeItem, {
+      foreignKey: 'microservice_uuid',
+      as: 'knowledgeItems'
+    })
+
     Microservice.hasMany(models.MicroserviceCdiDev, {
       foreignKey: 'microservice_uuid',
       as: 'cdiDevices'
