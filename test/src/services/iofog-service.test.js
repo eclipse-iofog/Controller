@@ -548,33 +548,38 @@ describe('ioFog Service', () => {
     })
 
     context('when knowledge status is stored as a JSON string', () => {
+      const knowledgeStatusJson = JSON.stringify([{ name: 'product-docs', source: 'managed' }])
+
       beforeEach(() => {
         ioFogManager.findOneWithTags.resolves(buildFogModel({
           uuid,
           name: 'testName',
-          knowledgeStatus: JSON.stringify([{ name: 'product-docs', source: 'managed' }]),
+          knowledgeStatus: knowledgeStatusJson,
           activeKnowledge: 1,
           knowledgeLastUpdate: 1710000000000
         }))
       })
 
-      it('parses knowledgeStatus to an array on user GET', async () => {
+      it('returns knowledgeStatus as the stored JSON string on user GET', async () => {
         const result = await $subject
-        expect(result.knowledgeStatus).to.eql([{ name: 'product-docs', source: 'managed' }])
+        expect(result.knowledgeStatus).to.equal(knowledgeStatusJson)
+        expect(JSON.parse(result.knowledgeStatus)).to.eql([{ name: 'product-docs', source: 'managed' }])
         expect(result.activeKnowledge).to.equal(1)
         expect(result.knowledgeLastUpdate).to.equal(1710000000000)
       })
     })
 
     context('when the status list is longer than the managed count', () => {
+      const knowledgeStatusJson = JSON.stringify([
+        { name: 'product-docs', source: 'managed', uuid: '3f2c1111-2222-3333-4444-555566667777' },
+        { name: 'local-notes', source: 'local' }
+      ])
+
       beforeEach(() => {
         ioFogManager.findOneWithTags.resolves(buildFogModel({
           uuid,
           name: 'testName',
-          knowledgeStatus: JSON.stringify([
-            { name: 'product-docs', source: 'managed', uuid: '3f2c1111-2222-3333-4444-555566667777' },
-            { name: 'local-notes', source: 'local' }
-          ]),
+          knowledgeStatus: knowledgeStatusJson,
           activeKnowledge: 1,
           knowledgeLastUpdate: 1710000000000
         }))
@@ -582,10 +587,12 @@ describe('ioFog Service', () => {
 
       it('keeps activeKnowledge as the managed count', async () => {
         const result = await $subject
-        expect(result.knowledgeStatus).to.have.length(2)
+        const rows = JSON.parse(result.knowledgeStatus)
+        expect(result.knowledgeStatus).to.equal(knowledgeStatusJson)
+        expect(rows).to.have.length(2)
         expect(result.activeKnowledge).to.equal(1)
-        expect(result.activeKnowledge).to.not.equal(result.knowledgeStatus.length)
-        expect(result.knowledgeStatus[1]).to.not.have.property('uuid')
+        expect(result.activeKnowledge).to.not.equal(rows.length)
+        expect(rows[1]).to.not.have.property('uuid')
       })
     })
 
