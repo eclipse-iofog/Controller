@@ -5,7 +5,7 @@
 FROM node:24-bookworm@sha256:64af3819f9275802414d7cdc38c27e9d82bd564dec4d4da87d008255d36c63b4 AS console-builder
 
 ARG EDGEOPS_CONSOLE_REPO=https://github.com/Datasance/edgeops-console
-ARG EDGEOPS_CONSOLE_VERSION=v1.1.0-rc.4
+ARG EDGEOPS_CONSOLE_VERSION=v1.1.0-rc.5
 ARG EDGEOPS_CONSOLE_FLAVOR=datasance
 
 RUN apt-get update \
@@ -50,7 +50,7 @@ RUN npm pack
 # ubi9/nodejs-24-minimal:latest — pin manifest list digest for reproducible multi-arch builds
 FROM registry.access.redhat.com/ubi9/nodejs-24-minimal@sha256:e3392c129520d2ebce748c3d0048343d0ec60be560cf220b60a7ba5d2bd2484a
 
-ARG EDGEOPS_CONSOLE_VERSION=v1.1.0-rc.4
+ARG EDGEOPS_CONSOLE_VERSION=v1.1.0-rc.5
 ARG IMAGE_REGISTRY
 ARG OCI_SOURCE_REPO
 ARG CONTROLLER_DISTRIBUTION=iofog

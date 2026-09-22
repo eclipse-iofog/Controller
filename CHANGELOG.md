@@ -1,5 +1,10 @@
 # Changelog
 
+## [v3.9.0-rc.8]
+
+### Changed
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.4** → **v1.1.0-rc.5**
+
 ## [v3.9.0-rc.7]
 
 ### Changed
