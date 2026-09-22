@@ -48,7 +48,7 @@ RUN npm pack
 
 
 # ubi9/nodejs-24-minimal:latest — pin manifest list digest for reproducible multi-arch builds
-FROM registry.access.redhat.com/ubi9/nodejs-24-minimal@sha256:d0adaa87e9c71479064b9455a1bd778a26e36ccb53be9e6bc73eae98e2be3bf6
+FROM registry.access.redhat.com/ubi9/nodejs-24-minimal@sha256:e3392c129520d2ebce748c3d0048343d0ec60be560cf220b60a7ba5d2bd2484a
 
 ARG EDGEOPS_CONSOLE_VERSION=v1.1.0-rc.4
 ARG IMAGE_REGISTRY

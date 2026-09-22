@@ -825,21 +825,6 @@ async function _getFogVolumeMounts (fog, transaction) {
   })
 }
 
-function _parseKnowledgeStatus (value) {
-  if (typeof value !== 'string') {
-    return Array.isArray(value) ? value : value
-  }
-  if (value === '') {
-    return []
-  }
-  try {
-    const parsed = JSON.parse(value)
-    return Array.isArray(parsed) ? parsed : []
-  } catch (e) {
-    return []
-  }
-}
-
 async function _getFogExtraInformation (fog, transaction, options = {}) {
   const fogUuid = fog.uuid
   const parsedSpec = await FogPlatformSpecManager.getParsedSpec(fogUuid, transaction)
@@ -861,9 +846,6 @@ async function _getFogExtraInformation (fog, transaction, options = {}) {
       }
     : undefined
   const result = { ...fogFields, archId, arch, tags: _mapTags(fog), ...routerConfig, ...natsConfig, volumeMounts }
-  if (Object.prototype.hasOwnProperty.call(result, 'knowledgeStatus')) {
-    result.knowledgeStatus = _parseKnowledgeStatus(result.knowledgeStatus)
-  }
   if (options.includePlatformStatus) {
     const status = await FogPlatformStatusManager.getParsedStatus(fogUuid, transaction)
     result.platformStatus = _formatPlatformStatus(status, parsedSpec ? parsedSpec.generation : null)

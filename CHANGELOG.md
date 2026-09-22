@@ -1,5 +1,12 @@
 # Changelog
 
+## [v3.9.0-rc.7]
+
+### Changed
+
+- **Fog status** — user GET and list return `knowledgeStatus` as the stored JSON string, matching `modelStatus`. Callers parse it.
+- Dockerfile runtime base image digest pin refreshed for **`ubi9/nodejs-24-minimal`**.
+
 ## [v3.9.0-rc.6]
 
 Fleet Knowledge artifacts: curated documents, datasets, and vector indexes distributed like Models, with a separate name namespace and Hub dataset pulls.
