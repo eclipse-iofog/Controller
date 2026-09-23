@@ -1,13 +1,18 @@
 # Changelog
 
-## [v3.9.0-rc.8]
+## [v3.9.0-rc.9]
 
 ### Added
 
 - **Fog status (host capacity + OS)** — agent `PUT /api/v3/agent/status` accepts and persists `systemCpus`, `systemTotalMemory`, `systemAvailableMemory`, `systemTotalDisk`, `systemAvailableDisk`, `systemOs`, `systemOsVersion`, and `systemKernelVersion`. User `GET /api/v3/iofog` and list return the stored values. `systemTotalCpu` remains host CPU busy **0–100%**; `diskUsage` remains Edgelet data-directory usage in **GiB**, not host filesystem totals. Columns on 3.9.0 baseline and 3.8→3.9 upgrade (sqlite, mysql, postgres). Omitted keys leave prior values unchanged.
 
 ### Changed
-- Embedded **EdgeOps Console** default version **v1.1.0-rc.4** → **v1.1.0-rc.6**
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.5** → **v1.1.0-rc.6**
+
+## [v3.9.0-rc.8]
+
+### Changed
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.4** → **v1.1.0-rc.5**
 
 ## [v3.9.0-rc.7]
 
