@@ -246,3 +246,10 @@ ALTER TABLE ChangeTrackings ADD COLUMN microservice_knowledge BOOLEAN DEFAULT fa
 ALTER TABLE Fogs ADD COLUMN knowledge_status TEXT;
 ALTER TABLE Fogs ADD COLUMN active_knowledge BIGINT DEFAULT 0;
 ALTER TABLE Fogs ADD COLUMN knowledge_last_update BIGINT DEFAULT 0;
+
+ALTER TABLE Fogs ADD COLUMN system_cpus BIGINT;
+ALTER TABLE Fogs ADD COLUMN system_total_memory BIGINT;
+ALTER TABLE Fogs ADD COLUMN system_total_disk BIGINT;
+ALTER TABLE Fogs ADD COLUMN system_os TEXT;
+ALTER TABLE Fogs ADD COLUMN system_os_version TEXT;
+ALTER TABLE Fogs ADD COLUMN system_kernel_version TEXT;

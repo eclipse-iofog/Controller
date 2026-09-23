@@ -2014,6 +2014,31 @@ describe('Agent Service', () => {
       )
     })
 
+    it('persists host capacity and OS identity from agent status', async () => {
+      const status = {
+        ...agentStatus,
+        systemCpus: 8,
+        systemTotalMemory: 17179869184,
+        systemTotalDisk: 494384795648,
+        systemOs: 'linux',
+        systemOsVersion: 'Ubuntu 22.04',
+        systemKernelVersion: '6.8.0-45-generic'
+      }
+      await AgentService.updateAgentStatus(status, $fog, transaction)
+      expect(ioFogManager.update).to.have.been.calledWith(
+        { uuid: $uuid },
+        sinon.match({
+          systemCpus: 8,
+          systemTotalMemory: 17179869184,
+          systemTotalDisk: 494384795648,
+          systemOs: 'linux',
+          systemOsVersion: 'Ubuntu 22.04',
+          systemKernelVersion: '6.8.0-45-generic'
+        }),
+        transaction
+      )
+    })
+
     it('stringifies a knowledge status array and keeps explicit zeros', async () => {
       const status = {
         ...agentStatus,

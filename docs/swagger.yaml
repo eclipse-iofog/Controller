@@ -9316,6 +9316,7 @@ components:
           type: number
         diskUsage:
           type: number
+          description: Edgelet data-directory usage in GiB, not host filesystem total.
         cpuUsage:
           type: number
         memoryViolation:
@@ -9324,8 +9325,33 @@ components:
           type: boolean
         cpuViolation:
           type: boolean
+        systemAvailableDisk:
+          type: integer
+          description: Free space on the agent diskDirectory filesystem in bytes.
+        systemAvailableMemory:
+          type: integer
+          description: Host RAM available in bytes.
         systemTotalCpu:
           type: number
+          description: Host CPU busy percentage 0–100, not logical core count.
+        systemCpus:
+          type: integer
+          description: Host logical CPU count.
+        systemTotalMemory:
+          type: integer
+          description: Host RAM capacity in bytes.
+        systemTotalDisk:
+          type: integer
+          description: diskDirectory filesystem size in bytes.
+        systemOs:
+          type: string
+          description: Host OS family (linux, darwin, windows, …).
+        systemOsVersion:
+          type: string
+          description: Human-oriented distro or release; empty string when unknown.
+        systemKernelVersion:
+          type: string
+          description: Linux kernel release; empty string on non-Linux.
         catalogItemStatus:
           type: string
         repositoryStatus:
@@ -9354,6 +9380,8 @@ components:
           type: number
         cpuLimit:
           type: number
+          minimum: 5
+          maximum: 400
         logLimit:
           type: number
         logDirectory:
@@ -9543,6 +9571,8 @@ components:
         cpuLimit:
           type: number
           default: 80
+          minimum: 5
+          maximum: 400
           format: percent
         logLimit:
           type: number
@@ -9760,6 +9790,8 @@ components:
           type: number
         cpuLimit:
           type: number
+          minimum: 5
+          maximum: 400
         logLimit:
           type: number
         logDirectory:
@@ -9809,6 +9841,8 @@ components:
           type: number
         cpuLimit:
           type: number
+          minimum: 5
+          maximum: 400
         logLimit:
           type: number
         logDirectory:
@@ -9855,6 +9889,7 @@ components:
           type: number
         diskUsage:
           type: number
+          description: Edgelet data-directory usage in GiB, not host filesystem total.
         cpuUsage:
           type: number
         memoryViolation:
@@ -9865,10 +9900,31 @@ components:
           type: boolean
         systemAvailableDisk:
           type: integer
+          description: Free space on the agent diskDirectory filesystem in bytes.
         systemAvailableMemory:
           type: integer
+          description: Host RAM available in bytes.
         systemTotalCpu:
           type: number
+          description: Host CPU busy percentage 0–100, not logical core count.
+        systemCpus:
+          type: integer
+          description: Host logical CPU count.
+        systemTotalMemory:
+          type: integer
+          description: Host RAM capacity in bytes.
+        systemTotalDisk:
+          type: integer
+          description: diskDirectory filesystem size in bytes.
+        systemOs:
+          type: string
+          description: Host OS family (linux, darwin, windows, …).
+        systemOsVersion:
+          type: string
+          description: Human-oriented distro or release; empty string when unknown.
+        systemKernelVersion:
+          type: string
+          description: Linux kernel release; empty string on non-Linux.
         securityStatus:
           type: string
         securityViolationInfo:

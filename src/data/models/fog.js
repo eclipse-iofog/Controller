@@ -118,6 +118,39 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       field: 'system_total_cpu'
     },
+    systemCpus: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('systemCpus'))
+      },
+      field: 'system_cpus'
+    },
+    systemTotalMemory: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('systemTotalMemory'))
+      },
+      field: 'system_total_memory'
+    },
+    systemTotalDisk: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('systemTotalDisk'))
+      },
+      field: 'system_total_disk'
+    },
+    systemOs: {
+      type: DataTypes.TEXT,
+      field: 'system_os'
+    },
+    systemOsVersion: {
+      type: DataTypes.TEXT,
+      field: 'system_os_version'
+    },
+    systemKernelVersion: {
+      type: DataTypes.TEXT,
+      field: 'system_kernel_version'
+    },
     securityStatus: {
       type: DataTypes.TEXT,
       defaultValue: 'OK',
