@@ -109,7 +109,7 @@ Used by EdgeOps Console, `potctl`, `iofogctl`, and automation.
 | Certificates | `/api/v3/certificate` | PKI operations |
 | WebSocket | `ws` routes in `src/routes/` | Exec and logs (Bearer token) |
 
-Browser login uses the OAuth BFF (`GET /api/v3/user/oauth/authorize`); CLI uses `POST /api/v3/user/login`. See [oidc-configuration.md](oidc-configuration.md), [external-oidc-client-setup.md](external-oidc-client-setup.md), and [rbac-reference.md](rbac-reference.md).
+Browser login uses the OAuth BFF (`GET /api/v3/user/oauth/authorize`); CLI uses `POST /api/v3/user/login`. See [oidc-configuration.md](oidc-configuration.md), [external-oidc-client-setup.md](external-oidc-client-setup.md), [external-oidc-providers.md](external-oidc-providers.md), and [rbac-reference.md](rbac-reference.md).
 
 ### Agent API (fog token — no OIDC)
 
@@ -131,7 +131,7 @@ Full request/response shapes: **`docs/swagger.yaml`** (agent paths).
 
 | Job | File | Role |
 |-----|------|------|
-| Fog status | `fog-status-job.js` | Mark agents offline when status pings lapse |
+| Fog status | `fog-status-job.js` | Liveness cleaner: chunked transactions mark quiet fogs UNKNOWN using Controller receipt time (`lastStatusTime`). Desired-active microservices become UNKNOWN with CPU/memory 0. Desired-inactive STOPPED workloads are left alone. Does not delete microservices. Overlapping runs on the same process are skipped. |
 | Controller heartbeat | `controller-heartbeat-job.js` | Control-plane liveness |
 | Fog token cleanup | `fog-token-cleanup-job.js` | Expire stale agent tokens |
 | Controller cleanup | `controller-cleanup-job.js` | Orphaned controller MS housekeeping |
@@ -139,7 +139,7 @@ Full request/response shapes: **`docs/swagger.yaml`** (agent paths).
 | NATS reconcile | `nats-reconcile-worker-job.js` | NATS operator sync |
 | Platform reconcile | `platform-reconcile-worker-job.js` | Fog + service platform claim/reconcile (one job, two queues) |
 | Fog platform sweep | `fog-platform-sweep-job.js` | Drift detection; re-enqueue stale fog/service tasks |
-| Stopped app status | `stopped-app-status-job.js` | Application state maintenance |
+| Stopped app status | `stopped-app-status-job.js` | Desired-inactive safety net: leftover RUNNING, STOPPING, DELETED, or DELETING observed status is rewritten to STOPPED with CPU/memory 0. Overlapping runs on the same process are skipped. |
 
 ### Platform reconcile (fog + service + resolver)
 
@@ -356,6 +356,12 @@ Controller v3.8 and Edgelet share a **frozen field-agent REST contract** on `/ap
 
 **Volume mounts** — `GET volumeMounts` returns bind/volume shapes plus system-injected immutable `serviceAccount` entries.
 
+**Volume mapping scope** — microservice `volumeMappings[]` may include `scope` (`private` default / `shared`). Meaningful only when `type` is `volume`. Shared names are node-global on that fog. Reclaim is on-node (`edgelet volume` / `deprovision --purge-volumes`); Controller does not prune volumes. `deleteWithCleanup` remains unused.
+
+**Fleet models** — weight artifacts at `/api/v3/models`, linked per fog. Agent `GET /api/v3/agent/models` returns linked rows only. User microservices bind them with a `models` catalog (`bindPath`, `permissions`, `items[].name`).
+
+**Fleet Knowledge** — documents, datasets, and vector indexes, same distribution shape as models and a separate name namespace. Operator CRUD, YAML (`kind: Knowledge`), and per-fog link live at `/api/v3/knowledge`. User microservices bind a `knowledge` catalog and can change it with `PATCH /api/v3/microservices/:uuid/knowledge`. Agent `GET /api/v3/agent/knowledge` returns linked rows only. `format` is a soft hint. Hugging Face pulls use the dataset API. Fog `modelLastUpdate` and `knowledgeLastUpdate` are Unix milliseconds.
+
 **Service account RBAC** — microservice roles use apiGroup **`edgelet.iofog.org/v1`**; SA/role changes trigger `microserviceList` change tracking.
 
 For the full bilateral contract (including ControlPlane env vars and verification references), see Edgelet documentation:
@@ -466,6 +472,7 @@ Agent routes and WebSocket exec/logs for agents are **outside** OIDC — see [rb
 | [pki.md](pki.md) | Central CAs, cert renewal, NATS operator rotation |
 | [oidc-configuration.md](oidc-configuration.md) | Embedded/external auth modes and env vars |
 | [external-oidc-client-setup.md](external-oidc-client-setup.md) | External IdP client configuration |
+| [external-oidc-providers.md](external-oidc-providers.md) | Default groups/roles and IdP recipes |
 | [operations/database-transactions.md](operations/database-transactions.md) | Transaction runner, OTEL metrics, SQLITE_BUSY runbook |
 | [operations/sizing.md](operations/sizing.md) | Hardware sizing by fog count (K8s and Remote CP) |
 | [CONTRIBUTING](../CONTRIBUTING) | Dual-mirror CI and development |

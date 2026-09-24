@@ -21,6 +21,133 @@ function sqliteClose (db) {
   })
 }
 
+const SCHEMA_VERSIONS = ['3.8.0', '3.9.0']
+const BASELINE_VERSION = '3.9.0'
+
+function compareVersions (left, right) {
+  const leftParts = String(left || '0').split('.').map((part) => parseInt(part, 10) || 0)
+  const rightParts = String(right || '0').split('.').map((part) => parseInt(part, 10) || 0)
+  const length = Math.max(leftParts.length, rightParts.length)
+  for (let i = 0; i < length; i++) {
+    const delta = (leftParts[i] || 0) - (rightParts[i] || 0)
+    if (delta !== 0) {
+      return delta
+    }
+  }
+  return 0
+}
+
+function isVersionLessThan (current, target) {
+  return current == null || compareVersions(current, target) < 0
+}
+
+function versionsToApply (untilVersion) {
+  if (!untilVersion) {
+    return SCHEMA_VERSIONS.slice()
+  }
+  return SCHEMA_VERSIONS.filter((version) => compareVersions(version, untilVersion) <= 0)
+}
+
+function shouldApplyBaseline (currentSchemaVersion, untilVersion) {
+  return currentSchemaVersion == null && untilVersion == null
+}
+
+function splitSqlStatements (sql) {
+  return sql.split(';').map((query) => query.trim()).filter(Boolean)
+}
+
+function isTransactionControl (query) {
+  const normalized = query.replace(/;$/, '').trim().toUpperCase()
+  return normalized === 'START TRANSACTION' ||
+    normalized === 'BEGIN' ||
+    normalized === 'BEGIN TRANSACTION' ||
+    normalized === 'COMMIT' ||
+    normalized === 'ROLLBACK'
+}
+
+function migrationSqlPath (provider, version) {
+  const relative = {
+    sqlite: `sqlite/db_migration_sqlite_v${version}.sql`,
+    mysql: `mysql/db_migration_mysql_v${version}.sql`,
+    postgres: `postgres/db_migration_pg_v${version}.sql`
+  }[provider]
+  return path.resolve(__dirname, '../migrations', relative)
+}
+
+function seederSqlPath (provider, version) {
+  const relative = {
+    sqlite: `sqlite/db_seeder_sqlite_v${version}.sql`,
+    mysql: `mysql/db_seeder_mysql_v${version}.sql`,
+    postgres: `postgres/db_seeder_pg_v${version}.sql`
+  }[provider]
+  return path.resolve(__dirname, '../seeders', relative)
+}
+
+function baselineMigrationSqlPath (provider) {
+  const relative = {
+    sqlite: 'sqlite/db_migration_sqlite_baseline_v3.9.0.sql',
+    mysql: 'mysql/db_migration_mysql_baseline_v3.9.0.sql',
+    postgres: 'postgres/db_migration_pg_baseline_v3.9.0.sql'
+  }[provider]
+  return path.resolve(__dirname, '../migrations', relative)
+}
+
+function baselineSeederSqlPath (provider) {
+  const relative = {
+    sqlite: 'sqlite/db_seeder_sqlite_baseline_v3.9.0.sql',
+    mysql: 'mysql/db_seeder_mysql_baseline_v3.9.0.sql',
+    postgres: 'postgres/db_seeder_pg_baseline_v3.9.0.sql'
+  }[provider]
+  return path.resolve(__dirname, '../seeders', relative)
+}
+
+function readSqlFile (filePath) {
+  if (!fs.existsSync(filePath)) {
+    logger.error(`SQL file not found: ${filePath}`)
+    throw new Error('SQL file not found')
+  }
+  return fs.readFileSync(filePath).toString()
+}
+
+function isIgnorableSqliteError (err) {
+  const message = (err && err.message) || ''
+  return message.includes('already exists') || message.includes('duplicate')
+}
+
+function isIgnorableMysqlError (err) {
+  const errorToCheck = (err && err.parent) || err || {}
+  return errorToCheck.code === 'ER_TABLE_EXISTS_ERROR' ||
+    errorToCheck.code === 'ER_DUP_FIELDNAME' ||
+    errorToCheck.code === 'ER_DUP_KEYNAME' ||
+    errorToCheck.code === 'ER_BLOB_KEY_WITHOUT_LENGTH' ||
+    errorToCheck.code === 'ER_CANT_DROP_FIELD_OR_KEY' ||
+    errorToCheck.code === 'ER_DUP_ENTRY' ||
+    errorToCheck.code === 'ER_DUP_KEY' ||
+    errorToCheck.code === 'duplicate_key' ||
+    errorToCheck.code === 'already_exists' ||
+    errorToCheck.errno === 1091 ||
+    errorToCheck.errno === 1061 ||
+    errorToCheck.errno === 1170
+}
+
+function isIgnorablePostgresError (err) {
+  const errorToCheck = (err && err.parent) || err || {}
+  const message = errorToCheck.message || ''
+  return errorToCheck.code === '42P07' ||
+    errorToCheck.code === '42701' ||
+    errorToCheck.code === '42P06' ||
+    errorToCheck.code === '23505' ||
+    errorToCheck.code === '23503' ||
+    errorToCheck.code === '42P01' ||
+    errorToCheck.code === '42703' ||
+    errorToCheck.code === '42P16' ||
+    errorToCheck.code === '42P17' ||
+    errorToCheck.code === '42P18' ||
+    message.includes('already exists') ||
+    message.includes('duplicate key') ||
+    message.includes('does not exist')
+}
+
 class DatabaseProvider {
   constructor () {
     this.basename = path.basename(__filename)
@@ -271,375 +398,418 @@ class DatabaseProvider {
     }
   }
 
-  // SQLite migration — greenfield v3.8.0 (see src/data/migrations/README.md)
-  async runMigrationSQLite (dbName) {
-    const migrationSqlPath = path.resolve(__dirname, '../migrations/sqlite/db_migration_sqlite_v3.8.0.sql')
-    const migrationVersion = '3.8.0'
+  async applySqliteStatements (db, sql, { ignoreDuplicate } = { ignoreDuplicate: true }) {
+    for (const raw of splitSqlStatements(sql)) {
+      if (isTransactionControl(raw)) {
+        continue
+      }
+      const query = raw + ';'
+      try {
+        await sqliteRun(db, query)
+      } catch (err) {
+        if (ignoreDuplicate && isIgnorableSqliteError(err)) {
+          logger.warn(`Ignored error: ${err.message}`)
+        } else {
+          throw err
+        }
+      }
+    }
+  }
 
-    if (!fs.existsSync(migrationSqlPath)) {
-      logger.error(`Migration file not found: ${migrationSqlPath}`)
-      throw new Error('Migration file not found')
+  async applySqliteMigrationIfNeeded (db, version) {
+    const currentVersion = await this.checkMigrationVersion(db, 'sqlite')
+    if (!isVersionLessThan(currentVersion, version)) {
+      logger.info(`SQLite schema ${currentVersion || 'none'} already includes ${version}, skipping migration`)
+      return
     }
 
-    const migrationSql = fs.readFileSync(migrationSqlPath).toString()
-    const dataArr = migrationSql.split(';')
+    const sql = readSqlFile(migrationSqlPath('sqlite', version))
+    await sqliteRun(db, 'BEGIN TRANSACTION')
+    try {
+      await this.applySqliteStatements(db, sql)
+      await this.updateMigrationVersion(db, version, 'sqlite')
+      await sqliteRun(db, 'COMMIT')
+      logger.info(`SQLite migration ${version} completed successfully.`)
+    } catch (err) {
+      try {
+        await sqliteRun(db, 'ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`SQLite migration ${version} failed:`, err)
+      throw err
+    }
+  }
 
+  async applySqliteSeederIfNeeded (db, version) {
+    const currentVersion = await this.checkSeederVersion(db, 'sqlite')
+    if (!isVersionLessThan(currentVersion, version)) {
+      logger.info(`SQLite seeder ${currentVersion || 'none'} already includes ${version}, skipping seeder`)
+      return
+    }
+
+    const sql = readSqlFile(seederSqlPath('sqlite', version))
+    await sqliteRun(db, 'BEGIN TRANSACTION')
+    try {
+      await this.applySqliteStatements(db, sql)
+      await this.updateSeederVersion(db, version, 'sqlite')
+      await sqliteRun(db, 'COMMIT')
+      logger.info(`SQLite seeder ${version} completed successfully.`)
+    } catch (err) {
+      try {
+        await sqliteRun(db, 'ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`SQLite seeder ${version} failed:`, err)
+      throw err
+    }
+  }
+
+  async applySqliteBaseline (db) {
+    logger.info(`Applying empty-database baseline schema ${BASELINE_VERSION}`)
+    const migrationSql = readSqlFile(baselineMigrationSqlPath('sqlite'))
+    await sqliteRun(db, 'BEGIN TRANSACTION')
+    try {
+      await this.applySqliteStatements(db, migrationSql)
+      await this.updateMigrationVersion(db, BASELINE_VERSION, 'sqlite')
+      await sqliteRun(db, 'COMMIT')
+      logger.info(`SQLite baseline migration ${BASELINE_VERSION} completed successfully.`)
+    } catch (err) {
+      try {
+        await sqliteRun(db, 'ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`SQLite baseline migration ${BASELINE_VERSION} failed:`, err)
+      throw err
+    }
+
+    logger.info(`Applying empty-database baseline seed ${BASELINE_VERSION}`)
+    const seederSql = readSqlFile(baselineSeederSqlPath('sqlite'))
+    await sqliteRun(db, 'BEGIN TRANSACTION')
+    try {
+      await this.applySqliteStatements(db, seederSql)
+      await this.updateSeederVersion(db, BASELINE_VERSION, 'sqlite')
+      await sqliteRun(db, 'COMMIT')
+      logger.info(`SQLite baseline seeder ${BASELINE_VERSION} completed successfully.`)
+    } catch (err) {
+      try {
+        await sqliteRun(db, 'ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`SQLite baseline seeder ${BASELINE_VERSION} failed:`, err)
+      throw err
+    }
+  }
+
+  async runVersionChainSQLite (dbName, options = {}) {
     const db = new sqlite3.Database(dbName, (err) => {
       if (err) {
         logger.error(err.message)
         throw err
       }
-      logger.info('Connected to the SQLite database for migration.')
+      logger.info('Connected to the SQLite database for schema updates.')
     })
 
     try {
       await this.createSchemaVersionTable(db, 'sqlite')
+      await sqliteRun(db, 'PRAGMA foreign_keys=OFF')
       const currentVersion = await this.checkMigrationVersion(db, 'sqlite')
-
-      if (currentVersion === migrationVersion) {
-        logger.info('Migration already up to date, skipping...')
+      if (shouldApplyBaseline(currentVersion, options.untilVersion)) {
+        await this.applySqliteBaseline(db)
         return
       }
-
-      await sqliteRun(db, 'PRAGMA foreign_keys=OFF')
-      await sqliteRun(db, 'BEGIN TRANSACTION')
-
-      for (let query of dataArr) {
-        if (query.trim()) {
-          query = query.trim() + ';'
-          try {
-            await sqliteRun(db, query)
-          } catch (err) {
-            if (err.message.includes('already exists') || err.message.includes('duplicate')) {
-              logger.warn(`Ignored error: ${err.message}`)
-            } else {
-              throw err
-            }
-          }
-        }
+      for (const version of versionsToApply(options.untilVersion)) {
+        await this.applySqliteMigrationIfNeeded(db, version)
+        await this.applySqliteSeederIfNeeded(db, version)
       }
-
-      await this.updateMigrationVersion(db, migrationVersion, 'sqlite')
-      await sqliteRun(db, 'COMMIT')
-      logger.info('Migration completed successfully.')
-    } catch (err) {
-      try {
-        await sqliteRun(db, 'ROLLBACK')
-      } catch (rollbackErr) {
-        // No active transaction to roll back.
-      }
-      logger.error('Migration failed:', err)
-      throw err
     } finally {
       try {
         await sqliteClose(db)
-        logger.info('Database connection closed after migration.')
+        logger.info('Database connection closed after schema updates.')
       } catch (closeErr) {
         logger.error('Error closing database connection:', closeErr.message)
       }
     }
   }
 
-  // MySQL migration — greenfield v3.8.0 (see src/data/migrations/README.md)
-  async runMigrationMySQL (db) {
-    const migrationSqlPath = path.resolve(__dirname, '../migrations/mysql/db_migration_mysql_v3.8.0.sql')
-    const migrationVersion = '3.8.0'
-
-    if (!fs.existsSync(migrationSqlPath)) {
-      logger.error(`Migration file not found: ${migrationSqlPath}`)
-      throw new Error('Migration file not found')
-    }
-
-    const migrationSql = fs.readFileSync(migrationSqlPath).toString()
-    const dataArr = migrationSql.split(';')
-
-    try {
-      await this.createSchemaVersionTable(db, 'mysql')
-      const currentVersion = await this.checkMigrationVersion(db, 'mysql')
-
-      if (currentVersion === migrationVersion) {
-        logger.info('Migration already up to date, skipping...')
-        return
+  async applyMysqlStatements (db, sql) {
+    for (const raw of splitSqlStatements(sql)) {
+      if (isTransactionControl(raw)) {
+        continue
       }
-
-      await db.query('START TRANSACTION')
-
-      for (let query of dataArr) {
-        if (query.trim()) {
-          query = query.trim() + ';'
-          try {
-            await db.query(query)
-          } catch (err) {
-            const errorToCheck = err.parent || err
-            if (errorToCheck.code === 'ER_TABLE_EXISTS_ERROR' ||
-                errorToCheck.code === 'ER_DUP_FIELDNAME' ||
-                errorToCheck.code === 'ER_DUP_KEYNAME' ||
-                errorToCheck.code === 'ER_BLOB_KEY_WITHOUT_LENGTH' ||
-                errorToCheck.code === 'ER_CANT_DROP_FIELD_OR_KEY' ||
-                errorToCheck.code === 'duplicate_key' ||
-                errorToCheck.code === 'already_exists' ||
-                errorToCheck.errno === 1091 ||
-                errorToCheck.errno === 1061 ||
-                errorToCheck.errno === 1170) {
-              logger.warn(`Ignored MySQL error: ${errorToCheck.message}`)
-            } else {
-              await db.query('ROLLBACK')
-              throw err
-            }
-          }
+      const query = raw + ';'
+      try {
+        await db.query(query)
+      } catch (err) {
+        const errorToCheck = err.parent || err
+        if (errorToCheck.code === '25P02') {
+          throw err
+        }
+        if (isIgnorableMysqlError(err)) {
+          logger.warn(`Ignored MySQL error: ${errorToCheck.message}`)
+        } else {
+          throw err
         }
       }
-
-      await this.updateMigrationVersion(db, migrationVersion, 'mysql')
-      await db.query('COMMIT')
-      logger.info('Migration completed successfully.')
-    } catch (err) {
-      await db.query('ROLLBACK')
-      logger.error('Migration failed:', err)
-      throw err
     }
   }
 
-  // PostgreSQL migration — greenfield v3.8.0 (see src/data/migrations/README.md)
-  async runMigrationPostgres (db) {
-    const migrationSqlPath = path.resolve(__dirname, '../migrations/postgres/db_migration_pg_v3.8.0.sql')
-    const migrationVersion = '3.8.0'
-
-    if (!fs.existsSync(migrationSqlPath)) {
-      logger.error(`Migration file not found: ${migrationSqlPath}`)
-      throw new Error('Migration file not found')
+  async applyMysqlMigrationIfNeeded (db, version) {
+    const currentVersion = await this.checkMigrationVersion(db, 'mysql')
+    if (!isVersionLessThan(currentVersion, version)) {
+      logger.info(`MySQL schema ${currentVersion || 'none'} already includes ${version}, skipping migration`)
+      return
     }
 
-    const migrationSql = fs.readFileSync(migrationSqlPath).toString()
-    const dataArr = migrationSql.split(';')
-
+    const sql = readSqlFile(migrationSqlPath('mysql', version))
+    await db.query('START TRANSACTION')
     try {
-      await this.createSchemaVersionTable(db, 'postgres')
-      const currentVersion = await this.checkMigrationVersion(db, 'postgres')
-
-      if (currentVersion === migrationVersion) {
-        logger.info('Migration already up to date, skipping...')
-        return
-      }
-
-      await db.query('BEGIN')
-
-      for (let query of dataArr) {
-        if (query.trim()) {
-          query = query.trim() + ';'
-          try {
-            await db.query(query)
-          } catch (err) {
-            const errorToCheck = err.parent || err
-
-            if (errorToCheck.code === '25P02') {
-              logger.warn('Transaction aborted, rolling back and starting new transaction...')
-              await db.query('ROLLBACK')
-              await db.query('BEGIN')
-              continue
-            }
-
-            if (errorToCheck.code === '42P07' ||
-                errorToCheck.code === '42701' ||
-                errorToCheck.code === '42P06' ||
-                errorToCheck.code === '23505' ||
-                errorToCheck.code === '23503' ||
-                errorToCheck.code === '42P01' ||
-                errorToCheck.code === '42703' ||
-                errorToCheck.code === '42P16' ||
-                errorToCheck.code === '42P17' ||
-                errorToCheck.code === '42P18' ||
-                (errorToCheck.message && (
-                  errorToCheck.message.includes('already exists') ||
-                  errorToCheck.message.includes('duplicate key') ||
-                  errorToCheck.message.includes('relation')
-                ))) {
-              logger.warn(`Ignored PostgreSQL error: ${errorToCheck.message}`)
-            } else {
-              await db.query('ROLLBACK')
-              throw err
-            }
-          }
-        }
-      }
-
-      await this.updateMigrationVersion(db, migrationVersion, 'postgres')
+      await this.applyMysqlStatements(db, sql)
+      await this.updateMigrationVersion(db, version, 'mysql')
       await db.query('COMMIT')
-      logger.info('Migration completed successfully.')
-    } catch (err) {
-      await db.query('ROLLBACK')
-      logger.error('Migration failed:', err)
-      throw err
-    }
-  }
-
-  // SQLite seeder — greenfield v3.8.0 (see src/data/migrations/README.md)
-  async runSeederSQLite (dbName) {
-    const seederSqlPath = path.resolve(__dirname, '../seeders/sqlite/db_seeder_sqlite_v3.8.0.sql')
-    const seederVersion = '3.8.0'
-
-    if (!fs.existsSync(seederSqlPath)) {
-      logger.error(`Seeder file not found: ${seederSqlPath}`)
-      throw new Error('Seeder file not found')
-    }
-
-    const seederSql = fs.readFileSync(seederSqlPath).toString()
-    const dataArr = seederSql.split(';')
-
-    const db = new sqlite3.Database(dbName, (err) => {
-      if (err) {
-        logger.error(err.message)
-        throw err
-      }
-      logger.info('Connected to the SQLite database for seeding.')
-    })
-
-    try {
-      const currentVersion = await this.checkSeederVersion(db, 'sqlite')
-
-      if (currentVersion === seederVersion) {
-        logger.info('Seeder already up to date, skipping...')
-        return
-      }
-
-      await sqliteRun(db, 'PRAGMA foreign_keys=OFF')
-      await sqliteRun(db, 'BEGIN TRANSACTION')
-
-      for (let query of dataArr) {
-        if (query.trim()) {
-          query = query.trim() + ';'
-          try {
-            await sqliteRun(db, query)
-          } catch (err) {
-            if (err.message.includes('already exists') || err.message.includes('duplicate')) {
-              logger.warn(`Ignored error: ${err.message}`)
-            } else {
-              throw err
-            }
-          }
-        }
-      }
-
-      await this.updateSeederVersion(db, seederVersion, 'sqlite')
-      await sqliteRun(db, 'COMMIT')
-      logger.info('Seeding completed successfully.')
+      logger.info(`MySQL migration ${version} completed successfully.`)
     } catch (err) {
       try {
-        await sqliteRun(db, 'ROLLBACK')
+        await db.query('ROLLBACK')
       } catch (rollbackErr) {
         // No active transaction to roll back.
       }
-      logger.error('Seeding failed:', err)
+      logger.error(`MySQL migration ${version} failed:`, err)
       throw err
-    } finally {
+    }
+  }
+
+  async applyMysqlSeederIfNeeded (db, version) {
+    const currentVersion = await this.checkSeederVersion(db, 'mysql')
+    if (!isVersionLessThan(currentVersion, version)) {
+      logger.info(`MySQL seeder ${currentVersion || 'none'} already includes ${version}, skipping seeder`)
+      return
+    }
+
+    const sql = readSqlFile(seederSqlPath('mysql', version))
+    await db.query('START TRANSACTION')
+    try {
+      await this.applyMysqlStatements(db, sql)
+      await this.updateSeederVersion(db, version, 'mysql')
+      await db.query('COMMIT')
+      logger.info(`MySQL seeder ${version} completed successfully.`)
+    } catch (err) {
       try {
-        await sqliteClose(db)
-        logger.info('Database connection closed after seeding.')
-      } catch (closeErr) {
-        logger.error('Error closing database connection:', closeErr.message)
+        await db.query('ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
       }
-    }
-  }
-
-  // MySQL seeder — greenfield v3.8.0 (see src/data/migrations/README.md)
-  async runSeederMySQL (db) {
-    const seederSqlPath = path.resolve(__dirname, '../seeders/mysql/db_seeder_mysql_v3.8.0.sql')
-    const seederVersion = '3.8.0'
-
-    if (!fs.existsSync(seederSqlPath)) {
-      logger.error(`Seeder file not found: ${seederSqlPath}`)
-      throw new Error('Seeder file not found')
-    }
-
-    const seederSql = fs.readFileSync(seederSqlPath).toString()
-    const dataArr = seederSql.split(';')
-
-    try {
-      const currentVersion = await this.checkSeederVersion(db, 'mysql')
-
-      if (currentVersion === seederVersion) {
-        logger.info('Seeder already up to date, skipping...')
-        return
-      }
-
-      await db.query('START TRANSACTION')
-
-      for (let query of dataArr) {
-        if (query.trim()) {
-          query = query.trim() + ';'
-          try {
-            await db.query(query)
-          } catch (err) {
-            if (err.code === 'ER_DUP_ENTRY' ||
-                err.code === 'ER_DUP_KEY') {
-              logger.warn(`Ignored MySQL error: ${err.message}`)
-            } else {
-              await db.query('ROLLBACK')
-              throw err
-            }
-          }
-        }
-      }
-
-      await this.updateSeederVersion(db, seederVersion, 'mysql')
-      await db.query('COMMIT')
-      logger.info('Seeding completed successfully.')
-    } catch (err) {
-      await db.query('ROLLBACK')
-      logger.error('Seeding failed:', err)
+      logger.error(`MySQL seeder ${version} failed:`, err)
       throw err
     }
   }
 
-  // PostgreSQL seeder — greenfield v3.8.0 (see src/data/migrations/README.md)
-  async runSeederPostgres (db) {
-    const seederSqlPath = path.resolve(__dirname, '../seeders/postgres/db_seeder_pg_v3.8.0.sql')
-    const seederVersion = '3.8.0'
-
-    if (!fs.existsSync(seederSqlPath)) {
-      logger.error(`Seeder file not found: ${seederSqlPath}`)
-      throw new Error('Seeder file not found')
-    }
-
-    const seederSql = fs.readFileSync(seederSqlPath).toString()
-    const dataArr = seederSql.split(';')
-
+  async applyMysqlBaseline (db) {
+    logger.info(`Applying empty-database baseline schema ${BASELINE_VERSION}`)
+    const migrationSql = readSqlFile(baselineMigrationSqlPath('mysql'))
+    await db.query('START TRANSACTION')
     try {
-      const currentVersion = await this.checkSeederVersion(db, 'postgres')
-
-      if (currentVersion === seederVersion) {
-        logger.info('Seeder already up to date, skipping...')
-        return
-      }
-
-      await db.query('BEGIN')
-
-      for (let query of dataArr) {
-        if (query.trim()) {
-          query = query.trim() + ';'
-          try {
-            await db.query(query)
-          } catch (err) {
-            if (err.code === '23505' ||
-                err.code === '23503') {
-              logger.warn(`Ignored PostgreSQL error: ${err.message}`)
-            } else {
-              await db.query('ROLLBACK')
-              throw err
-            }
-          }
-        }
-      }
-
-      await this.updateSeederVersion(db, seederVersion, 'postgres')
+      await this.applyMysqlStatements(db, migrationSql)
+      await this.updateMigrationVersion(db, BASELINE_VERSION, 'mysql')
       await db.query('COMMIT')
-      logger.info('Seeding completed successfully.')
+      logger.info(`MySQL baseline migration ${BASELINE_VERSION} completed successfully.`)
     } catch (err) {
-      await db.query('ROLLBACK')
-      logger.error('Seeding failed:', err)
+      try {
+        await db.query('ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`MySQL baseline migration ${BASELINE_VERSION} failed:`, err)
       throw err
     }
+
+    logger.info(`Applying empty-database baseline seed ${BASELINE_VERSION}`)
+    const seederSql = readSqlFile(baselineSeederSqlPath('mysql'))
+    await db.query('START TRANSACTION')
+    try {
+      await this.applyMysqlStatements(db, seederSql)
+      await this.updateSeederVersion(db, BASELINE_VERSION, 'mysql')
+      await db.query('COMMIT')
+      logger.info(`MySQL baseline seeder ${BASELINE_VERSION} completed successfully.`)
+    } catch (err) {
+      try {
+        await db.query('ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`MySQL baseline seeder ${BASELINE_VERSION} failed:`, err)
+      throw err
+    }
+  }
+
+  async runVersionChainMySQL (db, options = {}) {
+    await this.createSchemaVersionTable(db, 'mysql')
+    const currentVersion = await this.checkMigrationVersion(db, 'mysql')
+    if (shouldApplyBaseline(currentVersion, options.untilVersion)) {
+      await this.applyMysqlBaseline(db)
+      return
+    }
+    for (const version of versionsToApply(options.untilVersion)) {
+      await this.applyMysqlMigrationIfNeeded(db, version)
+      await this.applyMysqlSeederIfNeeded(db, version)
+    }
+  }
+
+  async applyPostgresStatements (db, sql) {
+    for (const raw of splitSqlStatements(sql)) {
+      if (isTransactionControl(raw)) {
+        continue
+      }
+      const query = raw + ';'
+      try {
+        await db.query(query)
+      } catch (err) {
+        const errorToCheck = err.parent || err
+        if (errorToCheck.code === '25P02') {
+          logger.warn('Transaction aborted, rolling back and starting new transaction...')
+          await db.query('ROLLBACK')
+          await db.query('BEGIN')
+          continue
+        }
+        if (isIgnorablePostgresError(err)) {
+          logger.warn(`Ignored PostgreSQL error: ${errorToCheck.message}`)
+        } else {
+          throw err
+        }
+      }
+    }
+  }
+
+  async applyPostgresMigrationIfNeeded (db, version) {
+    const currentVersion = await this.checkMigrationVersion(db, 'postgres')
+    if (!isVersionLessThan(currentVersion, version)) {
+      logger.info(`PostgreSQL schema ${currentVersion || 'none'} already includes ${version}, skipping migration`)
+      return
+    }
+
+    const sql = readSqlFile(migrationSqlPath('postgres', version))
+    await db.query('BEGIN')
+    try {
+      await this.applyPostgresStatements(db, sql)
+      await this.updateMigrationVersion(db, version, 'postgres')
+      await db.query('COMMIT')
+      logger.info(`PostgreSQL migration ${version} completed successfully.`)
+    } catch (err) {
+      try {
+        await db.query('ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`PostgreSQL migration ${version} failed:`, err)
+      throw err
+    }
+  }
+
+  async applyPostgresSeederIfNeeded (db, version) {
+    const currentVersion = await this.checkSeederVersion(db, 'postgres')
+    if (!isVersionLessThan(currentVersion, version)) {
+      logger.info(`PostgreSQL seeder ${currentVersion || 'none'} already includes ${version}, skipping seeder`)
+      return
+    }
+
+    const sql = readSqlFile(seederSqlPath('postgres', version))
+    await db.query('BEGIN')
+    try {
+      await this.applyPostgresStatements(db, sql)
+      await this.updateSeederVersion(db, version, 'postgres')
+      await db.query('COMMIT')
+      logger.info(`PostgreSQL seeder ${version} completed successfully.`)
+    } catch (err) {
+      try {
+        await db.query('ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`PostgreSQL seeder ${version} failed:`, err)
+      throw err
+    }
+  }
+
+  async applyPostgresBaseline (db) {
+    logger.info(`Applying empty-database baseline schema ${BASELINE_VERSION}`)
+    const migrationSql = readSqlFile(baselineMigrationSqlPath('postgres'))
+    await db.query('BEGIN')
+    try {
+      await this.applyPostgresStatements(db, migrationSql)
+      await this.updateMigrationVersion(db, BASELINE_VERSION, 'postgres')
+      await db.query('COMMIT')
+      logger.info(`PostgreSQL baseline migration ${BASELINE_VERSION} completed successfully.`)
+    } catch (err) {
+      try {
+        await db.query('ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`PostgreSQL baseline migration ${BASELINE_VERSION} failed:`, err)
+      throw err
+    }
+
+    logger.info(`Applying empty-database baseline seed ${BASELINE_VERSION}`)
+    const seederSql = readSqlFile(baselineSeederSqlPath('postgres'))
+    await db.query('BEGIN')
+    try {
+      await this.applyPostgresStatements(db, seederSql)
+      await this.updateSeederVersion(db, BASELINE_VERSION, 'postgres')
+      await db.query('COMMIT')
+      logger.info(`PostgreSQL baseline seeder ${BASELINE_VERSION} completed successfully.`)
+    } catch (err) {
+      try {
+        await db.query('ROLLBACK')
+      } catch (rollbackErr) {
+        // No active transaction to roll back.
+      }
+      logger.error(`PostgreSQL baseline seeder ${BASELINE_VERSION} failed:`, err)
+      throw err
+    }
+  }
+
+  async runVersionChainPostgres (db, options = {}) {
+    await this.createSchemaVersionTable(db, 'postgres')
+    const currentVersion = await this.checkMigrationVersion(db, 'postgres')
+    if (shouldApplyBaseline(currentVersion, options.untilVersion)) {
+      await this.applyPostgresBaseline(db)
+      return
+    }
+    for (const version of versionsToApply(options.untilVersion)) {
+      await this.applyPostgresMigrationIfNeeded(db, version)
+      await this.applyPostgresSeederIfNeeded(db, version)
+    }
+  }
+
+  async runMigrationSQLite (dbName, options) {
+    return this.runVersionChainSQLite(dbName, options)
+  }
+
+  async runMigrationMySQL (db, options) {
+    return this.runVersionChainMySQL(db, options)
+  }
+
+  async runMigrationPostgres (db, options) {
+    return this.runVersionChainPostgres(db, options)
+  }
+
+  async runSeederSQLite (dbName, options) {
+    return this.runVersionChainSQLite(dbName, options)
+  }
+
+  async runSeederMySQL (db, options) {
+    return this.runVersionChainMySQL(db, options)
+  }
+
+  async runSeederPostgres (db, options) {
+    return this.runVersionChainPostgres(db, options)
   }
 }
+
+DatabaseProvider.SCHEMA_VERSIONS = SCHEMA_VERSIONS
+DatabaseProvider.BASELINE_VERSION = BASELINE_VERSION
 
 module.exports = DatabaseProvider

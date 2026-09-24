@@ -1,6 +1,6 @@
 openapi : "3.0.0"
 info:
-  version: 3.8.2
+  version: 3.9.0
   title: Cloud Native Controller for Edge Native Workloads
 paths:
   /live:
@@ -400,72 +400,6 @@ paths:
           description: Not Authorized
         "500":
           description: Internal Server Error
-  "/iofog/{uuid}/hal/hw":
-    get:
-      tags:
-        - ioFog
-      summary: Retrieves HAL hardware info
-      operationId: getFogHalHardwareInfo
-      parameters:
-        - in: path
-          name: uuid
-          description: ioFog node id
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HalInfo"
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Node Id
-        "500":
-          description: Internal Server Error
-  "/iofog/{uuid}/hal/usb":
-    get:
-      tags:
-        - ioFog
-      summary: Retrieves HAL USB info
-      operationId: getFogHalUsbInfo
-      parameters:
-        - in: path
-          name: uuid
-          description: ioFog node id
-          required: true
-          schema:
-            type: string
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HalInfo"
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Node Id
-        "500":
-          description: Internal Server Error
   /application:
     get:
       tags:
@@ -490,6 +424,37 @@ paths:
           description: Bad Request
         "404":
           description: Not Found
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - Application
+      summary: Creates an application
+      operationId: createApplication
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicationCreateRequest"
+      responses:
+        "201":
+          description: Created
+          headers:
+            X-Timestamp:
+              description: FogController server timestamp
+              schema:
+                type: number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationCreateResponse"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
         "500":
           description: Internal Server Error
   /application/system:
@@ -615,6 +580,40 @@ paths:
         "500":
           description: Internal Server Error
   "/application/{name}":
+    put:
+      tags:
+        - Application
+      summary: Updates an application state (microservices, etc.)
+      operationId: updateApplication
+      parameters:
+        - in: path
+          name: name
+          description: Application name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplicationUpdateRequest"
+      responses:
+        "204":
+          description: Success
+          headers:
+            X-Timestamp:
+              description: FogController server timestamp
+              schema:
+                type: number
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
     patch:
       tags:
         - Application
@@ -633,14 +632,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                description:
-                  type: string
-                isActivated:
-                  type: boolean
+              $ref: "#/components/schemas/ApplicationPatchRequest"
         required: true
       responses:
         "204":
@@ -931,7 +923,7 @@ paths:
             schema:
               type: object
               properties:
-                application:
+                template:
                   type: string
                   format: binary
       responses:
@@ -1439,6 +1431,76 @@ paths:
           description: Not Authorized
         "500":
           description: Internal Server Error
+  /agent/models:
+    get:
+      tags:
+        - Agent
+      summary: Gets fleet models linked to this fog
+      description: >-
+        Fog-token only. Returns models linked to the authenticated fog.
+        Rows missing uuid or name are omitted. A missing route is treated as
+        an empty list by the agent.
+      operationId: getAgentLinkedModels
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentModelsListResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+  /agent/knowledge:
+    get:
+      tags:
+        - Agent
+      summary: Gets fleet Knowledge linked to this fog
+      description: >-
+        Fog-token only. Returns Knowledge linked to the authenticated fog.
+        Rows missing uuid or name are omitted. An unlinked fog returns
+        { "knowledge": [] }. A missing route is treated as an empty list
+        by the agent.
+      operationId: getAgentLinkedKnowledge
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentKnowledgeListResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+  /agent/runtimeClasses:
+    get:
+      tags:
+        - Agent
+      summary: Gets RuntimeClasses linked to this fog
+      description: >-
+        Fog-token only. Returns RuntimeClasses linked to the authenticated fog.
+        Rows missing name or handler are omitted. Docker and podman agents
+        store the snapshot and do not apply it.
+      operationId: getAgentLinkedRuntimeClasses
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentRuntimeClassesListResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
   /agent/tunnel:
     get:
       tags:
@@ -1489,79 +1551,6 @@ paths:
           description: Not Authorized
         "404":
           description: Version Command Not Found
-        "500":
-          description: Internal Server Error
-  /agent/hal/hw:
-    put:
-      tags:
-        - Agent
-      summary: Updates HAL hardware info
-      operationId: putHalHardwareInfo
-      security:
-        - authToken: []
-      requestBody:
-        $ref: "#/components/requestBodies/HalInfo"
-      responses:
-        "204":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "400":
-          description: Bad Request
-        "401":
-          description: Not Authorized
-        "500":
-          description: Internal Server Error
-  /agent/hal/usb:
-    get:
-      tags:
-        - ioFog
-      summary: Retrieves HAL USB info
-      operationId: getAgentHalUsbInfo
-      security:
-        - authToken: []
-      responses:
-        "200":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HalInfo"
-        "401":
-          description: Not Authorized
-        "404":
-          description: Invalid Node Id
-        "500":
-          description: Internal Server Error
-    put:
-      tags:
-        - Agent
-      summary: Updates HAL USB info
-      operationId: putHalUsbInfo
-      security:
-        - authToken: []
-      requestBody:
-        $ref: "#/components/requestBodies/HalInfo"
-      responses:
-        "204":
-          description: Success
-          headers:
-            X-Timestamp:
-              description: FogController server timestamp
-              schema:
-                type: number
-        "400":
-          description: Bad Request
-        "401":
-          description: Not Authorized
         "500":
           description: Internal Server Error
   /agent/delete-node:
@@ -1791,6 +1780,12 @@ paths:
       tags:
         - Microservices
       summary: Creates a new microservice
+      description: >-
+        Optional template overlay: send template.name plus optional template.variables.
+        Request fields name, application, and iofogUuid/agentName win over the template.
+        Catalog models.items[].name are auto-linked to the target fog. Non-empty runtime
+        must exist as a RuntimeClass row and be in the fog availableRuntimes list.
+        registryId must resolve to type oci.
       operationId: createMicroservice
       security:
         - authToken: []
@@ -1823,6 +1818,11 @@ paths:
       tags:
         - Microservices
       summary: Creates a new microservice in an Application
+      description: >-
+        YAML kind Microservice. Optional spec.template applies the same overlay as
+        JSON POST /microservices (template.name plus optional template.variables).
+        Request fields metadata.name, spec.application, and spec.agent.name win over
+        the template.
       operationId: createMicroserviceYAML
       security:
         - authToken: []
@@ -2704,6 +2704,85 @@ paths:
               description: FogController server timestamp
               schema:
                 type: number
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+  "/microservices/{uuid}/models":
+    patch:
+      tags:
+        - Microservices
+      summary: Updates the microservice model catalog
+      description: >-
+        Catalog-only update. Sets the microserviceModels change flag only
+        (does not set microserviceList). Rebuilds the workload when the catalog
+        goes empty to non-empty or non-empty to empty, or when bindPath or
+        permissions change. Adding or removing items with the same bindPath
+        and permissions does not rebuild when the catalog is already non-empty.
+        Catalog items reference managed model names only.
+      operationId: patchMicroserviceModels
+      parameters:
+        - in: path
+          name: uuid
+          description: Microservice Uuid
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MicroserviceCatalog"
+      responses:
+        "204":
+          description: Catalog updated
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+  "/microservices/{uuid}/knowledge":
+    patch:
+      tags:
+        - Microservices
+      summary: Updates the microservice Knowledge catalog
+      description: >-
+        User microservices only. Catalog-only update. Sets the
+        microserviceKnowledge change flag only (does not set microserviceList).
+        Rebuilds the workload when the catalog goes empty to non-empty or
+        non-empty to empty, or when bindPath or permissions change. Adding or
+        removing items with the same bindPath and permissions does not rebuild
+        when the catalog is already non-empty. Catalog items reference managed
+        Knowledge names only. System and controller microservices are rejected.
+      operationId: patchMicroserviceKnowledge
+      parameters:
+        - in: path
+          name: uuid
+          description: Microservice Uuid
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeCatalog"
+      responses:
+        "204":
+          description: Catalog updated
+        "400":
+          description: Bad Request
         "401":
           description: Not Authorized
         "404":
@@ -5504,6 +5583,1200 @@ paths:
           description: Not Found
         "500":
           description: Internal Server Error
+
+  /models:
+    get:
+      tags:
+        - Models
+      summary: Returns fleet models
+      operationId: listModels
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: List of fleet models
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelsListResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - Models
+      summary: Creates a fleet model
+      description: Server generates uuid. Name is unique and immutable after create.
+      operationId: createModel
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModelCreate"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Model"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  /models/yaml:
+    post:
+      tags:
+        - Models
+      summary: Creates a fleet model from YAML
+      operationId: createModelYaml
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Model"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  "/models/{name}":
+    get:
+      tags:
+        - Models
+      summary: Gets a fleet model
+      description: Does not include linked fog uuids. Use GET /models/{name}/link.
+      operationId: getModel
+      parameters:
+        - in: path
+          name: name
+          description: Model name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Model"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    patch:
+      tags:
+        - Models
+      summary: Updates a fleet model
+      description: Name is immutable.
+      operationId: updateModel
+      parameters:
+        - in: path
+          name: name
+          description: Model name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModelUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Model"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - Models
+      summary: Deletes a fleet model
+      description: Refused when any microservice binds the model name.
+      operationId: deleteModel
+      parameters:
+        - in: path
+          name: name
+          description: Model name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "202":
+          description: Accepted
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Model is bound by a microservice
+        "500":
+          description: Internal Server Error
+
+  "/models/yaml/{name}":
+    put:
+      tags:
+        - Models
+      summary: Creates or updates a fleet model from YAML
+      operationId: upsertModelYaml
+      parameters:
+        - in: path
+          name: name
+          description: Model name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upserted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Model"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+
+  "/models/{name}/link":
+    get:
+      tags:
+        - Models
+      summary: Gets fogs linked to a fleet model
+      operationId: getModelLink
+      parameters:
+        - in: path
+          name: name
+          description: Model name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - Models
+      summary: Links a fleet model to fog nodes
+      operationId: linkModel
+      parameters:
+        - in: path
+          name: name
+          description: Model name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FogLinkRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - Models
+      summary: Unlinks a fleet model from fog nodes
+      description: Refused when a microservice on that fog still binds the model name.
+      operationId: unlinkModel
+      parameters:
+        - in: path
+          name: name
+          description: Model name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FogLinkRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Model is bound by a microservice on the fog
+        "500":
+          description: Internal Server Error
+
+  /knowledge:
+    get:
+      tags:
+        - Knowledge
+      summary: Returns fleet Knowledge
+      operationId: listKnowledge
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: List of fleet Knowledge
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeListResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - Knowledge
+      summary: Creates fleet Knowledge
+      description: >-
+        Server generates uuid. Name is unique and immutable after create.
+        Names are a separate namespace from Models. Hugging Face pulls use
+        the dataset API. files is Hugging Face only; a non-empty files array on an
+        OCI registry is rejected. format is an optional soft hint (see
+        Knowledge.format).
+      operationId: createKnowledge
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeCreate"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  /knowledge/yaml:
+    post:
+      tags:
+        - Knowledge
+      summary: Creates fleet Knowledge from YAML
+      description: >-
+        kind Knowledge. spec.registry is an alias of registryId.
+        apiVersion iofog.org/v3 or datasance.com/v3.
+      operationId: createKnowledgeYaml
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                knowledge:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  "/knowledge/{name}":
+    get:
+      tags:
+        - Knowledge
+      summary: Gets fleet Knowledge
+      description: Does not include linked fog uuids. Use GET /knowledge/{name}/link.
+      operationId: getKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    patch:
+      tags:
+        - Knowledge
+      summary: Updates fleet Knowledge
+      description: Name is immutable. format follows the same soft-hint rules as create.
+      operationId: updateKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - Knowledge
+      summary: Deletes fleet Knowledge
+      description: Refused when any microservice binds the Knowledge name.
+      operationId: deleteKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "202":
+          description: Accepted
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Knowledge is bound by a microservice
+        "500":
+          description: Internal Server Error
+
+  "/knowledge/yaml/{name}":
+    put:
+      tags:
+        - Knowledge
+      summary: Creates or updates fleet Knowledge from YAML
+      operationId: upsertKnowledgeYaml
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                knowledge:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upserted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Knowledge"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+
+  "/knowledge/{name}/link":
+    get:
+      tags:
+        - Knowledge
+      summary: Gets fogs linked to fleet Knowledge
+      operationId: getKnowledgeLink
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - Knowledge
+      summary: Links fleet Knowledge to fog nodes
+      operationId: linkKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FogLinkRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - Knowledge
+      summary: Unlinks fleet Knowledge from fog nodes
+      description: Refused when a microservice on that fog still binds the Knowledge name.
+      operationId: unlinkKnowledge
+      parameters:
+        - in: path
+          name: name
+          description: Knowledge name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FogLinkRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Knowledge is bound by a microservice on the fog
+        "500":
+          description: Internal Server Error
+
+  /runtimeClasses:
+    get:
+      tags:
+        - RuntimeClasses
+      summary: Returns fleet RuntimeClasses
+      operationId: listRuntimeClasses
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: List of RuntimeClasses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeClassesListResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - RuntimeClasses
+      summary: Creates a RuntimeClass
+      description: Name plus handler. Built-in catalog rows are not seeded.
+      operationId: createRuntimeClass
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuntimeClassCreate"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeClass"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  /runtimeClasses/yaml:
+    post:
+      tags:
+        - RuntimeClasses
+      summary: Creates a RuntimeClass from YAML
+      operationId: createRuntimeClassYaml
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                runtimeClass:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeClass"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  "/runtimeClasses/{name}":
+    get:
+      tags:
+        - RuntimeClasses
+      summary: Gets a RuntimeClass
+      description: Does not include linked fog uuids. Use GET /runtimeClasses/{name}/link.
+      operationId: getRuntimeClass
+      parameters:
+        - in: path
+          name: name
+          description: RuntimeClass name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeClass"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    patch:
+      tags:
+        - RuntimeClasses
+      summary: Updates a RuntimeClass
+      description: Name is immutable. Non-catalog handlers may bounce the data plane.
+      operationId: updateRuntimeClass
+      parameters:
+        - in: path
+          name: name
+          description: RuntimeClass name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuntimeClassUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeClass"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - RuntimeClasses
+      summary: Deletes a RuntimeClass
+      description: Refused when any microservice pins runtime to this name.
+      operationId: deleteRuntimeClass
+      parameters:
+        - in: path
+          name: name
+          description: RuntimeClass name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "202":
+          description: Accepted
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: RuntimeClass is pinned by a microservice
+        "500":
+          description: Internal Server Error
+
+  "/runtimeClasses/yaml/{name}":
+    put:
+      tags:
+        - RuntimeClasses
+      summary: Creates or updates a RuntimeClass from YAML
+      operationId: upsertRuntimeClassYaml
+      parameters:
+        - in: path
+          name: name
+          description: RuntimeClass name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                runtimeClass:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upserted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuntimeClass"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
+
+  "/runtimeClasses/{name}/link":
+    get:
+      tags:
+        - RuntimeClasses
+      summary: Gets fogs linked to a RuntimeClass
+      operationId: getRuntimeClassLink
+      parameters:
+        - in: path
+          name: name
+          description: RuntimeClass name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - RuntimeClasses
+      summary: Links a RuntimeClass to fog nodes
+      description: Attach is refused when fog containerEngine is not edgelet or when the RuntimeClass name is not in the fog availableRuntimes list.
+      operationId: linkRuntimeClass
+      parameters:
+        - in: path
+          name: name
+          description: RuntimeClass name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FogLinkRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Fog is not edgelet, or request invalid
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - RuntimeClasses
+      summary: Unlinks a RuntimeClass from fog nodes
+      description: Refused when a microservice on that fog still pins runtime to this name.
+      operationId: unlinkRuntimeClass
+      parameters:
+        - in: path
+          name: name
+          description: RuntimeClass name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FogLinkRequest"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FogLinkSet"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: RuntimeClass is pinned by a microservice on the fog
+        "500":
+          description: Internal Server Error
+
+  /microserviceTemplates:
+    get:
+      tags:
+        - Microservice Templates
+      summary: Returns microservice templates
+      operationId: listMicroserviceTemplates
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: List of microservice templates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MicroserviceTemplatesListResponse"
+        "401":
+          description: Not Authorized
+        "500":
+          description: Internal Server Error
+    post:
+      tags:
+        - Microservice Templates
+      summary: Creates a microservice template
+      operationId: createMicroserviceTemplate
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MicroserviceTemplateCreate"
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MicroserviceTemplate"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  /microserviceTemplates/yaml:
+    post:
+      tags:
+        - Microservice Templates
+      summary: Creates a microservice template from YAML
+      operationId: createMicroserviceTemplateYaml
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                template:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MicroserviceTemplate"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "409":
+          description: Name already exists
+        "500":
+          description: Internal Server Error
+
+  "/microserviceTemplates/{name}":
+    get:
+      tags:
+        - Microservice Templates
+      summary: Gets a microservice template
+      operationId: getMicroserviceTemplate
+      parameters:
+        - in: path
+          name: name
+          description: Template name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MicroserviceTemplate"
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    patch:
+      tags:
+        - Microservice Templates
+      summary: Updates a microservice template
+      description: Name is immutable.
+      operationId: updateMicroserviceTemplate
+      parameters:
+        - in: path
+          name: name
+          description: Template name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MicroserviceTemplateUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MicroserviceTemplate"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+    delete:
+      tags:
+        - Microservice Templates
+      summary: Deletes a microservice template
+      operationId: deleteMicroserviceTemplate
+      parameters:
+        - in: path
+          name: name
+          description: Template name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      responses:
+        "202":
+          description: Accepted
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+
+  "/microserviceTemplates/yaml/{name}":
+    put:
+      tags:
+        - Microservice Templates
+      summary: Creates or updates a microservice template from YAML
+      operationId: upsertMicroserviceTemplateYaml
+      parameters:
+        - in: path
+          name: name
+          description: Template name
+          required: true
+          schema:
+            type: string
+      security:
+        - authToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                template:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upserted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MicroserviceTemplate"
+        "400":
+          description: Bad Request
+        "401":
+          description: Not Authorized
+        "404":
+          description: Not Found
+        "409":
+          description: Conflict
+        "500":
+          description: Internal Server Error
   /events:
     get:
       tags:
@@ -7495,6 +8768,12 @@ tags:
     description: Manage your services
   - name: VolumeMounts
     description: Manage your volume mounts
+  - name: Models
+    description: Manage your AI Model Catalogs 
+  - name: Knowledge
+    description: Manage fleet Knowledge artifacts (documents, datasets, and vector indexes)
+  - name: RuntimeClasses
+    description: Manage your runtime classes
   - name: ConfigMap
     description: Manage your config maps
   - name: Events
@@ -7591,12 +8870,6 @@ components:
           schema:
             $ref: "#/components/schemas/CreateUpdateCatalogItemRequestBody"
       description: Microservice Catalog Item Info
-      required: true
-    HalInfo:
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/HalInfo"
       required: true
     ApplicationTemplateCreateRequest:
       content:
@@ -7781,8 +9054,19 @@ components:
                     type: string
                   value:
                     type: string
+    ApplicationSpecBody:
+      type: object
+      properties:
+        microservices:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewMicroserviceRequest"
+        natsConfig:
+          $ref: "#/components/schemas/NatsConfigObject"
     ApplicationCreateRequest:
       type: object
+      required:
+        - name
       properties:
         name:
           type: string
@@ -7790,80 +9074,47 @@ components:
           type: string
         isActivated:
           type: boolean
+        isSystem:
+          type: boolean
         microservices:
           type: array
           items:
-            type: object
-            properties:
-              name:
-                type: string
-              config:
-                type: string
-              annotations:
-                type: string
-              catalogItemId:
-                type: integer
-              registryId:
-                type: integer
-              images:
-                type: array
-                items:
-                  properties:
-                    containerImage:
-                      type: string
-                    archId:
-                      type: string
-              iofogUuid:
-                type: string
-              hostNetworkMode:
-                type: boolean
-              isPrivileged:
-                type: boolean
-              logSize:
-                type: number
-              rebuild:
-                type: boolean
-              volumeMappings:
-                type: array
-                items:
-                  $ref: "#/components/schemas/VolumeMapping"
-              envs:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    key:
-                      type: string
-                    value:
-                      type: string
-              runAsUser:
-                type: string
-              platform:
-                type: string
-              runtime:
-                type: string           
-              cdiDevices:
-                type: array
-                items:
-                  type: string
-              capAdd:
-                type: array
-                items:
-                  type: string
-              capDrop:
-                type: array
-                items:
-                  type: string
-              cmd:
-                type: array
-                items:
-                  type: string
-              ports:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PortMappingsRequest"
-              natsConfig:
-                $ref: "#/components/schemas/NatsConfigObject"
+            $ref: "#/components/schemas/NewMicroserviceRequest"
+          description: >-
+            Nested microservice objects use the same schema as POST /microservices.
+            The application field on each item is set from the parent application name.
+        natsConfig:
+          $ref: "#/components/schemas/NatsConfigObject"
+    ApplicationUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Application resource name is immutable; must match path name if provided.
+        description:
+          type: string
+        isActivated:
+          type: boolean
+        isSystem:
+          type: boolean
+        microservices:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewMicroserviceRequest"
+        natsConfig:
+          $ref: "#/components/schemas/NatsConfigObject"
+    ApplicationPatchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Application resource name is immutable; must match path name if provided.
+        description:
+          type: string
+        isActivated:
+          type: boolean
+        isSystem:
+          type: boolean
         natsConfig:
           $ref: "#/components/schemas/NatsConfigObject"
     ApplicationCreateResponse:
@@ -7889,7 +9140,7 @@ components:
         microservices:
           type: array
           items:
-            $ref: "#/components/schemas/GetMicroservicesResponse"
+            $ref: "#/components/schemas/MicroserviceInfoResponse"
     ApplicationListResponse:
       type: object
       properties:
@@ -7916,86 +9167,7 @@ components:
               defaultValue:
                 type: string
         application:
-          type: object
-          properties:
-            microservices:
-              type: array
-              items:
-                type: object
-                properties:
-                  name:
-                    type: string
-                  config:
-                    type: string
-                  annotations:
-                    type: string
-                  catalogItemId:
-                    type: integer
-                  registryId:
-                    type: integer
-                  images:
-                    type: array
-                    items:
-                      properties:
-                        containerImage:
-                          type: string
-                        archId:
-                          type: string
-                  iofogUuid:
-                    type: string
-                  agentName:
-                    type: string
-                  hostNetworkMode:
-                    type: boolean
-                  isPrivileged:
-                    type: boolean
-                  logSize:
-                    type: number
-                  rebuild:
-                    type: boolean
-                  volumeMappings:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/VolumeMapping"
-                  envs:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        key:
-                          type: string
-                        value:
-                          type: string
-                  runAsUser:
-                    type: number
-                  platform:
-                    type: string
-                  runtime:
-                    type: string           
-                  cdiDevices:
-                    type: array
-                    items:
-                      type: string
-                  capAdd:
-                    type: array
-                    items:
-                      type: string
-                  capDrop:
-                    type: array
-                    items:
-                      type: string
-                  cmd:
-                    type: array
-                    items:
-                      type: string
-                  ports:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/PortMappingsRequest"
-                  natsConfig:
-                    $ref: "#/components/schemas/NatsConfigObject"
-            natsConfig:
-              $ref: "#/components/schemas/NatsConfigObject"
+          $ref: "#/components/schemas/ApplicationSpecBody"
     ApplicationTemplateCreateResponse:
       type: object
       properties:
@@ -8020,14 +9192,7 @@ components:
         description:
           type: string
         application:
-          type: object
-          properties:
-            microservices:
-              type: array
-              items:
-                $ref: "#/components/schemas/GetMicroservicesResponse"
-            natsConfig:
-              $ref: "#/components/schemas/NatsConfigObject"
+          $ref: "#/components/schemas/ApplicationSpecBody"
     ApplicationTemplateListResponse:
       type: object
       properties:
@@ -8124,6 +9289,9 @@ components:
           type: number
         lastStatusTime:
           type: number
+          description: >-
+            Controller receipt time in milliseconds of the last successful
+            agent status PUT. Not the agent's clock.
         lastCommandTime:
           type: number
         logFileCount:
@@ -8148,6 +9316,7 @@ components:
           type: number
         diskUsage:
           type: number
+          description: Edgelet data-directory usage in GiB, not host filesystem total.
         cpuUsage:
           type: number
         memoryViolation:
@@ -8156,8 +9325,33 @@ components:
           type: boolean
         cpuViolation:
           type: boolean
+        systemAvailableDisk:
+          type: integer
+          description: Free space on the agent diskDirectory filesystem in bytes.
+        systemAvailableMemory:
+          type: integer
+          description: Host RAM available in bytes.
         systemTotalCpu:
           type: number
+          description: Host CPU busy percentage 0–100, not logical core count.
+        systemCpus:
+          type: integer
+          description: Host logical CPU count.
+        systemTotalMemory:
+          type: integer
+          description: Host RAM capacity in bytes.
+        systemTotalDisk:
+          type: integer
+          description: diskDirectory filesystem size in bytes.
+        systemOs:
+          type: string
+          description: Host OS family (linux, darwin, windows, …).
+        systemOsVersion:
+          type: string
+          description: Human-oriented distro or release; empty string when unknown.
+        systemKernelVersion:
+          type: string
+          description: Linux kernel release; empty string on non-Linux.
         catalogItemStatus:
           type: string
         repositoryStatus:
@@ -8186,14 +9380,12 @@ components:
           type: number
         cpuLimit:
           type: number
+          minimum: 5
+          maximum: 400
         logLimit:
           type: number
         logDirectory:
           type: string
-        bluetoothEnabled:
-          type: boolean
-        abstractedHardwareEnabled:
-          type: boolean
         version:
           type: string
         isReadyToUpgrade:
@@ -8203,8 +9395,6 @@ components:
         statusFrequency:
           type: number
         changeFrequency:
-          type: number
-        deviceScanFrequency:
           type: number
         tunnel:
           type: string
@@ -8270,6 +9460,38 @@ components:
           type: array
           items:
             type: string
+        runtimeClasses:
+          type: string
+          description: >-
+            JSON string of applied RuntimeClasses
+            (array of { name, handler, source }). Empty array when none.
+        availableCdiDevices:
+          type: string
+          description: JSON string of unique sorted fully-qualified CDI names.
+        modelStatus:
+          type: string
+          description: >-
+            JSON string of local and managed model status items. Parse for
+            display. Managed rows include uuid; local rows omit uuid.
+        activeModels:
+          type: integer
+          description: Count of managed fleet models only.
+        modelLastUpdate:
+          type: integer
+          description: Unix milliseconds; 0 when the managed list is empty.
+        knowledgeStatus:
+          type: string
+          description: >-
+            JSON string of local and managed Knowledge status items. Parse for
+            display. Managed rows include uuid; local rows omit uuid and set
+            source to local. source is local or managed. activeKnowledge is
+            the managed count, not the length of this array.
+        activeKnowledge:
+          type: integer
+          description: Count of managed fleet Knowledge only, not the knowledgeStatus row count.
+        knowledgeLastUpdate:
+          type: integer
+          description: Unix milliseconds; 0 when the managed list is empty.
         platformStatus:
           description: Present on GET single fog only; omitted on list responses
           allOf:
@@ -8349,6 +9571,8 @@ components:
         cpuLimit:
           type: number
           default: 80
+          minimum: 5
+          maximum: 400
           format: percent
         logLimit:
           type: number
@@ -8368,19 +9592,9 @@ components:
           type: number
           default: 20
           format: seconds
-        deviceScanFrequency:
-          type: number
-          default: 20
-          format: seconds
-        bluetoothEnabled:
-          type: boolean
-          default: false
         watchdogEnabled:
           type: boolean
           default: true
-        abstractedHardwareEnabled:
-          type: boolean
-          default: false
         archId:
           type: number
           minimum: 0
@@ -8520,9 +9734,9 @@ components:
           type: boolean
         deleteNode:
           type: boolean
-        microservicesList:
+        microserviceList:
           type: boolean
-        microservicesConfig:
+        microserviceConfig:
           type: boolean
         registries:
           type: boolean
@@ -8532,6 +9746,27 @@ components:
           type: boolean
         routerChanged:
           type: boolean
+        volumeMounts:
+          type: boolean
+        execSessions:
+          type: boolean
+        microserviceLogs:
+          type: boolean
+        fogLogs:
+          type: boolean
+        models:
+          type: boolean
+        runtimeClasses:
+          type: boolean
+        microserviceModels:
+          type: boolean
+          description: Catalog-only refresh; agent uses GET microservices (no dedicated GET).
+        knowledge:
+          type: boolean
+          description: Replace managed Knowledge from GET /agent/knowledge.
+        microserviceKnowledge:
+          type: boolean
+          description: Catalog-only refresh; agent uses GET microservices (no dedicated GET).
     IOFogNodeConfig:
       type: object
       properties:
@@ -8555,6 +9790,8 @@ components:
           type: number
         cpuLimit:
           type: number
+          minimum: 5
+          maximum: 400
         logLimit:
           type: number
         logDirectory:
@@ -8564,8 +9801,6 @@ components:
         statusFrequency:
           type: number
         changeFrequency:
-          type: number
-        deviceScanFrequency:
           type: number
         watchdogEnabled:
           type: boolean
@@ -8606,6 +9841,8 @@ components:
           type: number
         cpuLimit:
           type: number
+          minimum: 5
+          maximum: 400
         logLimit:
           type: number
         logDirectory:
@@ -8615,8 +9852,6 @@ components:
         statusFrequency:
           type: number
         changeFrequency:
-          type: number
-        deviceScanFrequency:
           type: number
         watchdogEnabled:
           type: boolean
@@ -8654,6 +9889,7 @@ components:
           type: number
         diskUsage:
           type: number
+          description: Edgelet data-directory usage in GiB, not host filesystem total.
         cpuUsage:
           type: number
         memoryViolation:
@@ -8664,16 +9900,41 @@ components:
           type: boolean
         systemAvailableDisk:
           type: integer
+          description: Free space on the agent diskDirectory filesystem in bytes.
         systemAvailableMemory:
           type: integer
+          description: Host RAM available in bytes.
         systemTotalCpu:
           type: number
+          description: Host CPU busy percentage 0–100, not logical core count.
+        systemCpus:
+          type: integer
+          description: Host logical CPU count.
+        systemTotalMemory:
+          type: integer
+          description: Host RAM capacity in bytes.
+        systemTotalDisk:
+          type: integer
+          description: diskDirectory filesystem size in bytes.
+        systemOs:
+          type: string
+          description: Host OS family (linux, darwin, windows, …).
+        systemOsVersion:
+          type: string
+          description: Human-oriented distro or release; empty string when unknown.
+        systemKernelVersion:
+          type: string
+          description: Linux kernel release; empty string on non-Linux.
         securityStatus:
           type: string
         securityViolationInfo:
           type: string
         microserviceStatus:
           type: string
+          description: >-
+            JSON array of per-microservice observed status objects. Items may
+            include additive lastError, lastErrorAt, and restartCount. Unknown
+            keys must not fail this PUT.
         repositoryCount:
           type: number
         repositoryStatus:
@@ -8682,6 +9943,9 @@ components:
           type: number
         lastStatusTime:
           type: number
+          description: >-
+            Agent-supplied timestamp in milliseconds. Controller liveness uses
+            the PUT receipt time instead of this value.
         ipAddress:
           type: string
         ipAddressExternal:
@@ -8710,6 +9974,46 @@ components:
           type: number
         gpsStatus:
           type: string
+        runtimeClasses:
+          type: array
+          description: Applied RuntimeClasses only, sorted by name. Docker/podman send [].
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              handler:
+                type: string
+              source:
+                type: string
+                enum:
+                  - local
+                  - managed
+        availableCdiDevices:
+          type: array
+          items:
+            type: string
+          description: Unique sorted fully-qualified CDI names (nvidia.com/gpu=0).
+        modelStatus:
+          type: string
+          description: JSON string of local and managed model status items.
+        activeModels:
+          type: integer
+          description: Count of managed fleet models only.
+        modelLastUpdate:
+          type: integer
+          description: Unix milliseconds; 0 when the managed list is empty.
+        knowledgeStatus:
+          type: string
+          description: >-
+            JSON string of local and managed Knowledge status items. Managed
+            rows include uuid; local rows omit uuid. source is local or managed.
+        activeKnowledge:
+          type: integer
+          description: Count of managed fleet Knowledge only, not the knowledgeStatus row count.
+        knowledgeLastUpdate:
+          type: integer
+          description: Unix milliseconds; 0 when the managed list is empty.
     IOFogNodeTunnelConfigResponse:
       type: object
       properties:
@@ -8793,6 +10097,48 @@ components:
           type: array
           items:
             type: string
+          description: Alias of commands. commands wins when both are present.
+        commands:
+          type: array
+          items:
+            type: string
+        entrypoint:
+          type: array
+          items:
+            type: string
+        runAsGroup:
+          type: string
+        readOnlyRootFilesystem:
+          type: boolean
+        workingDir:
+          type: string
+        cpus:
+          type: number
+        memoryReservation:
+          type: integer
+        memorySwap:
+          type: integer
+        shmSize:
+          type: integer
+        sysctls:
+          type: object
+        ulimits:
+          type: object
+        devices:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContainerDevice"
+        tmpfs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContainerTmpfs"
+        models:
+          $ref: "#/components/schemas/MicroserviceCatalog"
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeCatalog"
+          description: >-
+            Fleet Knowledge bound at {bindPath}/{name}/. Items are Knowledge
+            names only.
         idConsumer:
           type: boolean
         isRouter:
@@ -8950,6 +10296,18 @@ components:
         accessMode:
           type: string
           example: rw
+        scope:
+          type: string
+          enum:
+            - private
+            - shared
+          default: private
+          description: >-
+            Meaningful only when type is volume. Omit, null, or empty stores
+            private. Unknown values on type volume return 400. Other mapping
+            types always store private. Runtime accepts any case and stores
+            lowercase.
+          example: private
     VolumeMappingResponse:
       type: object
       properties:
@@ -8964,6 +10322,10 @@ components:
           type: number
         hostDestination:
           type: string
+          description: >-
+            When type is volume, a managed volume name
+            ([a-zA-Z0-9][a-zA-Z0-9_.-]*). When type is bind (default), an
+            absolute host path (Unix or Windows drive path).
           example: /var/dest
         containerDestination:
           type: string
@@ -8974,6 +10336,18 @@ components:
         type: 
           type: string
           example: bind
+        scope:
+          type: string
+          enum:
+            - private
+            - shared
+          default: private
+          description: >-
+            Meaningful only when type is volume. Omit, null, or empty stores
+            private. Unknown values on type volume return 400. Other mapping
+            types always store private. Runtime accepts any case and stores
+            lowercase. GET always returns private or shared in lowercase.
+          example: private
     PortMappingsResponse:
       type: object
       properties:
@@ -9077,8 +10451,25 @@ components:
           type: string
         userEmail:
           type: string
+        type:
+          type: string
+          enum:
+            - oci
+            - hf
+          default: oci
+        ca:
+          type: string
+          description: Optional base64-encoded PEM CA bundle
+        insecure:
+          type: boolean
+          default: false
     RegistryBody:
       type: object
+      description: >-
+        type defaults to oci. Microservice and catalog-item registryId must be
+        type oci. Hugging Face registries are for fleet models. ca is additional
+        trust and does not replace system CAs. insecure true allows http and
+        skips TLS verify. Image-pull ca/insecure apply on edgelet only.
       properties:
         url:
           type: string
@@ -9090,6 +10481,18 @@ components:
           type: string
         email:
           type: string
+        type:
+          type: string
+          enum:
+            - oci
+            - hf
+          default: oci
+        ca:
+          type: string
+          description: Optional base64-encoded PEM CA bundle
+        insecure:
+          type: boolean
+          default: false
     ActionBody:
       type: object
       properties:
@@ -9202,16 +10605,33 @@ components:
           type: string
         name:
           type: string
+        application:
+          type: string
+        flowId:
+          type: integer
+          description: Deprecated alias of applicationId for API retrocompatibility.
         config:
           type: string
         annotations:
           type: string
+        catalogItemId:
+          type: integer
+        registryId:
+          type: integer
         hostNetworkMode:
           type: boolean
         isPrivileged:
           type: boolean
-        logLimit:
+        logSize:
           type: number
+        rebuild:
+          type: boolean
+        isActivated:
+          type: boolean
+        schedule:
+          type: integer
+          minimum: 0
+          maximum: 100
         images:
           type: array
           items:
@@ -9219,24 +10639,43 @@ components:
               containerImage:
                 type: string
               archId:
-                type: string
+                type: integer
         iofogUuid:
           type: string
-        envs:
+        env:
           type: array
           items:
-            type: object
-            properties:
-              key:
-                type: string
-              value:
-                type: string
+            $ref: "#/components/schemas/MicroserviceEnvVar"
+        extraHosts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceExtraHost"
         runAsUser:
           type: string
+        runAsGroup:
+          type: string
+        readOnlyRootFilesystem:
+          type: boolean
         platform:
           type: string
         runtime:
-          type: string           
+          type: string
+        pidMode:
+          type: string
+        ipcMode:
+          type: string
+        cpuSetCpus:
+          type: string
+        memoryLimit:
+          type: integer
+        cpus:
+          type: number
+        memoryReservation:
+          type: integer
+        memorySwap:
+          type: integer
+        shmSize:
+          type: integer
         cdiDevices:
           type: array
           items:
@@ -9253,6 +10692,16 @@ components:
           type: array
           items:
             type: string
+        commands:
+          type: array
+          items:
+            type: string
+        entrypoint:
+          type: array
+          items:
+            type: string
+        workingDir:
+          type: string
         volumeMappings:
           type: array
           items:
@@ -9261,6 +10710,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PortMappingsResponse"
+        healthCheck:
+          $ref: "#/components/schemas/MicroserviceHealthCheck"
         natsAccess:
           type: boolean
         natsConfig:
@@ -9270,18 +10721,135 @@ components:
           properties:
             status:
               type: string
+              description: >-
+                Observed runtime state such as RUNNING, STOPPING, STOPPED,
+                UNKNOWN, or FAILED. Operator stop or application deactivate
+                sets STOPPING immediately, before the agent confirms STOPPED.
             operatingDuration:
               type: number
+              description: Live while status is RUNNING; otherwise 0.
             startTime:
               type: number
+              description: Live while status is RUNNING; otherwise 0.
             cpuUsage:
               type: number
+              description: >-
+                CPU sample for this microservice. Live only when status is
+                RUNNING (0 is valid while running). Otherwise 0.
             memoryUsage:
               type: number
+              description: >-
+                Memory sample for this microservice. Live only when status is
+                RUNNING (0 is valid while running). Otherwise 0.
             containerId:
               type: string
+            podId:
+              type: string
+              description: >-
+                Pause/sandbox id on edgelet. Same as containerId on docker/podman
+                when set. Omitted when unknown.
+            errorMessage:
+              type: string
+              description: >-
+                Current failure text. Agent keeps this populated while the
+                workload is failing, restarting, or has been RUNNING for less
+                than 30 seconds after a crash. After 30 seconds of continuous
+                RUNNING the agent sends an empty string so this field clears.
+            lastError:
+              type: string
+              description: >-
+                Last crash text. Not cleared on recovery. Empty string when
+                Controller has never stored a crash for this microservice.
+            lastErrorAt:
+              type: integer
+              description: >-
+                Unix milliseconds for lastError. 0 when lastError is empty.
+            restartCount:
+              type: integer
+              description: >-
+                Restart events since the last operator rebuild. 0 after rebuild
+                leftover history or when never restarted. May drop to 1 after
+                an agent process restart if the container is still crashed
+                (new episode).
+        execStatus:
+          type: object
+        models:
+          $ref: "#/components/schemas/MicroserviceCatalog"
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeCatalog"
+          description: >-
+            Fleet Knowledge bound at {bindPath}/{name}/. Items are Knowledge
+            names only. User microservices only.
+        sysctls:
+          type: object
+        ulimits:
+          type: object
+        devices:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContainerDevice"
+        tmpfs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContainerTmpfs"
+        serviceAccount:
+          type: object
+          nullable: true
+          properties:
+            roleRef:
+              $ref: "#/components/schemas/RoleRef"
+          additionalProperties: false
+    MicroserviceEnvVar:
+      type: object
+      required:
+        - key
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        valueFromSecret:
+          type: string
+          description: Format secret-name/key
+        valueFromConfigMap:
+          type: string
+          description: Format configmap-name/key
+    MicroserviceExtraHost:
+      type: object
+      required:
+        - name
+        - address
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        value:
+          type: string
+          description: Present on GET responses when address is a template expression.
+    MicroserviceHealthCheck:
+      type: object
+      required:
+        - test
+      properties:
+        test:
+          type: array
+          items:
+            type: string
+        interval:
+          type: integer
+        timeout:
+          type: integer
+        startPeriod:
+          type: integer
+        startInterval:
+          type: integer
+        retries:
+          type: integer
     NewMicroserviceRequest:
       type: object
+      required:
+        - name
       properties:
         name:
           type: string
@@ -9291,14 +10859,18 @@ components:
           type: string
         catalogItemId:
           type: integer
+        registryId:
+          type: integer
         images:
           type: array
+          maxItems: 4
+          minItems: 1
           items:
             properties:
               containerImage:
                 type: string
               archId:
-                type: string
+                type: integer
         application:
           type: string
         iofogUuid:
@@ -9310,7 +10882,18 @@ components:
         isPrivileged:
           type: boolean
         logSize:
-          type: number
+          type: integer
+          minimum: 0
+        rebuild:
+          type: boolean
+        schedule:
+          type: integer
+          minimum: 0
+          maximum: 100
+        pidMode:
+          type: string
+        ipcMode:
+          type: string
         volumeMappings:
           type: array
           items:
@@ -9319,12 +10902,38 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PortMappingsRequest"
+        env:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceEnvVar"
+        extraHosts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceExtraHost"
         runAsUser:
           type: string
+        runAsGroup:
+          type: string
+        readOnlyRootFilesystem:
+          type: boolean
         platform:
           type: string
         runtime:
-          type: string           
+          type: string
+        cpuSetCpus:
+          type: string
+        memoryLimit:
+          type: integer
+        cpus:
+          type: number
+        memoryReservation:
+          type: integer
+          minimum: 1
+        memorySwap:
+          type: integer
+        shmSize:
+          type: integer
+          minimum: 1
         cdiDevices:
           type: array
           items:
@@ -9341,8 +10950,45 @@ components:
           type: array
           items:
             type: string
+          description: Alias of commands. commands wins when both are present.
+        commands:
+          type: array
+          items:
+            type: string
+        entrypoint:
+          type: array
+          items:
+            type: string
+        workingDir:
+          type: string
+        sysctls:
+          type: object
+        ulimits:
+          type: object
+        devices:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContainerDevice"
+        tmpfs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContainerTmpfs"
+        healthCheck:
+          $ref: "#/components/schemas/MicroserviceHealthCheck"
+        models:
+          $ref: "#/components/schemas/MicroserviceCatalog"
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeCatalog"
+          description: >-
+            Fleet Knowledge bound at {bindPath}/{name}/. Items are Knowledge
+            names only. User microservices only.
+        template:
+          $ref: "#/components/schemas/MicroserviceTemplateRef"
         natsConfig:
           $ref: "#/components/schemas/NatsConfigObject"
+        natsEnabled:
+          type: boolean
+          description: YAML alias for natsConfig.natsAccess
         serviceAccount:
           type: object
           properties:
@@ -9368,26 +11014,62 @@ components:
           type: boolean
         isPrivileged:
           type: boolean
-        logLimit:
-          type: number
+        logSize:
+          type: integer
+          minimum: 0
+        schedule:
+          type: integer
+          minimum: 0
+          maximum: 100
+        pidMode:
+          type: string
+        ipcMode:
+          type: string
         volumeMappings:
           type: array
           items:
             $ref: "#/components/schemas/VolumeMapping"
         images:
           type: array
+          maxItems: 4
           items:
             properties:
               containerImage:
                 type: string
               archId:
-                type: string
+                type: integer
+        env:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceEnvVar"
+        extraHosts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceExtraHost"
         runAsUser:
           type: string
+        runAsGroup:
+          type: string
+        readOnlyRootFilesystem:
+          type: boolean
         platform:
           type: string
         runtime:
-          type: string           
+          type: string
+        cpuSetCpus:
+          type: string
+        memoryLimit:
+          type: integer
+        cpus:
+          type: number
+        memoryReservation:
+          type: integer
+          minimum: 1
+        memorySwap:
+          type: integer
+        shmSize:
+          type: integer
+          minimum: 1
         cdiDevices:
           type: array
           items:
@@ -9404,8 +11086,45 @@ components:
           type: array
           items:
             type: string
+          description: Alias of commands. commands wins when both are present.
+        commands:
+          type: array
+          items:
+            type: string
+        entrypoint:
+          type: array
+          items:
+            type: string
+        workingDir:
+          type: string
+        sysctls:
+          type: object
+        ulimits:
+          type: object
+        devices:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContainerDevice"
+        tmpfs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContainerTmpfs"
+        healthCheck:
+          $ref: "#/components/schemas/MicroserviceHealthCheck"
+        models:
+          $ref: "#/components/schemas/MicroserviceCatalog"
+        knowledge:
+          $ref: "#/components/schemas/KnowledgeCatalog"
+          description: >-
+            Fleet Knowledge bound at {bindPath}/{name}/. Items are Knowledge
+            names only. User microservices only.
+        template:
+          $ref: "#/components/schemas/MicroserviceTemplateRef"
         natsConfig:
           $ref: "#/components/schemas/NatsConfigObject"
+        natsEnabled:
+          type: boolean
+          description: YAML alias for natsConfig.natsAccess
         serviceAccount:
           type: object
           properties:
@@ -10165,13 +11884,6 @@ components:
           type: string
           description: Target semver for upgrade or rollback
           pattern: ^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:[+]([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$
-    HalInfo:
-      type: object
-      required:
-        - info
-      properties:
-        info:
-          type: string
     PostTrackingRequest:
       type: array
       items:
@@ -10685,6 +12397,391 @@ components:
           minItems: 1
       required:
         - fogUuids
+    FogLinkRequest:
+      type: object
+      properties:
+        fogUuids:
+          type: array
+          items:
+            type: string
+          minItems: 1
+      required:
+        - fogUuids
+    FogLinkSet:
+      type: object
+      properties:
+        fogUuids:
+          type: array
+          items:
+            type: string
+    Model:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+        repo:
+          type: string
+          description: Upstream path without host
+        revision:
+          type: string
+          description: Pin. Empty means latest (OCI) or main (HF).
+        registryId:
+          type: integer
+        files:
+          type: array
+          items:
+            type: string
+          description: Hugging Face only. Ignored for OCI registries.
+        format:
+          type: string
+          enum:
+            - gguf
+            - safetensors
+            - onnx
+            - pytorch
+            - tensorrt
+            - unknown
+    ModelsListResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            $ref: "#/components/schemas/Model"
+    AgentModelsListResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            $ref: "#/components/schemas/Model"
+    ModelCreate:
+      type: object
+      required:
+        - name
+        - repo
+        - registryId
+      properties:
+        name:
+          type: string
+        repo:
+          type: string
+        revision:
+          type: string
+        registryId:
+          type: integer
+        files:
+          type: array
+          items:
+            type: string
+        format:
+          type: string
+          enum:
+            - gguf
+            - safetensors
+            - onnx
+            - pytorch
+            - tensorrt
+            - unknown
+    ModelUpdate:
+      type: object
+      properties:
+        repo:
+          type: string
+        revision:
+          type: string
+        registryId:
+          type: integer
+        files:
+          type: array
+          items:
+            type: string
+        format:
+          type: string
+          enum:
+            - gguf
+            - safetensors
+            - onnx
+            - pytorch
+            - tensorrt
+            - unknown
+    Knowledge:
+      type: object
+      properties:
+        uuid:
+          type: string
+        name:
+          type: string
+          description: DNS-1123. Unique on the controller and immutable. Separate namespace from Models.
+        repo:
+          type: string
+          description: Hub dataset id or OCI path without host
+        revision:
+          type: string
+          description: Optional pin. Empty means latest (OCI) or main (HF).
+        registryId:
+          type: integer
+          description: Registry row. Hugging Face uses the dataset API. OCI uses ORAS.
+        files:
+          type: array
+          items:
+            type: string
+          description: Hugging Face only. Empty or omitted means the full dataset. Non-empty files on an OCI registry is rejected.
+        format:
+          type: string
+          description: >-
+            Optional soft hint. Known values persist lowercase: markdown, pdf,
+            jsonl, parquet, arrow, sqlite, faiss, chroma, lance. Any other
+            non-empty string is stored as unknown. Omit, null, or empty stays
+            omitted. Unknown format is not rejected.
+    KnowledgeListResponse:
+      type: object
+      properties:
+        knowledge:
+          type: array
+          items:
+            $ref: "#/components/schemas/Knowledge"
+    AgentKnowledgeListResponse:
+      type: object
+      properties:
+        knowledge:
+          type: array
+          items:
+            $ref: "#/components/schemas/Knowledge"
+    KnowledgeCreate:
+      type: object
+      required:
+        - name
+        - repo
+        - registryId
+      properties:
+        name:
+          type: string
+        repo:
+          type: string
+        revision:
+          type: string
+        registryId:
+          type: integer
+        files:
+          type: array
+          items:
+            type: string
+        format:
+          type: string
+          description: >-
+            Optional soft hint. Known values persist lowercase: markdown, pdf,
+            jsonl, parquet, arrow, sqlite, faiss, chroma, lance. Any other
+            non-empty string is stored as unknown. Omit, null, or empty stays
+            omitted. Unknown format is not rejected.
+    KnowledgeUpdate:
+      type: object
+      properties:
+        repo:
+          type: string
+        revision:
+          type: string
+        registryId:
+          type: integer
+        files:
+          type: array
+          items:
+            type: string
+        format:
+          type: string
+          description: >-
+            Optional soft hint. Known values persist lowercase: markdown, pdf,
+            jsonl, parquet, arrow, sqlite, faiss, chroma, lance. Any other
+            non-empty string is stored as unknown. Omit, null, or empty stays
+            omitted. Unknown format is not rejected.
+    KnowledgeCatalogItem:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Managed fleet Knowledge name. Never uuid or a host path.
+    KnowledgeCatalog:
+      type: object
+      properties:
+        bindPath:
+          type: string
+          description: Required when items is non-empty. A non-empty bindPath requires at least one item. Absolute container path. Projection is {bindPath}/{name}/.
+        permissions:
+          type: string
+          enum:
+            - ro
+            - rw
+          default: ro
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/KnowledgeCatalogItem"
+    RuntimeClass:
+      type: object
+      properties:
+        name:
+          type: string
+        handler:
+          type: string
+    RuntimeClassesListResponse:
+      type: object
+      properties:
+        runtimeClasses:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuntimeClass"
+    AgentRuntimeClassesListResponse:
+      type: object
+      properties:
+        runtimeClasses:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuntimeClass"
+    RuntimeClassCreate:
+      type: object
+      required:
+        - name
+        - handler
+      properties:
+        name:
+          type: string
+        handler:
+          type: string
+    RuntimeClassUpdate:
+      type: object
+      properties:
+        handler:
+          type: string
+    MicroserviceCatalogItem:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Managed fleet model name. Never uuid or a host path.
+    MicroserviceCatalog:
+      type: object
+      properties:
+        bindPath:
+          type: string
+          description: Required when items is non-empty. A non-empty bindPath requires at least one item. Absolute container path.
+        permissions:
+          type: string
+          enum:
+            - ro
+            - rw
+          default: ro
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceCatalogItem"
+    ContainerDevice:
+      type: object
+      required:
+        - hostPath
+        - containerPath
+      properties:
+        hostPath:
+          type: string
+        containerPath:
+          type: string
+        permissions:
+          type: string
+    ContainerTmpfs:
+      type: object
+      required:
+        - containerPath
+      properties:
+        containerPath:
+          type: string
+        size:
+          type: integer
+        mode:
+          type: string
+    MicroserviceTemplateVariable:
+      type: object
+      required:
+        - key
+      properties:
+        key:
+          type: string
+        description:
+          type: string
+        defaultValue: {}
+    MicroserviceTemplate:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        variables:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceTemplateVariable"
+        microservice:
+          type: object
+          description: Microservice spec without instance identity fields.
+    MicroserviceTemplatesListResponse:
+      type: object
+      properties:
+        microserviceTemplates:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceTemplate"
+    MicroserviceTemplateCreate:
+      type: object
+      required:
+        - name
+        - microservice
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        variables:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceTemplateVariable"
+        microservice:
+          type: object
+    MicroserviceTemplateUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+        variables:
+          type: array
+          items:
+            $ref: "#/components/schemas/MicroserviceTemplateVariable"
+        microservice:
+          type: object
+    MicroserviceTemplateRef:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        variables:
+          description: Map of key to value, or array of { key, value }.
+          oneOf:
+            - type: object
+              additionalProperties: true
+            - type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  value: {}
+                required:
+                  - key
     RbacRule:
       type: object
       properties:

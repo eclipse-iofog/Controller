@@ -1,0 +1,1406 @@
+CREATE TABLE IF NOT EXISTS Applications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) UNIQUE,
+    description VARCHAR(255) DEFAULT '',
+    is_activated BOOLEAN DEFAULT false,
+    is_system BOOLEAN DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME,
+    nats_access BOOLEAN DEFAULT false,
+    nats_rule_id INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS Registries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    url VARCHAR(255),
+    is_public BOOLEAN,
+    user_name TEXT,
+    password TEXT,
+    user_email TEXT,
+    type VARCHAR(16) DEFAULT 'oci',
+    ca TEXT,
+    insecure BOOLEAN DEFAULT false
+);
+
+CREATE TABLE IF NOT EXISTS CatalogItems (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) UNIQUE,
+    description VARCHAR(255),
+    category TEXT,
+    config_example VARCHAR(255) DEFAULT '{}',
+    publisher TEXT,
+    disk_required BIGINT DEFAULT 0,
+    ram_required BIGINT DEFAULT 0,
+    picture VARCHAR(255) DEFAULT 'images/shared/default.png',
+    is_public BOOLEAN DEFAULT false,
+    registry_id INT,
+    FOREIGN KEY (registry_id) REFERENCES Registries (id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_catalog_item_registry_id ON CatalogItems (registry_id);
+
+CREATE TABLE IF NOT EXISTS Architectures (
+    id INT PRIMARY KEY,
+    name TEXT,
+    image TEXT,
+    description TEXT,
+    network_catalog_item_id INT,
+    FOREIGN KEY (network_catalog_item_id) REFERENCES CatalogItems (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_architecture_network_catalog_item_id ON Architectures (network_catalog_item_id);
+
+CREATE TABLE IF NOT EXISTS Fogs (
+    uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    name VARCHAR(255) DEFAULT 'Unnamed ioFog 1',
+    location TEXT,
+    gps_mode TEXT,
+    latitude FLOAT,
+    longitude FLOAT,
+    description TEXT,
+    last_active BIGINT,
+    daemon_status VARCHAR(36) DEFAULT 'NOT_PROVISIONED',
+    daemon_operating_duration BIGINT DEFAULT 0,
+    daemon_last_start BIGINT,
+    memory_usage FLOAT DEFAULT 0.000,
+    disk_usage FLOAT DEFAULT 0.000,
+    cpu_usage FLOAT DEFAULT 0.00,
+    memory_violation TEXT,
+    disk_violation TEXT,
+    cpu_violation TEXT,
+    system_available_disk BIGINT,
+    system_available_memory BIGINT,
+    system_total_cpu FLOAT,
+    system_cpus BIGINT,
+    system_total_memory BIGINT,
+    system_total_disk BIGINT,
+    system_os TEXT,
+    system_os_version TEXT,
+    system_kernel_version TEXT,
+    security_status VARCHAR(36) DEFAULT 'OK',
+    security_violation_info VARCHAR(36) DEFAULT 'No violation',
+    catalog_item_status TEXT,
+    repository_count BIGINT DEFAULT 0,
+    repository_status TEXT,
+    system_time BIGINT,
+    last_status_time BIGINT,
+    ip_address VARCHAR(36) DEFAULT '0.0.0.0',
+    ip_address_external VARCHAR(36) DEFAULT '0.0.0.0',
+    host VARCHAR(36),
+    catalog_item_message_counts TEXT,
+    last_command_time BIGINT,
+    network_interface VARCHAR(36) DEFAULT 'dynamic',
+    docker_url VARCHAR(255) DEFAULT 'unix:///run/edgelet/contaienrd.sock',
+    disk_limit FLOAT DEFAULT 50,
+    disk_directory VARCHAR(255) DEFAULT '/var/lib/iofog-agent/',
+    memory_limit FLOAT DEFAULT 4096,
+    cpu_limit FLOAT DEFAULT 80,
+    log_limit FLOAT DEFAULT 10,
+    log_directory VARCHAR(255) DEFAULT '/var/log/iofog-agent/',
+    log_file_count BIGINT DEFAULT 10,
+    `version` TEXT,
+    is_ready_to_upgrade BOOLEAN DEFAULT TRUE,
+    is_ready_to_rollback BOOLEAN DEFAULT FALSE,
+    status_frequency INT DEFAULT 10,
+    change_frequency INT DEFAULT 20,
+    tunnel VARCHAR(255) DEFAULT '',
+    isolated_docker_container BOOLEAN DEFAULT FALSE,
+    docker_pruning_freq INT DEFAULT 0,
+    available_disk_threshold FLOAT DEFAULT 20,
+    log_level VARCHAR(10) DEFAULT 'INFO',
+    is_system BOOLEAN DEFAULT FALSE,
+    router_id INT DEFAULT 0,
+    time_zone VARCHAR(36) DEFAULT 'Etc/UTC',
+    created_at DATETIME,
+    updated_at DATETIME,
+    arch_id INT DEFAULT 0,
+    container_engine VARCHAR(36),
+    deployment_type VARCHAR(36),
+    active_volume_mounts BIGINT DEFAULT 0,
+    volume_mount_last_update BIGINT DEFAULT 0,
+    warning_message TEXT,
+    gps_device VARCHAR(36),
+    gps_scan_frequency INT DEFAULT 60,
+    edge_guard_frequency INT DEFAULT 0,
+    gps_status VARCHAR(32),
+    nats_id INT,
+    available_runtimes TEXT,
+    model_status TEXT,
+    runtime_classes TEXT,
+    available_cdi_devices TEXT,
+    active_models BIGINT DEFAULT 0,
+    model_last_update BIGINT DEFAULT 0,
+    knowledge_status TEXT,
+    active_knowledge BIGINT DEFAULT 0,
+    knowledge_last_update BIGINT DEFAULT 0,
+    FOREIGN KEY (arch_id) REFERENCES Architectures (id)
+);
+
+CREATE INDEX idx_fog_arch_id ON Fogs (arch_id);
+
+CREATE TABLE IF NOT EXISTS ChangeTrackings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    microservice_config BOOLEAN DEFAULT false,
+    reboot BOOLEAN DEFAULT false,
+    deletenode BOOLEAN DEFAULT false,
+    version BOOLEAN DEFAULT false,
+    microservice_list BOOLEAN DEFAULT false,
+    config BOOLEAN DEFAULT false,
+    registries BOOLEAN DEFAULT false,
+    tunnel BOOLEAN DEFAULT false,
+    router_changed BOOLEAN DEFAULT false,
+    prune BOOLEAN DEFAULT false,
+    last_updated VARCHAR(255) DEFAULT false,
+    iofog_uuid VARCHAR(36),
+    volume_mounts BOOLEAN DEFAULT false,
+    exec_sessions BOOLEAN DEFAULT false,
+    microservice_logs BOOLEAN DEFAULT false,
+    fog_logs BOOLEAN DEFAULT false,
+    models BOOLEAN DEFAULT false,
+    runtime_classes BOOLEAN DEFAULT false,
+    microservice_models BOOLEAN DEFAULT false,
+    knowledge BOOLEAN DEFAULT false,
+    microservice_knowledge BOOLEAN DEFAULT false,
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_change_tracking_iofog_uuid ON ChangeTrackings (iofog_uuid);
+
+CREATE TABLE IF NOT EXISTS FogProvisionKeys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    provisioning_string VARCHAR(100),
+    expiration_time BIGINT,
+    iofog_uuid VARCHAR(36),
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_fog_provision_keys_iofogUuid ON FogProvisionKeys (iofog_uuid);
+
+CREATE TABLE IF NOT EXISTS FogVersionCommands (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    version_command VARCHAR(100),
+    semver VARCHAR(100),
+    iofog_uuid VARCHAR(36),
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_fog_version_commands_iofogUuid ON FogVersionCommands (iofog_uuid);
+
+CREATE TABLE IF NOT EXISTS Tunnels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    username TEXT,
+    password TEXT,
+    host TEXT,
+    remote_port INT,
+    local_port INT DEFAULT 22,
+    rsa_key TEXT,
+    closed BOOLEAN DEFAULT false,
+    iofog_uuid VARCHAR(36),
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_tunnels_iofogUuid ON Tunnels (iofog_uuid);
+
+CREATE TABLE IF NOT EXISTS Microservices (
+    uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    config TEXT,
+    name VARCHAR(255) DEFAULT 'New Microservice',
+    config_last_updated BIGINT,
+    rebuild BOOLEAN DEFAULT false,
+    log_size BIGINT DEFAULT 0,
+    `delete` BOOLEAN DEFAULT false,
+    delete_with_cleanup BOOLEAN DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME,
+    catalog_item_id INT,
+    registry_id INT DEFAULT 1,
+    iofog_uuid VARCHAR(36),
+    application_id INT,
+    run_as_user TEXT,
+    platform TEXT,
+    runtime TEXT,
+    annotations TEXT,
+    pid_mode VARCHAR(36),
+    ipc_mode VARCHAR(36),
+    schedule INT DEFAULT 50,
+    cpu_set_cpus TEXT,
+    memory_limit FLOAT,
+    is_activated BOOLEAN DEFAULT true,
+    host_network_mode BOOLEAN DEFAULT false,
+    is_privileged BOOLEAN DEFAULT false,
+    nats_rule_id INTEGER,
+    nats_access BOOLEAN DEFAULT false,
+    nats_account_id INTEGER,
+    nats_user_id INTEGER,
+    nats_creds_secret_name TEXT,
+    is_controller BOOLEAN DEFAULT false,
+    run_as_group TEXT,
+    read_only_root_filesystem BOOLEAN DEFAULT false,
+    working_dir TEXT,
+    cpus FLOAT,
+    memory_reservation FLOAT,
+    memory_swap FLOAT,
+    shm_size FLOAT,
+    sysctls TEXT,
+    FOREIGN KEY (catalog_item_id) REFERENCES CatalogItems (id) ON DELETE CASCADE,
+    FOREIGN KEY (registry_id) REFERENCES Registries (id) ON DELETE SET NULL,
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (application_id) REFERENCES Applications (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservices_catalogItemId ON Microservices (catalog_item_id);
+CREATE INDEX idx_microservices_registryId ON Microservices (registry_id);
+CREATE INDEX idx_microservices_iofogUuid ON Microservices (iofog_uuid);
+CREATE INDEX idx_microservices_applicationId ON Microservices (application_id);
+
+CREATE TABLE IF NOT EXISTS MicroserviceArgs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    cmd TEXT,
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_args_microserviceUuid ON MicroserviceArgs (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceEnvs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    `key` TEXT,
+    `value` TEXT,
+    microservice_uuid VARCHAR(36),
+    value_from_secret TEXT,
+    value_from_config_map TEXT,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_envs_microserviceUuid ON MicroserviceEnvs (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceExtraHost (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    template_type TEXT,
+    name TEXT,
+    template TEXT,
+    `value` TEXT,
+    microservice_uuid VARCHAR(36),
+    target_microservice_uuid VARCHAR(36),
+    target_fog_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (target_microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (target_fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_extra_host_microserviceUuid ON MicroserviceExtraHost (microservice_uuid);
+CREATE INDEX idx_microservice_extra_host_targetMicroserviceUuid ON MicroserviceExtraHost (target_microservice_uuid);
+CREATE INDEX idx_microservice_extra_host_targetFogUuid ON MicroserviceExtraHost (target_fog_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroservicePorts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    port_internal INT,
+    port_external INT,
+    is_udp BOOLEAN,
+    created_at DATETIME,
+    updated_at DATETIME,
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_port_microserviceUuid ON MicroservicePorts (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceStatuses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    status VARCHAR(255) DEFAULT 'QUEUED',
+    operating_duration BIGINT DEFAULT 0,
+    start_time BIGINT DEFAULT 0,
+    cpu_usage FLOAT DEFAULT 0.000,
+    memory_usage BIGINT DEFAULT 0,
+    container_id VARCHAR(255) DEFAULT '',
+    percentage FLOAT DEFAULT 0.00,
+    error_message TEXT,
+    microservice_uuid VARCHAR(36),
+    created_at DATETIME,
+    updated_at DATETIME,
+    ip_address TEXT,
+    exec_session_ids TEXT,
+    health_status TEXT,
+    pod_id TEXT DEFAULT '',
+    last_error TEXT DEFAULT '',
+    last_error_at BIGINT DEFAULT 0,
+    restart_count INTEGER DEFAULT 0,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_status_microserviceUuid ON MicroserviceStatuses (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS VolumeMappings (
+    uuid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    host_destination TEXT,
+    container_destination TEXT,
+    access_mode TEXT,
+    type TEXT,
+    scope TEXT NOT NULL DEFAULT 'private',
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_volume_mappings_microserviceUuid ON VolumeMappings (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS CatalogItemImages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    container_image TEXT,
+    catalog_item_id INT,
+    microservice_uuid VARCHAR(36),
+    arch_id INT,
+    FOREIGN KEY (catalog_item_id) REFERENCES CatalogItems (id) ON DELETE CASCADE,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (arch_id) REFERENCES Architectures (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_catalog_item_image_catalog_item_id ON CatalogItemImages (catalog_item_id);
+CREATE INDEX idx_catalog_item_image_microservice_uuid ON CatalogItemImages (microservice_uuid);
+CREATE INDEX idx_catalog_item_image_arch_id ON CatalogItemImages (arch_id);
+
+CREATE TABLE IF NOT EXISTS CatalogItemInputTypes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    info_type TEXT,
+    info_format TEXT,
+    catalog_item_id INT,
+    FOREIGN KEY (catalog_item_id) REFERENCES CatalogItems (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_catalog_item_input_type_catalog_item_id ON CatalogItemInputTypes (catalog_item_id);
+
+CREATE TABLE IF NOT EXISTS CatalogItemOutputTypes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    info_type TEXT,
+    info_format TEXT,
+    catalog_item_id INT,
+    FOREIGN KEY (catalog_item_id) REFERENCES CatalogItems (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_catalog_item_output_type_catalog_item_id ON CatalogItemOutputTypes (catalog_item_id);
+
+CREATE TABLE IF NOT EXISTS Routers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    is_edge BOOLEAN DEFAULT true,
+    messaging_port INT DEFAULT 5671,
+    edge_router_port INT,
+    inter_router_port INT,
+    host TEXT,
+    is_default BOOLEAN DEFAULT false,
+    iofog_uuid VARCHAR(36),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_router_iofogUuid ON Routers (iofog_uuid);
+
+CREATE TABLE RouterConnections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    source_router INT,
+    dest_router INT,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    FOREIGN KEY (source_router) REFERENCES Routers(id) ON DELETE CASCADE,
+    FOREIGN KEY (dest_router) REFERENCES Routers(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_routerconnections_sourceRouter ON RouterConnections (source_router);
+CREATE INDEX idx_routerconnections_destRouter ON RouterConnections (dest_router);
+
+CREATE TABLE IF NOT EXISTS Config (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    `key` VARCHAR(255) NOT NULL UNIQUE,
+    value VARCHAR(255) NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_config_key ON Config (`key`);
+
+CREATE TABLE IF NOT EXISTS Tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    value VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS IofogTags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    fog_uuid VARCHAR(36),
+    tag_id INT,
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES Tags (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_iofogtags_fog_uuid ON IofogTags (fog_uuid);
+CREATE INDEX idx_iofogtags_tag_id ON IofogTags (tag_id);
+
+CREATE TABLE IF NOT EXISTS ApplicationTemplates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) UNIQUE NOT NULL DEFAULT 'new-application',
+    description VARCHAR(255) DEFAULT '',
+    schema_version VARCHAR(255) DEFAULT '',
+    application_json LONGTEXT,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS ApplicationTemplateVariables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    application_template_id INT NOT NULL,
+    `key` TEXT,
+    description VARCHAR(255) DEFAULT '',
+    default_value VARCHAR(255),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (application_template_id) REFERENCES ApplicationTemplates (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_applicationtemplatevariables_application_template_id ON ApplicationTemplateVariables (application_template_id);
+
+CREATE TABLE IF NOT EXISTS MicroserviceCdiDevices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    cdi_devices TEXT,
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_cdiDevices_microserviceUuid ON MicroserviceCdiDevices (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroservicePubTags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    microservice_uuid VARCHAR(36),
+    tag_id INT,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES Tags (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS MicroserviceSubTags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    microservice_uuid VARCHAR(36),
+    tag_id INT,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES Tags (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservicepubtags_microservice_uuid ON MicroservicePubTags (microservice_uuid);
+CREATE INDEX idx_microservicesubtags_microservice_uuid ON MicroservicesubTags (microservice_uuid);
+CREATE INDEX idx_microservicepubtags_tag_id ON MicroservicePubTags (tag_id);
+CREATE INDEX idx_microservicesubtags_tag_id ON MicroservicesubTags (tag_id);
+
+CREATE TABLE IF NOT EXISTS MicroserviceCapAdd (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    cap_add TEXT,
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_capAdd_microserviceUuid ON MicroserviceCapAdd (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceCapDrop (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    cap_drop TEXT,
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_capDrop_microserviceUuid ON MicroserviceCapDrop (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS FogPublicKeys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    public_key TEXT,
+    iofog_uuid VARCHAR(36),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_fog_public_keys_iofogUuid ON FogPublicKeys (iofog_uuid);
+
+CREATE TABLE IF NOT EXISTS FogUsedTokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    jti VARCHAR(255) NOT NULL,
+    iofog_uuid VARCHAR(36),
+    expiry_time BIGINT NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_fog_used_tokens_iofogUuid ON FogUsedTokens (iofog_uuid);
+
+CREATE TABLE IF NOT EXISTS Secrets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('Opaque', 'tls')),
+    data TEXT NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_secrets_name ON Secrets (name);
+
+CREATE TABLE IF NOT EXISTS Certificates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
+    subject TEXT NOT NULL,
+    is_ca BOOLEAN DEFAULT false,
+    signed_by_id INTEGER,
+    hosts TEXT,
+    valid_from DATETIME NOT NULL,
+    valid_to DATETIME NOT NULL,
+    serial_number TEXT NOT NULL,
+    secret_id INTEGER,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (signed_by_id) REFERENCES Certificates (id) ON DELETE SET NULL,
+    FOREIGN KEY (secret_id) REFERENCES Secrets (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_certificates_name ON Certificates (name);
+CREATE INDEX idx_certificates_valid_to ON Certificates (valid_to);
+CREATE INDEX idx_certificates_is_ca ON Certificates (is_ca);
+CREATE INDEX idx_certificates_signed_by_id ON Certificates (signed_by_id);
+CREATE INDEX idx_certificates_secret_id ON Certificates (secret_id);
+
+CREATE TABLE IF NOT EXISTS Services (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
+    type TEXT NOT NULL,
+    resource TEXT NOT NULL,
+    target_port INTEGER NOT NULL,
+    service_port INTEGER,
+    k8s_type TEXT,
+    bridge_port INTEGER,
+    default_bridge TEXT,
+    service_endpoint TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    provisioning_status VARCHAR(36) DEFAULT 'pending',
+    provisioning_error TEXT
+);
+
+CREATE INDEX idx_services_id ON Services (id);
+CREATE INDEX idx_services_name ON Services (name);
+
+CREATE TABLE IF NOT EXISTS ServiceTags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    service_id INTEGER NOT NULL,
+    tag_id INTEGER NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME,
+  FOREIGN KEY (service_id) REFERENCES Services (id) ON DELETE CASCADE,
+  FOREIGN KEY (tag_id) REFERENCES Tags (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_service_tags_service_id ON ServiceTags (service_id);
+CREATE INDEX idx_service_tags_tag_id ON ServiceTags (tag_id);
+
+CREATE TABLE IF NOT EXISTS ConfigMaps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    immutable BOOLEAN DEFAULT false,
+    data TEXT NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME,
+    use_vault BOOLEAN DEFAULT true
+);
+
+CREATE INDEX idx_config_maps_name ON ConfigMaps (name);
+
+CREATE TABLE IF NOT EXISTS VolumeMounts (
+    uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    config_map_name VARCHAR(255),
+    secret_name VARCHAR(255),
+    version INTEGER DEFAULT 1,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (config_map_name) REFERENCES ConfigMaps (name) ON DELETE CASCADE,
+    FOREIGN KEY (secret_name) REFERENCES Secrets (name) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_volume_mounts_uuid ON VolumeMounts (uuid);
+CREATE INDEX idx_volume_mounts_config_map_name ON VolumeMounts (config_map_name);
+CREATE INDEX idx_volume_mounts_secret_name ON VolumeMounts (secret_name);
+
+CREATE TABLE IF NOT EXISTS FogVolumeMounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    fog_uuid VARCHAR(36),
+    volume_mount_uuid VARCHAR(36),
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (volume_mount_uuid) REFERENCES VolumeMounts (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_fog_volume_mounts_fog_uuid ON FogVolumeMounts (fog_uuid);
+CREATE INDEX idx_fog_volume_mounts_volume_mount_uuid ON FogVolumeMounts (volume_mount_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceExecStatuses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    status VARCHAR(255) DEFAULT 'INACTIVE',
+    exec_session_id VARCHAR(255),
+    microservice_uuid VARCHAR(36),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_exec_status_microservice_uuid ON MicroserviceExecStatuses (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceHealthChecks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    test TEXT,
+    interval FLOAT,
+    timeout FLOAT,
+    start_period FLOAT,
+    start_interval FLOAT,
+    retries INT,
+    microservice_uuid VARCHAR(36),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_health_check_microservice_uuid ON MicroserviceHealthChecks (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS Events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    timestamp BIGINT NOT NULL,
+    event_type VARCHAR(20) NOT NULL,
+    endpoint_type VARCHAR(10) NOT NULL,
+    actor_id VARCHAR(255),
+    method VARCHAR(10),
+    resource_type VARCHAR(50),
+    resource_id VARCHAR(255),
+    endpoint_path TEXT NOT NULL,
+    ip_address VARCHAR(45),
+    status VARCHAR(20) NOT NULL,
+    status_code INTEGER,
+    status_message TEXT,
+    request_id VARCHAR(255),
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_timestamp ON Events (timestamp);
+CREATE INDEX IF NOT EXISTS idx_events_endpoint_type ON Events (endpoint_type);
+CREATE INDEX IF NOT EXISTS idx_events_actor_id ON Events (actor_id);
+CREATE INDEX IF NOT EXISTS idx_events_resource_type ON Events (resource_type);
+CREATE INDEX IF NOT EXISTS idx_events_status ON Events (status);
+CREATE INDEX IF NOT EXISTS idx_events_method ON Events (method);
+CREATE INDEX IF NOT EXISTS idx_events_event_type ON Events (event_type);
+CREATE INDEX IF NOT EXISTS idx_events_created_at ON Events (created_at);
+
+CREATE TABLE IF NOT EXISTS MicroserviceLogStatuses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    microservice_uuid VARCHAR(36),
+    log_session_id TEXT,
+    session_id TEXT UNIQUE NOT NULL,
+    status TEXT,
+    tail_config TEXT,
+    agent_connected BOOLEAN DEFAULT false,
+    user_connected BOOLEAN DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_log_status_microservice_uuid ON MicroserviceLogStatuses (microservice_uuid);
+CREATE INDEX idx_microservice_log_status_session_id ON MicroserviceLogStatuses (session_id);
+
+CREATE TABLE IF NOT EXISTS MicroserviceExecSessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    microservice_uuid VARCHAR(36) NOT NULL,
+    session_id TEXT UNIQUE NOT NULL,
+    status TEXT,
+    user_connected BOOLEAN DEFAULT false,
+    agent_connected BOOLEAN DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_microservice_exec_sessions_microservice_uuid ON MicroserviceExecSessions (microservice_uuid);
+CREATE INDEX idx_microservice_exec_sessions_session_id ON MicroserviceExecSessions (session_id);
+
+CREATE TABLE IF NOT EXISTS FogLogStatuses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    iofog_uuid VARCHAR(36),
+    log_session_id TEXT,
+    session_id TEXT UNIQUE NOT NULL,
+    status TEXT,
+    tail_config TEXT,
+    agent_connected BOOLEAN DEFAULT false,
+    user_connected BOOLEAN DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_fog_log_status_iofog_uuid ON FogLogStatuses (iofog_uuid);
+CREATE INDEX idx_fog_log_status_session_id ON FogLogStatuses (session_id);
+
+CREATE TABLE IF NOT EXISTS RbacRoles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
+    kind TEXT,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS RbacRoleRules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    role_id INTEGER NOT NULL,
+    api_groups TEXT NOT NULL,
+    resources TEXT NOT NULL,
+    verbs TEXT NOT NULL,
+    resource_names TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (role_id) REFERENCES RbacRoles (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS RbacRoleBindings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
+    kind TEXT,
+    role_ref TEXT NOT NULL,
+    subjects TEXT NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME,
+    role_id INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS RbacServiceAccounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL,
+    role_ref TEXT,
+    role_id INTEGER,
+    microservice_uuid VARCHAR(36),
+    application_id INTEGER,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_rbac_role_rules_role_id ON RbacRoleRules (role_id);
+CREATE INDEX idx_rbac_roles_name ON RbacRoles (name);
+CREATE INDEX idx_rbac_role_bindings_name ON RbacRoleBindings (name);
+CREATE INDEX idx_rbac_service_accounts_name ON RbacServiceAccounts (name);
+
+CREATE TABLE IF NOT EXISTS RbacCacheVersion (
+    id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    version INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_rbac_role_bindings_role_id ON RbacRoleBindings (role_id);
+
+CREATE INDEX idx_rbac_service_accounts_role_id ON RbacServiceAccounts (role_id);
+CREATE UNIQUE INDEX idx_rbac_service_accounts_microservice_uuid_unique ON RbacServiceAccounts (microservice_uuid) WHERE microservice_uuid IS NOT NULL;
+CREATE UNIQUE INDEX idx_rbac_service_accounts_application_id_name_unique ON RbacServiceAccounts (application_id, name);
+
+CREATE TABLE IF NOT EXISTS ClusterControllers (
+    uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    host VARCHAR(255),
+    process_id INTEGER,
+    last_heartbeat DATETIME,
+    is_active BOOLEAN DEFAULT true,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_cluster_controllers_uuid ON ClusterControllers (uuid);
+CREATE INDEX idx_cluster_controllers_host ON ClusterControllers (host);
+CREATE INDEX idx_cluster_controllers_active ON ClusterControllers (is_active, last_heartbeat);
+
+CREATE TABLE IF NOT EXISTS NatsOperators (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
+    public_key TEXT NOT NULL,
+    jwt TEXT NOT NULL,
+    seed_secret_name TEXT NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS NatsAccounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL,
+    public_key TEXT NOT NULL,
+    jwt TEXT NOT NULL,
+    seed_secret_name TEXT NOT NULL,
+    is_system BOOLEAN DEFAULT false,
+    is_leaf_system BOOLEAN DEFAULT false,
+    operator_id INTEGER NOT NULL,
+    application_id INTEGER,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (operator_id) REFERENCES NatsOperators (id) ON DELETE CASCADE,
+    FOREIGN KEY (application_id) REFERENCES Applications (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS NatsUsers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL,
+    public_key TEXT NOT NULL,
+    jwt TEXT NOT NULL,
+    creds_secret_name TEXT NOT NULL,
+    is_bearer BOOLEAN DEFAULT false,
+    account_id INTEGER NOT NULL,
+    microservice_uuid VARCHAR(36),
+    created_at DATETIME,
+    updated_at DATETIME,
+    nats_user_rule_id INTEGER,
+    FOREIGN KEY (account_id) REFERENCES NatsAccounts (id) ON DELETE CASCADE,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS NatsInstances (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    iofog_uuid VARCHAR(36),
+    is_leaf BOOLEAN DEFAULT true,
+    is_hub BOOLEAN DEFAULT false,
+    host TEXT,
+    server_port INTEGER,
+    leaf_port INTEGER,
+    cluster_port INTEGER,
+    mqtt_port INTEGER,
+    http_port INTEGER,
+    configmap_name TEXT,
+    jwt_dir_mount_name TEXT,
+    cert_secret_name TEXT,
+    js_storage_size TEXT,
+    js_memory_store_size TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (iofog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS NatsConnections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    source_nats INTEGER NOT NULL,
+    dest_nats INTEGER NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (source_nats) REFERENCES NatsInstances (id) ON DELETE CASCADE,
+    FOREIGN KEY (dest_nats) REFERENCES NatsInstances (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS NatsReconcileTasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    reason TEXT NOT NULL,
+    application_id INTEGER,
+    account_rule_id INTEGER,
+    user_rule_id INTEGER,
+    fog_uuids TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    leader_uuid VARCHAR(36),
+    claimed_at DATETIME,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS NatsAccountRules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    info_url TEXT,
+    max_connections INTEGER,
+    max_leaf_node_connections INTEGER,
+    max_data BIGINT,
+    max_exports INTEGER,
+    max_imports INTEGER,
+    max_msg_payload INTEGER,
+    max_subscriptions INTEGER,
+    exports_allow_wildcards BOOLEAN DEFAULT true,
+    disallow_bearer BOOLEAN,
+    response_permissions TEXT,
+    resp_max INTEGER,
+    resp_ttl BIGINT,
+    imports TEXT,
+    exports TEXT,
+    mem_storage BIGINT,
+    disk_storage BIGINT,
+    streams INTEGER,
+    consumer INTEGER,
+    max_ack_pending INTEGER,
+    mem_max_stream_bytes BIGINT,
+    disk_max_stream_bytes BIGINT,
+    max_bytes_required BOOLEAN,
+    tiered_limits TEXT,
+    pub_allow TEXT,
+    pub_deny TEXT,
+    sub_allow TEXT,
+    sub_deny TEXT,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS NatsUserRules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    max_subscriptions INTEGER,
+    max_payload INTEGER,
+    max_data BIGINT,
+    bearer_token BOOLEAN DEFAULT false,
+    proxy_required BOOLEAN,
+    allowed_connection_types TEXT,
+    src TEXT,
+    times TEXT,
+    times_location TEXT,
+    resp_max INTEGER,
+    resp_ttl BIGINT,
+    pub_allow TEXT,
+    pub_deny TEXT,
+    sub_allow TEXT,
+    sub_deny TEXT,
+    tags TEXT,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE UNIQUE INDEX idx_nats_accounts_application_id_unique ON NatsAccounts (application_id) WHERE application_id IS NOT NULL;
+CREATE INDEX idx_nats_accounts_application_id ON NatsAccounts (application_id);
+CREATE UNIQUE INDEX idx_nats_users_account_id_name ON NatsUsers (account_id, name);
+CREATE INDEX idx_nats_users_account_id ON NatsUsers (account_id);
+CREATE INDEX idx_nats_users_microservice_uuid ON NatsUsers (microservice_uuid);
+CREATE INDEX idx_nats_users_nats_user_rule_id ON NatsUsers (nats_user_rule_id);
+CREATE UNIQUE INDEX idx_nats_instances_iofog_uuid_unique ON NatsInstances (iofog_uuid);
+CREATE INDEX idx_nats_instances_iofog_uuid ON NatsInstances (iofog_uuid);
+CREATE UNIQUE INDEX idx_nats_connections_source_dest_unique ON NatsConnections (source_nats, dest_nats);
+CREATE INDEX idx_nats_connections_source_nats ON NatsConnections (source_nats);
+CREATE INDEX idx_nats_connections_dest_nats ON NatsConnections (dest_nats);
+CREATE INDEX idx_nats_account_rules_name ON NatsAccountRules (name);
+CREATE INDEX idx_nats_user_rules_name ON NatsUserRules (name);
+CREATE INDEX idx_nats_reconcile_tasks_status_claimed ON NatsReconcileTasks (status, claimed_at);
+
+CREATE INDEX idx_applications_nats_rule_id ON Applications (nats_rule_id);
+CREATE INDEX idx_microservices_nats_rule_id ON Microservices (nats_rule_id);
+CREATE INDEX idx_microservices_nats_account_id ON Microservices (nats_account_id);
+CREATE INDEX idx_microservices_nats_user_id ON Microservices (nats_user_id);
+
+CREATE TABLE IF NOT EXISTS AuthUsers (
+    id VARCHAR(36) PRIMARY KEY NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    password_history_hashes TEXT,
+    must_change_password BOOLEAN DEFAULT false,
+    is_bootstrap BOOLEAN DEFAULT false,
+    failed_attempts INT DEFAULT 0,
+    locked_until DATETIME,
+    deleted_at DATETIME,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_auth_users_email ON AuthUsers (email);
+CREATE INDEX idx_auth_users_deleted_at ON AuthUsers (deleted_at);
+
+CREATE TABLE IF NOT EXISTS AuthGroups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    is_system BOOLEAN DEFAULT false,
+    mfa_required BOOLEAN NOT NULL DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS AuthUserGroups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    group_id INT NOT NULL,
+    created_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES AuthUsers (id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES AuthGroups (id) ON DELETE CASCADE,
+    UNIQUE (user_id, group_id)
+);
+
+CREATE INDEX idx_auth_user_groups_user_id ON AuthUserGroups (user_id);
+CREATE INDEX idx_auth_user_groups_group_id ON AuthUserGroups (group_id);
+
+CREATE TABLE IF NOT EXISTS AuthMfa (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    user_id VARCHAR(36) NOT NULL UNIQUE,
+    totp_secret_encrypted TEXT,
+    enabled BOOLEAN DEFAULT false,
+    recovery_codes_hash TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES AuthUsers (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_auth_mfa_user_id ON AuthMfa (user_id);
+
+CREATE TABLE IF NOT EXISTS AuthPasswordResetSessions (
+    id VARCHAR(36) PRIMARY KEY NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES AuthUsers (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_auth_password_reset_sessions_user_id ON AuthPasswordResetSessions (user_id);
+CREATE INDEX idx_auth_password_reset_sessions_expires_at ON AuthPasswordResetSessions (expires_at);
+
+CREATE TABLE IF NOT EXISTS AuthRefreshTokens (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    token_hash VARCHAR(255) NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    family_id VARCHAR(36) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    revoked BOOLEAN DEFAULT false,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (user_id) REFERENCES AuthUsers (id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_auth_refresh_tokens_token_hash ON AuthRefreshTokens (token_hash);
+CREATE INDEX idx_auth_refresh_tokens_user_id ON AuthRefreshTokens (user_id);
+CREATE INDEX idx_auth_refresh_tokens_family_id ON AuthRefreshTokens (family_id);
+CREATE INDEX idx_auth_refresh_tokens_expires_at ON AuthRefreshTokens (expires_at);
+
+CREATE TABLE IF NOT EXISTS AuthOidcKeys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    kid VARCHAR(255) NOT NULL UNIQUE,
+    key_material_encrypted TEXT,
+    vault_ref TEXT,
+    active BOOLEAN DEFAULT true,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_auth_oidc_keys_active ON AuthOidcKeys (active);
+
+CREATE TABLE IF NOT EXISTS AuthOidcClients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    client_id VARCHAR(255) NOT NULL UNIQUE,
+    secret_ref TEXT,
+    client_type VARCHAR(32) NOT NULL DEFAULT 'confidential',
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS AuthOidcProviderStates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    model VARCHAR(64) NOT NULL,
+    record_id VARCHAR(255) NOT NULL,
+    payload TEXT NOT NULL,
+    expires_at DATETIME,
+    grant_id VARCHAR(255),
+    uid VARCHAR(255),
+    user_code VARCHAR(255),
+    consumed BOOLEAN DEFAULT false,
+    consumed_at DATETIME,
+    created_at DATETIME,
+    updated_at DATETIME,
+    UNIQUE (model, record_id)
+);
+
+CREATE INDEX idx_auth_oidc_provider_states_grant_id ON AuthOidcProviderStates (grant_id);
+CREATE INDEX idx_auth_oidc_provider_states_uid ON AuthOidcProviderStates (uid);
+CREATE INDEX idx_auth_oidc_provider_states_user_code ON AuthOidcProviderStates (user_code);
+CREATE INDEX idx_auth_oidc_provider_states_expires_at ON AuthOidcProviderStates (expires_at);
+
+CREATE TABLE IF NOT EXISTS AuthBffSessions (
+    sid VARCHAR(255) PRIMARY KEY NOT NULL,
+    data TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_auth_bff_sessions_expires_at ON AuthBffSessions (expires_at);
+
+CREATE TABLE IF NOT EXISTS AuthInteractionStates (
+    uid VARCHAR(255) PRIMARY KEY NOT NULL,
+    payload TEXT NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE INDEX idx_auth_interaction_states_expires_at ON AuthInteractionStates (expires_at);
+
+CREATE TABLE IF NOT EXISTS AuthBootstrapMeta (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    completed_at DATETIME,
+    bootstrap_admin_user_id VARCHAR(36),
+    session_secret_ref TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (bootstrap_admin_user_id) REFERENCES AuthUsers (id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS AuthPolicy (
+    id INT PRIMARY KEY NOT NULL CHECK (id = 1),
+    min_password_length INT DEFAULT 12,
+    require_uppercase BOOLEAN DEFAULT true,
+    require_lowercase BOOLEAN DEFAULT true,
+    require_digit BOOLEAN DEFAULT true,
+    password_max_age_days INT DEFAULT 0,
+    password_history_count INT DEFAULT 5,
+    max_failed_attempts INT DEFAULT 5,
+    lockout_duration_minutes INT DEFAULT 15,
+    access_token_ttl_seconds INT DEFAULT 900,
+    refresh_token_ttl_seconds INT DEFAULT 3600,
+    refresh_rotation BOOLEAN DEFAULT true,
+    max_concurrent_sessions INT,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS FogPlatformSpecs (
+    fog_uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    spec_json TEXT NOT NULL,
+    generation INTEGER NOT NULL DEFAULT 1,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS FogPlatformStatuses (
+    fog_uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    observed_generation INTEGER NOT NULL DEFAULT 0,
+    phase VARCHAR(32) NOT NULL DEFAULT 'Pending',
+    last_error TEXT,
+    last_transition_at DATETIME,
+    conditions_json TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS FogPlatformReconcileTasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    fog_uuid VARCHAR(36) NOT NULL,
+    reason VARCHAR(64) NOT NULL,
+    spec_generation INTEGER,
+    status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    leader_uuid VARCHAR(36),
+    claimed_at DATETIME,
+    next_attempt_at DATETIME,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX idx_fog_platform_reconcile_tasks_active_fog_uuid ON FogPlatformReconcileTasks (fog_uuid) WHERE status IN ('pending', 'in_progress');
+CREATE INDEX idx_fog_platform_reconcile_tasks_status_claimed ON FogPlatformReconcileTasks (status, claimed_at);
+CREATE INDEX idx_fog_platform_reconcile_tasks_next_attempt ON FogPlatformReconcileTasks (next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS ServicePlatformReconcileTasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    service_name TEXT NOT NULL,
+    reason VARCHAR(64) NOT NULL,
+    spec_snapshot TEXT,
+    status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    leader_uuid VARCHAR(36),
+    claimed_at DATETIME,
+    next_attempt_at DATETIME,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    last_error TEXT,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE UNIQUE INDEX idx_service_platform_reconcile_tasks_active_service_name ON ServicePlatformReconcileTasks (service_name) WHERE status IN ('pending', 'in_progress');
+CREATE INDEX idx_service_platform_reconcile_tasks_status_claimed ON ServicePlatformReconcileTasks (status, claimed_at);
+CREATE INDEX idx_service_platform_reconcile_tasks_next_attempt ON ServicePlatformReconcileTasks (next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS ReconcileOutbox (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    kind VARCHAR(32) NOT NULL,
+    payload TEXT NOT NULL,
+    idempotency_key VARCHAR(255) NOT NULL UNIQUE,
+    created_at DATETIME,
+    processed_at DATETIME,
+    last_error TEXT
+);
+
+CREATE INDEX idx_reconcile_outbox_unprocessed ON ReconcileOutbox (processed_at, id);
+
+CREATE TABLE IF NOT EXISTS HubRouterConfigLocks (
+    id INTEGER PRIMARY KEY NOT NULL CHECK (id = 1),
+    leader_uuid VARCHAR(36),
+    claimed_at DATETIME,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+CREATE INDEX IF NOT EXISTS idx_registries_url_type ON Registries (url, type);
+
+CREATE TABLE IF NOT EXISTS Models (
+    uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    repo TEXT,
+    revision TEXT,
+    registry_id INT,
+    files TEXT,
+    format VARCHAR(255),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (registry_id) REFERENCES Registries (id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_models_registry_id ON Models (registry_id);
+CREATE INDEX IF NOT EXISTS idx_models_name ON Models (name);
+
+CREATE TABLE IF NOT EXISTS RuntimeClasses (
+    name VARCHAR(255) PRIMARY KEY NOT NULL,
+    handler VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS FogModels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    fog_uuid VARCHAR(36),
+    model_uuid VARCHAR(36),
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (model_uuid) REFERENCES Models (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_fog_models_fog_uuid ON FogModels (fog_uuid);
+CREATE INDEX IF NOT EXISTS idx_fog_models_model_uuid ON FogModels (model_uuid);
+
+CREATE TABLE IF NOT EXISTS FogRuntimeClasses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    fog_uuid VARCHAR(36),
+    runtime_class_name VARCHAR(255),
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (runtime_class_name) REFERENCES RuntimeClasses (name) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_fog_runtime_classes_fog_uuid ON FogRuntimeClasses (fog_uuid);
+CREATE INDEX IF NOT EXISTS idx_fog_runtime_classes_runtime_class_name ON FogRuntimeClasses (runtime_class_name);
+
+CREATE TABLE IF NOT EXISTS MicroserviceTemplates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT DEFAULT '',
+    microservice_json TEXT,
+    created_at DATETIME,
+    updated_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS MicroserviceTemplateVariables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    microservice_template_id INT NOT NULL,
+    `key` TEXT,
+    description TEXT DEFAULT '',
+    default_value TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (microservice_template_id) REFERENCES MicroserviceTemplates (id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_microservicetemplatevariables_microservice_template_id ON MicroserviceTemplateVariables (microservice_template_id);
+
+CREATE TABLE IF NOT EXISTS MicroserviceEntrypoints (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    entrypoint TEXT,
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_microservice_entrypoints_microserviceUuid ON MicroserviceEntrypoints (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceDevices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    host_path TEXT,
+    container_path TEXT,
+    permissions TEXT,
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_microservice_devices_microserviceUuid ON MicroserviceDevices (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceTmpfs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    container_path TEXT,
+    size FLOAT,
+    mode TEXT,
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_microservice_tmpfs_microserviceUuid ON MicroserviceTmpfs (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceUlimits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL,
+    soft FLOAT,
+    hard FLOAT,
+    microservice_uuid VARCHAR(36),
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    UNIQUE (microservice_uuid, name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_microservice_ulimits_microserviceUuid ON MicroserviceUlimits (microservice_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceModels (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    bind_path TEXT,
+    permissions TEXT,
+    microservice_uuid VARCHAR(36) NOT NULL UNIQUE,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS MicroserviceModelItems (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    microservice_uuid VARCHAR(36) NOT NULL,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (name) REFERENCES Models (name) ON DELETE RESTRICT,
+    UNIQUE (microservice_uuid, name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_microservice_model_items_microserviceUuid ON MicroserviceModelItems (microservice_uuid);
+CREATE INDEX IF NOT EXISTS idx_microservice_model_items_name ON MicroserviceModelItems (name);
+
+CREATE TABLE IF NOT EXISTS Knowledge (
+    uuid VARCHAR(36) PRIMARY KEY NOT NULL,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    repo TEXT,
+    revision TEXT,
+    registry_id INT,
+    files TEXT,
+    format VARCHAR(255),
+    created_at DATETIME,
+    updated_at DATETIME,
+    FOREIGN KEY (registry_id) REFERENCES Registries (id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_registry_id ON Knowledge (registry_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_name ON Knowledge (name);
+
+CREATE TABLE IF NOT EXISTS FogKnowledge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    fog_uuid VARCHAR(36),
+    knowledge_uuid VARCHAR(36),
+    FOREIGN KEY (fog_uuid) REFERENCES Fogs (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (knowledge_uuid) REFERENCES Knowledge (uuid) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_fog_knowledge_fog_uuid ON FogKnowledge (fog_uuid);
+CREATE INDEX IF NOT EXISTS idx_fog_knowledge_knowledge_uuid ON FogKnowledge (knowledge_uuid);
+
+CREATE TABLE IF NOT EXISTS MicroserviceKnowledge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    bind_path TEXT,
+    permissions TEXT,
+    microservice_uuid VARCHAR(36) NOT NULL UNIQUE,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS MicroserviceKnowledgeItems (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    microservice_uuid VARCHAR(36) NOT NULL,
+    FOREIGN KEY (microservice_uuid) REFERENCES Microservices (uuid) ON DELETE CASCADE,
+    FOREIGN KEY (name) REFERENCES Knowledge (name) ON DELETE RESTRICT,
+    UNIQUE (microservice_uuid, name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_microservice_knowledge_items_microserviceUuid ON MicroserviceKnowledgeItems (microservice_uuid);
+CREATE INDEX IF NOT EXISTS idx_microservice_knowledge_items_name ON MicroserviceKnowledgeItems (name);

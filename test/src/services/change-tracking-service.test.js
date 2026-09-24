@@ -198,4 +198,20 @@ describe('ChangeTracking Service', () => {
       })
     })
   })
+
+  describe('events', () => {
+    it('includes additive model and runtime class flags', () => {
+      expect(ChangeTrackingService.events.clean.models).to.equal(false)
+      expect(ChangeTrackingService.events.clean.runtimeClasses).to.equal(false)
+      expect(ChangeTrackingService.events.clean.microserviceModels).to.equal(false)
+      expect(ChangeTrackingService.events.clean.knowledge).to.equal(false)
+      expect(ChangeTrackingService.events.clean.microserviceKnowledge).to.equal(false)
+      expect(ChangeTrackingService.events.models).to.eql({ models: true })
+      expect(ChangeTrackingService.events.runtimeClasses).to.eql({ runtimeClasses: true })
+      expect(ChangeTrackingService.events.microserviceModels).to.eql({ microserviceModels: true })
+      expect(ChangeTrackingService.events.knowledge).to.eql({ knowledge: true })
+      expect(ChangeTrackingService.events.microserviceKnowledge).to.eql({ microserviceKnowledge: true })
+      expect(ChangeTrackingService.events.prune).to.eql({ prune: true })
+    })
+  })
 })

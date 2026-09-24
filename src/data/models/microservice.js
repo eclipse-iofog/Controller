@@ -138,6 +138,41 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       field: 'is_controller',
       defaultValue: false
+    },
+    runAsGroup: {
+      type: DataTypes.TEXT,
+      field: 'run_as_group',
+      defaultValue: ''
+    },
+    readOnlyRootFilesystem: {
+      type: DataTypes.BOOLEAN,
+      field: 'read_only_root_filesystem',
+      defaultValue: false
+    },
+    workingDir: {
+      type: DataTypes.TEXT,
+      field: 'working_dir',
+      defaultValue: ''
+    },
+    cpus: {
+      type: DataTypes.FLOAT,
+      field: 'cpus'
+    },
+    memoryReservation: {
+      type: DataTypes.FLOAT,
+      field: 'memory_reservation'
+    },
+    memorySwap: {
+      type: DataTypes.FLOAT,
+      field: 'memory_swap'
+    },
+    shmSize: {
+      type: DataTypes.FLOAT,
+      field: 'shm_size'
+    },
+    sysctls: {
+      type: DataTypes.TEXT,
+      field: 'sysctls'
     }
   }, {
     tableName: 'Microservices',
@@ -225,6 +260,46 @@ module.exports = (sequelize, DataTypes) => {
     Microservice.hasMany(models.MicroserviceArg, {
       foreignKey: 'microservice_uuid',
       as: 'cmd'
+    })
+
+    Microservice.hasMany(models.MicroserviceEntrypoint, {
+      foreignKey: 'microservice_uuid',
+      as: 'entrypoint'
+    })
+
+    Microservice.hasMany(models.MicroserviceDevice, {
+      foreignKey: 'microservice_uuid',
+      as: 'devices'
+    })
+
+    Microservice.hasMany(models.MicroserviceTmpfs, {
+      foreignKey: 'microservice_uuid',
+      as: 'tmpfs'
+    })
+
+    Microservice.hasMany(models.MicroserviceUlimit, {
+      foreignKey: 'microservice_uuid',
+      as: 'ulimits'
+    })
+
+    Microservice.hasOne(models.MicroserviceModel, {
+      foreignKey: 'microservice_uuid',
+      as: 'microserviceModel'
+    })
+
+    Microservice.hasMany(models.MicroserviceModelItem, {
+      foreignKey: 'microservice_uuid',
+      as: 'modelItems'
+    })
+
+    Microservice.hasOne(models.MicroserviceKnowledge, {
+      foreignKey: 'microservice_uuid',
+      as: 'microserviceKnowledge'
+    })
+
+    Microservice.hasMany(models.MicroserviceKnowledgeItem, {
+      foreignKey: 'microservice_uuid',
+      as: 'knowledgeItems'
     })
 
     Microservice.hasMany(models.MicroserviceCdiDev, {

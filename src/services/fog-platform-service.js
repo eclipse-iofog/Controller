@@ -45,10 +45,6 @@ function buildFogDataFromSpecAndFog (fog, spec) {
     jsMemoryStoreSize: spec.jsMemoryStoreSize,
     networkRouter: spec.networkRouter,
     containerEngine: spec.containerEngine || fog.containerEngine,
-    bluetoothEnabled: spec.bluetoothEnabled != null ? spec.bluetoothEnabled : fog.bluetoothEnabled,
-    abstractedHardwareEnabled: spec.abstractedHardwareEnabled != null
-      ? spec.abstractedHardwareEnabled
-      : fog.abstractedHardwareEnabled,
     tags: fogTags.length > 0 ? fogTags : specTags
   }
 }
@@ -387,22 +383,6 @@ async function reconcileFogPlatform (fogUuid, prep, transaction) {
 
   if (spec.host && spec.host !== fog.host) {
     await IofogService._updateMicroserviceExtraHosts(fogUuid, spec.host, transaction)
-  }
-
-  if (fog.abstractedHardwareEnabled === true && spec.abstractedHardwareEnabled === false) {
-    await IofogService._deleteHalMicroserviceByFog(fogData, transaction)
-    await ChangeTrackingService.update(fogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
-  } else if (fog.abstractedHardwareEnabled === false && spec.abstractedHardwareEnabled === true) {
-    await IofogService._createHalMicroserviceForFog(fogData, fog, transaction)
-    await ChangeTrackingService.update(fogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
-  }
-
-  if (fog.bluetoothEnabled === true && spec.bluetoothEnabled === false) {
-    await IofogService._deleteBluetoothMicroserviceByFog(fogData, transaction)
-    await ChangeTrackingService.update(fogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
-  } else if (fog.bluetoothEnabled === false && spec.bluetoothEnabled === true) {
-    await IofogService._createBluetoothMicroserviceForFog(fogData, fog, transaction)
-    await ChangeTrackingService.update(fogUuid, ChangeTrackingService.events.microserviceCommon, transaction)
   }
 
   if (prep.isFirstReconcile) {

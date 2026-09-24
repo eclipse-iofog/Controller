@@ -157,24 +157,6 @@ async function getDebugCatalogItem (transaction) {
   }, transaction)
 }
 
-async function getBluetoothCatalogItem (transaction) {
-  return CatalogItemManager.findOne({
-    name: 'RESTBlue',
-    category: 'SYSTEM',
-    publisher: 'Eclipse ioFog',
-    registry_id: 1
-  }, transaction)
-}
-
-async function getHalCatalogItem (transaction) {
-  return CatalogItemManager.findOne({
-    name: 'HAL',
-    category: 'SYSTEM',
-    publisher: 'Eclipse ioFog',
-    registry_id: 1
-  }, transaction)
-}
-
 const _checkForDuplicateName = async function (name, item, transaction) {
   if (name) {
     const where = (item && item.id)
@@ -371,8 +353,6 @@ module.exports = {
   getCatalogItem,
   getSystemCatalogItem,
   getNatsCatalogItem,
-  getBluetoothCatalogItem,
-  getHalCatalogItem,
   getRouterCatalogItem,
   getDebugCatalogItem
 }

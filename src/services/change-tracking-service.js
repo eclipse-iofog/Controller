@@ -16,15 +16,22 @@ const events = Object.freeze({
     prune: false,
     routerChanged: false,
     volumeMounts: false,
-    execSessions: false
+    execSessions: false,
+    models: false,
+    runtimeClasses: false,
+    microserviceModels: false,
+    knowledge: false,
+    microserviceKnowledge: false
   },
   microserviceFull: {
     microserviceConfig: true,
-    microserviceList: true
+    microserviceList: true,
+    microserviceModels: true
   },
   microserviceCommon: {
     microserviceConfig: true,
-    microserviceList: true
+    microserviceList: true,
+    microserviceModels: true
   },
   microserviceList: {
     microserviceList: true
@@ -67,6 +74,21 @@ const events = Object.freeze({
   },
   fogLogs: {
     fogLogs: true
+  },
+  models: {
+    models: true
+  },
+  runtimeClasses: {
+    runtimeClasses: true
+  },
+  microserviceModels: {
+    microserviceModels: true
+  },
+  knowledge: {
+    knowledge: true
+  },
+  microserviceKnowledge: {
+    microserviceKnowledge: true
   }
 })
 

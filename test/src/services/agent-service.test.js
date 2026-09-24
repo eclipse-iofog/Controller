@@ -18,8 +18,6 @@ const RegistryManager = require('../../../src/data/managers/registry-manager')
 const TunnelManager = require('../../../src/data/managers/tunnel-manager')
 const ioFogVersionCommandManager = require('../../../src/data/managers/iofog-version-command-manager')
 const ioFogProvisionKeyManager = require('../../../src/data/managers/iofog-provision-key-manager')
-const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
-const USBInfoManager = require('../../../src/data/managers/usb-info-manager')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
 const path = require('path')
@@ -28,6 +26,7 @@ const FogStates = require('../../../src/enums/fog-state')
 const constants = require('../../../src/helpers/constants')
 const config = require('../../../src/config')
 const Errors = require('../../../src/helpers/errors')
+const logger = require('../../../src/logger')
 
 global.appRoot = path.resolve(__dirname)
 
@@ -450,7 +449,6 @@ describe('Agent Service', () => {
       logFileCount: agentConfig.logFileCount,
       statusFrequency: agentConfig.statusFrequency,
       changeFrequency: agentConfig.changeFrequency,
-      deviceScanFrequency: agentConfig.deviceScanFrequency,
       watchdogEnabled: agentConfig.watchdogEnabled,
       latitude: agentConfig.latitude,
       longitude: agentConfig.longitude,
@@ -486,6 +484,7 @@ describe('Agent Service', () => {
           expect(ioFogManager.update).to.have.been.calledWith({
             uuid: $uuid,
           }, expectedFogUpdate, transaction)
+          expect(expectedFogUpdate).to.not.have.property('deviceScanFrequency')
         })
 
         context('when ioFogManager#update fails', () => {
@@ -507,21 +506,51 @@ describe('Agent Service', () => {
     })
   })
 
-  describe('.getAgentConfigChanges()', () => {
-    const configChanges = {
-      config: undefined,
-      version: undefined,
-      reboot: undefined,
-      deleteNode: undefined,
-      microserviceList: undefined,
-      microserviceConfig: undefined,
-      routing: undefined,
-      registries: undefined,
-      tunnel: undefined,
-      routerChanged: undefined,
-      prune: undefined,
+  describe('.getAgentConfig()', () => {
+    const transaction = {}
+    const fogData = {
+      networkInterface: 'eth0',
+      containerEngineUrl: 'unix:///run/edgelet/containerd.sock',
+      diskLimit: 50,
+      diskDirectory: '/var/lib/iofog/',
+      memoryLimit: 4096,
+      cpuLimit: 80,
+      logLimit: 10,
+      logDirectory: '/var/log/iofog/',
+      logFileCount: 10,
+      gpsMode: 'auto',
+      gpsDevice: '',
+      gpsScanFrequency: 60,
+      edgeGuardFrequency: 0,
+      statusFrequency: 10,
+      changeFrequency: 20,
+      watchdogEnabled: false,
+      latitude: 0,
+      longitude: 0,
+      logLevel: 'INFO',
+      availableDiskThreshold: 20,
+      pruningFrequency: 0,
+      timeZone: 'UTC',
+      deviceScanFrequency: 50,
     }
 
+    def('uuid', () => 'testUuid')
+    def('fog', () => ({ uuid: $uuid }))
+    def('subject', () => $subject.getAgentConfig($fog, transaction))
+
+    beforeEach(() => {
+      $sandbox.stub(ioFogManager, 'findOne').resolves(fogData)
+    })
+
+    it('omits deviceScanFrequency from the agent config payload', async () => {
+      const result = await $subject
+      expect(result).to.not.have.property('deviceScanFrequency')
+      expect(result.statusFrequency).to.equal(fogData.statusFrequency)
+      expect(result.edgeGuardFrequency).to.equal(fogData.edgeGuardFrequency)
+    })
+  })
+
+  describe('.getAgentConfigChanges()', () => {
     const transaction = {}
     const error = 'Error!'
 
@@ -535,7 +564,7 @@ describe('Agent Service', () => {
 
     def('subject', () => $subject.getAgentConfigChanges($fog, transaction))
 
-    def('getByFogIdResponse', () => 'getByFogIdResponse')
+    def('getByFogIdResponse', () => [])
     def('updateIfChangedResponse', () => Promise.resolve())
 
     beforeEach(() => {
@@ -546,6 +575,16 @@ describe('Agent Service', () => {
     it('calls ChangeTrackingService#getByIoFogUuid() with correct args', async () => {
       await $subject
       expect(ChangeTrackingService.getByIoFogUuid).to.have.been.calledWith($uuid, transaction)
+    })
+
+    it('includes additive change flags as false by default', async () => {
+      const result = await $subject
+      expect(result.models).to.equal(false)
+      expect(result.runtimeClasses).to.equal(false)
+      expect(result.microserviceModels).to.equal(false)
+      expect(result.knowledge).to.equal(false)
+      expect(result.microserviceKnowledge).to.equal(false)
+      expect(result.prune).to.equal(false)
     })
 
     context('when ChangeTrackingService#getByIoFogUuid() fails', () => {
@@ -682,6 +721,7 @@ describe('Agent Service', () => {
     def('platformStatusResponse', () => Promise.resolve(null))
 
     beforeEach(() => {
+      $sandbox.useFakeTimers({ now: fogStatus.lastStatusTime, toFake: ['Date'] })
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.spy(AppHelper, 'deleteUndefinedFields')
       $sandbox.stub(ioFogManager, 'findOne').returns($findOneResponse)
@@ -691,6 +731,7 @@ describe('Agent Service', () => {
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').returns($deleteNotRunningResponse)
       $sandbox.stub(MicroserviceManager, 'findOne').returns($findMicroservice)
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -843,10 +884,10 @@ describe('Agent Service', () => {
     const expectedMicroserviceUpdate = {
       containerId: microserviceStatus.containerId,
       status: microserviceStatus.status,
-      startTime: microserviceStatus.startTime,
-      operatingDuration: microserviceStatus.operatingDuration,
-      cpuUsage: microserviceStatus.cpuUsage,
-      memoryUsage: microserviceStatus.memoryUsage,
+      startTime: 0,
+      operatingDuration: 0,
+      cpuUsage: 0,
+      memoryUsage: 0,
       percentage: microserviceStatus.percentage,
       errorMessage: microserviceStatus.errorMessage,
     }
@@ -945,6 +986,7 @@ describe('Agent Service', () => {
     def('platformStatusResponse', () => Promise.resolve(null))
 
     beforeEach(() => {
+      $sandbox.useFakeTimers({ now: fogStatus.lastStatusTime, toFake: ['Date'] })
       $sandbox.stub(Validator, 'validate').returns($validatorResponse)
       $sandbox.spy(AppHelper, 'deleteUndefinedFields')
       $sandbox.stub(ioFogManager, 'findOne').returns($findOneResponse)
@@ -954,6 +996,7 @@ describe('Agent Service', () => {
       $sandbox.stub(MicroserviceStatusManager, 'update').returns($updateMicroserviceStatusesResponse)
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').returns($deleteNotRunningResponse)
       $sandbox.stub(MicroserviceManager, 'findOne').returns($findMicroservice)
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
     })
 
     it('calls Validator#validate() with correct args', async () => {
@@ -1119,6 +1162,7 @@ describe('Agent Service', () => {
     def('subject', () => AgentService.updateAgentStatus(baseAgentStatus, $fog, transaction))
 
     beforeEach(() => {
+      $sandbox.stub(logger, 'warn')
       $sandbox.stub(Validator, 'validate').resolves(true)
       $sandbox.stub(ioFogManager, 'findOne').resolves({ warningMessage: $existingWarningMessage })
       $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves(
@@ -1127,6 +1171,7 @@ describe('Agent Service', () => {
       $sandbox.stub(ioFogManager, 'update').resolves()
       $sandbox.stub(JSON, 'parse').returns([])
       $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').resolves()
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
     })
 
     it('forces daemonStatus WARNING when platform phase is Progressing', async () => {
@@ -1349,10 +1394,71 @@ describe('Agent Service', () => {
             expect(msvc.application).to.equal('testApp')
             expect(msvc.registryId).to.equal(microserviceResponse.microservices[0].registryId)
             expect(msvc.cmd).to.deep.equal(microserviceResponse.microservices[0].cmd)
+            expect(msvc.commands).to.deep.equal(microserviceResponse.microservices[0].cmd)
             expect(msvc.extraHosts).to.deep.equal(microserviceResponse.microservices[0].extraHosts)
             expect(msvc.isController).to.equal(true)
             expect(msvc.isRouter).to.equal(false)
             expect(msvc.isNats).to.equal(false)
+          })
+
+          it('includes volume mapping scope from the persisted mapping', async () => {
+            const volumeMappings = [{
+              hostDestination: 'nodered-config',
+              containerDestination: '/data',
+              accessMode: 'rw',
+              type: 'volume',
+              scope: 'shared'
+            }]
+            MicroserviceManager.findAllActiveApplicationMicroservices.resolves([{
+              ...microserviceWithValidImage,
+              volumeMappings
+            }])
+
+            const result = await $subject
+            expect(result.microservices[0].volumeMappings).to.eql(volumeMappings)
+            expect(result.microservices[0].volumeMappings[0].scope).to.equal('shared')
+          })
+
+          it('emits catalog models and omits empty argv arrays', async () => {
+            MicroserviceManager.findAllActiveApplicationMicroservices.resolves([{
+              ...microserviceWithValidImage,
+              cmd: [],
+              entrypoint: [],
+              microserviceModel: { bindPath: '/models', permissions: 'ro' },
+              modelItems: [{ id: 1, name: 'test-model' }],
+              cpus: 1.5,
+              workingDir: '/app'
+            }])
+
+            const result = await $subject
+            const msvc = result.microservices[0]
+            expect(msvc).to.not.have.property('entrypoint')
+            expect(msvc).to.not.have.property('commands')
+            expect(msvc.cmd).to.eql([])
+            expect(msvc.models).to.eql({
+              bindPath: '/models',
+              permissions: 'ro',
+              items: [{ name: 'test-model' }]
+            })
+            expect(msvc).to.not.have.property('knowledge')
+            expect(msvc.cpus).to.equal(1.5)
+            expect(msvc.workingDir).to.equal('/app')
+          })
+
+          it('emits knowledge item names and omits an empty catalog', async () => {
+            MicroserviceManager.findAllActiveApplicationMicroservices.resolves([{
+              ...microserviceWithValidImage,
+              microserviceKnowledge: { bindPath: '/knowledge', permissions: 'ro' },
+              knowledgeItems: [{ id: 1, name: 'product-docs' }]
+            }])
+
+            const result = await $subject
+            expect(result.microservices[0].knowledge).to.eql({
+              bindPath: '/knowledge',
+              permissions: 'ro',
+              items: [{ name: 'product-docs' }]
+            })
+            expect(result.microservices[0].knowledge.items[0]).to.not.have.property('uuid')
           })
         })
       })
@@ -1437,7 +1543,7 @@ describe('Agent Service', () => {
 
     def('subject', () => $subject.getAgentRegistries($fog, transaction))
 
-    def('getAgentRegistriesResponse', () => Promise.resolve())
+    def('getAgentRegistriesResponse', () => Promise.resolve([]))
 
     beforeEach(() => {
       $sandbox.stub(RegistryManager, 'findAll').returns($getAgentRegistriesResponse)
@@ -1459,6 +1565,55 @@ describe('Agent Service', () => {
     context('when RegistryManager#findAll() succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.have.property('registries')
+      })
+
+      context('with registry rows', () => {
+        def('getAgentRegistriesResponse', () => Promise.resolve([{
+          id: 3,
+          url: 'https://huggingface.co',
+          isPublic: true,
+          username: '',
+          password: '',
+          userEmail: '',
+          type: 'hf',
+          ca: null,
+          insecure: false
+        }, {
+          id: 4,
+          url: 'https://registry.example.com',
+          isPublic: false,
+          username: 'user',
+          password: 'secret',
+          userEmail: 'user@example.com',
+          type: 'oci',
+          ca: 'Y2VydA==',
+          insecure: true
+        }]))
+
+        it('includes type, ca, and insecure on every registry', async () => {
+          const result = await $subject
+          expect(result.registries).to.eql([{
+            id: 3,
+            url: 'https://huggingface.co',
+            isPublic: true,
+            username: '',
+            password: '',
+            userEmail: '',
+            type: 'hf',
+            ca: '',
+            insecure: false
+          }, {
+            id: 4,
+            url: 'https://registry.example.com',
+            isPublic: false,
+            username: 'user',
+            password: 'secret',
+            userEmail: 'user@example.com',
+            type: 'oci',
+            ca: 'Y2VydA==',
+            insecure: true
+          }])
+        })
       })
     })
   })
@@ -1612,139 +1767,719 @@ describe('Agent Service', () => {
     })
   })
 
-  describe('.updateHalHardwareInfo()', () => {
+  describe('.getAgentLinkedModels()', () => {
     const transaction = {}
-    const error = 'Error!'
 
     def('uuid', () => 'testUuid')
-
+    def('getModels', () => $sandbox.stub().resolves([]))
     def('fog', () => ({
       uuid: $uuid,
+      getModels: $getModels,
     }))
+    def('subject', () => $subject.getAgentLinkedModels($fog, transaction))
 
-    def('info', () => 'testInfo')
-    def('hardwareData', () => ({
-      info: $info,
-    }))
-
-    def('response', () => ({
-      versionCommand: $versionCommandLine,
-      provisionKey: $provisionKey,
-      expirationTime: $expirationTime,
-    }))
-
-    def('subject', () => $subject.updateHalHardwareInfo($hardwareData, $fog, transaction))
-
-    def('validatorResponse', () => Promise.resolve(true))
-    def('hwResponse', () => Promise.resolve())
-
-    beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(HWInfoManager, 'updateOrCreate').returns($hwResponse)
-    })
-
-    it('calls Validator#validate() with correct args', async () => {
-      await $subject
-      expect(Validator.validate).to.have.been.calledWith($hardwareData, Validator.schemas.updateHardwareInfo)
-    })
-
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
+    it('returns an empty list when the fog has no linked models', async () => {
+      await expect($subject).to.eventually.eql([])
+      expect($getModels).to.have.been.calledWith({
+        attributes: ['uuid', 'name', 'repo', 'revision', 'files', 'format', 'registryId'],
+        joinTableAttributes: [],
+        transaction,
       })
     })
 
-    context('when Validator#validate() succeeds', () => {
-      it('calls HWInfoManager#updateOrCreate() with correct args', async () => {
-        await $subject
-        expect(HWInfoManager.updateOrCreate).to.have.been.calledWith({
-          iofogUuid: $uuid,
-        }, $hardwareData, transaction)
+    it('maps linked model rows to the wire object', async () => {
+      $getModels.resolves([{
+        uuid: '3f2c8a1e-2b64-4c0d-9f11-0a1b2c3d4e5f',
+        name: 'test-model',
+        repo: 'org/repo',
+        revision: null,
+        registryId: 3,
+        files: ['file.gguf'],
+        format: 'gguf',
+        toJSON () {
+          return {
+            uuid: this.uuid,
+            name: this.name,
+            repo: this.repo,
+            revision: this.revision,
+            registryId: this.registryId,
+            files: this.files,
+            format: this.format
+          }
+        }
+      }])
 
-        context('when HWInfoManager#updateOrCreate() fails', () => {
-          def('hwResponse', () => Promise.reject(error))
-
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.equal(undefined)
-          })
-        })
-
-        context('when HWInfoManager#updateOrCreate() succeeds', () => {
-          it(`succeeds`, () => {
-            return expect($subject).to.equal(undefined)
-          })
-        })
-      })
+      await expect($subject).to.eventually.eql([{
+        uuid: '3f2c8a1e-2b64-4c0d-9f11-0a1b2c3d4e5f',
+        name: 'test-model',
+        repo: 'org/repo',
+        revision: '',
+        registryId: 3,
+        files: ['file.gguf'],
+        format: 'gguf'
+      }])
     })
   })
 
-  describe('.updateHalUsbInfo()', () => {
+  describe('.getAgentLinkedKnowledge()', () => {
     const transaction = {}
-    const error = 'Error!'
 
     def('uuid', () => 'testUuid')
-
+    def('getKnowledge', () => $sandbox.stub().resolves([]))
     def('fog', () => ({
       uuid: $uuid,
+      getKnowledge: $getKnowledge,
     }))
+    def('subject', () => $subject.getAgentLinkedKnowledge($fog, transaction))
 
-    def('info', () => 'testInfo')
-    def('usbData', () => ({
-      info: $info,
+    it('returns an empty list when the fog has no linked knowledge', async () => {
+      await expect($subject).to.eventually.eql([])
+      expect($getKnowledge).to.have.been.calledWith({
+        attributes: ['uuid', 'name', 'repo', 'revision', 'files', 'format', 'registryId'],
+        joinTableAttributes: [],
+        transaction,
+      })
+    })
+
+    it('maps linked knowledge and omits an unset format', async () => {
+      $getKnowledge.resolves([
+        {
+          toJSON () {
+            return {
+              uuid: '3f2c1111-2222-3333-4444-555566667777',
+              name: 'product-docs',
+              repo: 'acme/product-manuals',
+              revision: null,
+              registryId: 3,
+              files: '["data/**/*.jsonl"]',
+              format: 'jsonl'
+            }
+          }
+        },
+        {
+          toJSON () {
+            return {
+              uuid: '',
+              name: 'missing-uuid'
+            }
+          }
+        },
+        {
+          toJSON () {
+            return {
+              uuid: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+              name: 'wiki',
+              repo: 'acme/wiki',
+              revision: 'main',
+              registryId: 1,
+              files: ['index.md'],
+              format: ''
+            }
+          }
+        }
+      ])
+
+      await expect($subject).to.eventually.eql([
+        {
+          uuid: '3f2c1111-2222-3333-4444-555566667777',
+          name: 'product-docs',
+          repo: 'acme/product-manuals',
+          revision: '',
+          registryId: 3,
+          files: ['data/**/*.jsonl'],
+          format: 'jsonl'
+        },
+        {
+          uuid: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+          name: 'wiki',
+          repo: 'acme/wiki',
+          revision: 'main',
+          registryId: 1,
+          files: ['index.md']
+        }
+      ])
+    })
+  })
+
+  describe('.getAgentLinkedRuntimeClasses()', () => {
+    const transaction = {}
+
+    def('uuid', () => 'testUuid')
+    def('getRuntimeClassLinks', () => $sandbox.stub().resolves([]))
+    def('fog', () => ({
+      uuid: $uuid,
+      getRuntimeClassLinks: $getRuntimeClassLinks,
     }))
+    def('subject', () => $subject.getAgentLinkedRuntimeClasses($fog, transaction))
 
-    def('response', () => ({
-      versionCommand: $versionCommandLine,
-      provisionKey: $provisionKey,
-      expirationTime: $expirationTime,
-    }))
+    it('returns an empty list when the fog has no linked runtime classes', async () => {
+      await expect($subject).to.eventually.eql([])
+      expect($getRuntimeClassLinks).to.have.been.calledWith({
+        attributes: ['name', 'handler'],
+        joinTableAttributes: [],
+        transaction,
+      })
+    })
 
-    def('subject', () => $subject.updateHalUsbInfo($usbData, $fog, transaction))
+    it('maps linked runtime class rows to the wire object', async () => {
+      $getRuntimeClassLinks.resolves([{
+        name: 'spin',
+        handler: 'spin',
+        toJSON () {
+          return {
+            name: this.name,
+            handler: this.handler
+          }
+        }
+      }])
 
-    def('validatorResponse', () => Promise.resolve(true))
-    def('usbResponse', () => Promise.resolve())
+      await expect($subject).to.eventually.eql([{
+        name: 'spin',
+        handler: 'spin'
+      }])
+    })
+  })
+
+  describe('.updateAgentStatus() additive fields', () => {
+    const transaction = {}
+    const microserviceStatus = '[{"id":"testUuid","containerId":"ctr-1","status":"RUNNING","podId":"pod-1"}]'
+    const agentStatus = {
+      daemonStatus: 'RUNNING',
+      daemonOperatingDuration: 25,
+      daemonLastStart: 1,
+      warningMessage: '',
+      memoryUsage: 1,
+      diskUsage: 1,
+      cpuUsage: 1,
+      memoryViolation: false,
+      diskViolation: false,
+      cpuViolation: false,
+      systemAvailableDisk: 1,
+      systemAvailableMemory: 1,
+      systemTotalCpu: 1,
+      repositoryCount: 0,
+      repositoryStatus: '[]',
+      systemTime: 1,
+      lastStatusTime: 1,
+      ipAddress: '127.0.0.1',
+      ipAddressExternal: '127.0.0.1',
+      lastCommandTime: 1,
+      tunnelStatus: '{}',
+      version: '1.1.0',
+      isReadyToUpgrade: false,
+      isReadyToRollback: false,
+      gpsStatus: 'OK',
+      microserviceStatus,
+      runtimeClasses: [{ name: 'spin', handler: 'spin', source: 'managed' }],
+      availableCdiDevices: ['nvidia.com/gpu=0'],
+      modelStatus: '[]',
+      activeModels: 2,
+      modelLastUpdate: 1710000000,
+    }
+
+    def('uuid', () => 'testUuid')
+    def('fog', () => ({ uuid: $uuid }))
+    def('subject', () => $subject.updateAgentStatus(agentStatus, $fog, transaction))
 
     beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').returns($validatorResponse)
-      $sandbox.stub(USBInfoManager, 'updateOrCreate').returns($usbResponse)
+      $sandbox.stub(logger, 'warn')
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.spy(AppHelper, 'deleteUndefinedFields')
+      $sandbox.stub(ioFogManager, 'findOne').resolves({ warningMessage: '' })
+      $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves(null)
+      $sandbox.stub(ioFogManager, 'update').resolves()
+      $sandbox.stub(MicroserviceStatusManager, 'update').resolves()
+      $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').resolves()
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: $uuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
     })
 
-    it('calls Validator#validate() with correct args', async () => {
+    it('persists additive fog status fields and microservice podId', async () => {
       await $subject
-      expect(Validator.validate).to.have.been.calledWith($usbData, Validator.schemas.updateUsbInfo)
+      expect(ioFogManager.update).to.have.been.calledWith(
+        { uuid: $uuid },
+        sinon.match({
+          runtimeClasses: JSON.stringify(agentStatus.runtimeClasses),
+          availableCdiDevices: JSON.stringify(agentStatus.availableCdiDevices),
+          modelStatus: '[]',
+          activeModels: 2,
+          modelLastUpdate: 1710000000,
+        }),
+        transaction
+      )
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: 'testUuid' },
+        sinon.match({ podId: 'pod-1', containerId: 'ctr-1' }),
+        transaction
+      )
     })
 
-    context('when Validator#validate() fails', () => {
-      def('validatorResponse', () => Promise.reject(error))
-
-      it(`fails with ${error}`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
+    it('persists host capacity and OS identity from agent status', async () => {
+      const status = {
+        ...agentStatus,
+        systemCpus: 8,
+        systemTotalMemory: 17179869184,
+        systemTotalDisk: 494384795648,
+        systemOs: 'linux',
+        systemOsVersion: 'Ubuntu 22.04',
+        systemKernelVersion: '6.8.0-45-generic'
+      }
+      await AgentService.updateAgentStatus(status, $fog, transaction)
+      expect(ioFogManager.update).to.have.been.calledWith(
+        { uuid: $uuid },
+        sinon.match({
+          systemCpus: 8,
+          systemTotalMemory: 17179869184,
+          systemTotalDisk: 494384795648,
+          systemOs: 'linux',
+          systemOsVersion: 'Ubuntu 22.04',
+          systemKernelVersion: '6.8.0-45-generic'
+        }),
+        transaction
+      )
     })
 
-    context('when Validator#validate() succeeds', () => {
-      it('calls USBInfoManager#updateOrCreate() with correct args', async () => {
-        await $subject
-        expect(USBInfoManager.updateOrCreate).to.have.been.calledWith({
-          iofogUuid: $uuid,
-        }, $usbData, transaction)
+    it('stringifies a knowledge status array and keeps explicit zeros', async () => {
+      const status = {
+        ...agentStatus,
+        knowledgeStatus: [{ name: 'product-docs', state: 'Ready', source: 'managed' }],
+        activeKnowledge: 0,
+        knowledgeLastUpdate: 1710000000000
+      }
+      await AgentService.updateAgentStatus(status, $fog, transaction)
+      expect(ioFogManager.update).to.have.been.calledWith(
+        { uuid: $uuid },
+        sinon.match({
+          knowledgeStatus: JSON.stringify(status.knowledgeStatus),
+          activeKnowledge: 0,
+          knowledgeLastUpdate: 1710000000000
+        }),
+        transaction
+      )
+    })
 
-        context('when USBInfoManager#updateOrCreate() fails', () => {
-          def('usbResponse', () => Promise.reject(error))
+    it('leaves stored knowledge status unchanged when the keys are omitted', async () => {
+      await $subject
+      const update = ioFogManager.update.firstCall.args[1]
+      expect(update).to.not.have.property('knowledgeStatus')
+      expect(update).to.not.have.property('activeKnowledge')
+      expect(update).to.not.have.property('knowledgeLastUpdate')
+    })
 
-          it(`fails with ${error}`, () => {
-            return expect($subject).to.be.equal(undefined)
-          })
-        })
+    it('stores the managed knowledge count separately from the status list length', async () => {
+      const status = {
+        ...agentStatus,
+        knowledgeStatus: [
+          { name: 'product-docs', source: 'managed', uuid: '3f2c1111-2222-3333-4444-555566667777' },
+          { name: 'local-notes', source: 'local' }
+        ],
+        activeKnowledge: 1,
+        knowledgeLastUpdate: 1710000000000
+      }
+      await AgentService.updateAgentStatus(status, $fog, transaction)
+      const update = ioFogManager.update.firstCall.args[1]
+      expect(update.knowledgeStatus).to.equal(JSON.stringify(status.knowledgeStatus))
+      expect(update.activeKnowledge).to.equal(1)
+      expect(JSON.parse(update.knowledgeStatus)).to.have.length(2)
+      expect(update.activeKnowledge).to.not.equal(JSON.parse(update.knowledgeStatus).length)
+    })
 
-        context('when USBInfoManager#updateOrCreate() succeeds', () => {
-          it(`succeeds`, () => {
-            return expect($subject).to.equal(undefined)
-          })
-        })
-      })
+    it('ignores unknown status fields', async () => {
+      const status = {
+        ...agentStatus,
+        knowledgeStatus: '[]',
+        activeKnowledge: 0,
+        knowledgeLastUpdate: 0,
+        futureKnowledgeHint: 'ignore-me'
+      }
+      await AgentService.updateAgentStatus(status, $fog, transaction)
+      const update = ioFogManager.update.firstCall.args[1]
+      expect(update).to.not.have.property('futureKnowledgeHint')
+      expect(update.knowledgeStatus).to.equal('[]')
+      expect(update.modelLastUpdate).to.equal(1710000000)
+    })
+  })
+
+  describe('agent status schema', () => {
+    it('accepts a knowledge status string, an array, and omitted keys', async () => {
+      await expect(Validator.validate({
+        knowledgeStatus: '[]',
+        activeKnowledge: 0,
+        knowledgeLastUpdate: 0
+      }, Validator.schemas.updateAgentStatus)).to.be.fulfilled
+
+      await expect(Validator.validate({
+        knowledgeStatus: [{ name: 'product-docs' }]
+      }, Validator.schemas.updateAgentStatus)).to.be.fulfilled
+
+      await expect(Validator.validate({
+        daemonStatus: 'RUNNING'
+      }, Validator.schemas.updateAgentStatus)).to.be.fulfilled
+
+      await expect(Validator.validate({
+        modelLastUpdate: 1710000000000,
+        knowledgeLastUpdate: 1710000000000,
+        unexpectedStatusExtra: true
+      }, Validator.schemas.updateAgentStatus)).to.be.fulfilled
+    })
+
+    it('rejects a negative managed knowledge count', async () => {
+      await expect(Validator.validate({
+        activeKnowledge: -1
+      }, Validator.schemas.updateAgentStatus)).to.be.rejected
+    })
+  })
+
+  describe('.updateAgentStatus() observed runtime', () => {
+    const transaction = {}
+    const receiptTime = 1700000000000
+    const fogUuid = 'fog-1'
+    const reportedUuid = 'ms-reported'
+    const omittedUuid = 'ms-omitted'
+
+    function buildAgentStatus (microserviceStatusItems, extra = {}) {
+      return {
+        daemonStatus: 'RUNNING',
+        daemonOperatingDuration: 25,
+        daemonLastStart: 1,
+        warningMessage: '',
+        memoryUsage: 1,
+        diskUsage: 1,
+        cpuUsage: 1,
+        memoryViolation: false,
+        diskViolation: false,
+        cpuViolation: false,
+        systemAvailableDisk: 1,
+        systemAvailableMemory: 1,
+        systemTotalCpu: 1,
+        repositoryCount: 0,
+        repositoryStatus: '[]',
+        systemTime: 1,
+        lastStatusTime: 1,
+        ipAddress: '127.0.0.1',
+        ipAddressExternal: '127.0.0.1',
+        lastCommandTime: 1,
+        tunnelStatus: '{}',
+        version: '1.1.0',
+        isReadyToUpgrade: false,
+        isReadyToRollback: false,
+        gpsStatus: 'OK',
+        microserviceStatus: JSON.stringify(microserviceStatusItems),
+        ...extra,
+      }
+    }
+
+    beforeEach(() => {
+      $sandbox.useFakeTimers({ now: receiptTime, toFake: ['Date'] })
+      $sandbox.stub(logger, 'warn')
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(ioFogManager, 'findOne').resolves({ warningMessage: '' })
+      $sandbox.stub(FogPlatformStatusManager, 'getParsedStatus').resolves(null)
+      $sandbox.stub(ioFogManager, 'update').resolves()
+      $sandbox.stub(MicroserviceStatusManager, 'update').resolves()
+      $sandbox.stub(MicroserviceExecStatusManager, 'update').resolves()
+      $sandbox.stub(MicroserviceService, 'deleteNotRunningMicroservices').resolves()
+      $sandbox.stub(ApplicationManager, 'findAll').resolves([])
+    })
+
+    it('stamps fog lastStatusTime with Controller receipt time', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(ioFogManager.update).to.have.been.calledWith(
+        { uuid: fogUuid },
+        sinon.match({ lastStatusTime: receiptTime }),
+        transaction
+      )
+      expect(ioFogManager.update.firstCall.args[1].lastStatusTime).to.not.equal(1)
+    })
+
+    it('stamps fog lastStatusTime with Controller receipt time when the agent sends 0', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }], { lastStatusTime: 0 }),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(ioFogManager.update.firstCall.args[1].lastStatusTime).to.equal(receiptTime)
+    })
+
+    it('stamps fog lastStatusTime with Controller receipt time when the agent clock is hours behind', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus(
+          [{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }],
+          { lastStatusTime: receiptTime - (6 * 60 * 60 * 1000) }
+        ),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(ioFogManager.update.firstCall.args[1].lastStatusTime).to.equal(receiptTime)
+    })
+
+    it('stores STOPPED meters as 0 when the agent omits cpu/memory', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'STOPPED', containerId: 'ctr-stop' }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({
+          status: 'STOPPED',
+          cpuUsage: 0,
+          memoryUsage: 0,
+          startTime: 0,
+          operatingDuration: 0,
+          containerId: 'ctr-stop',
+        }),
+        transaction
+      )
+    })
+
+    it('stores STOPPED leftover cpu as 0', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'STOPPED', cpuUsage: 12.5, memoryUsage: 64 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({ status: 'STOPPED', cpuUsage: 0, memoryUsage: 0 }),
+        transaction
+      )
+    })
+
+    it('stores RUNNING cpu 12.5', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 12.5, memoryUsage: 64 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({ status: 'RUNNING', cpuUsage: 12.5, memoryUsage: 64 }),
+        transaction
+      )
+    })
+
+    it('stores lastError, lastErrorAt, and restartCount from the agent', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'RUNNING',
+          cpuUsage: 1,
+          errorMessage: '',
+          lastError: 'exitCode=1 oomKilled=false error=config missing',
+          lastErrorAt: 1726660000123,
+          restartCount: 4
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({
+          lastError: 'exitCode=1 oomKilled=false error=config missing',
+          lastErrorAt: 1726660000123,
+          restartCount: 4
+        }),
+        transaction
+      )
+    })
+
+    it('stores restartCount 0 when lastError is present and restartCount is omitted', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'STARTING',
+          lastError: 'exitCode=1 oomKilled=false',
+          lastErrorAt: 1726660000123
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      const patch = MicroserviceStatusManager.update.firstCall.args[1]
+      expect(patch.lastError).to.equal('exitCode=1 oomKilled=false')
+      expect(patch.lastErrorAt).to.equal(1726660000123)
+      expect(patch.restartCount).to.equal(0)
+    })
+
+    it('does not write last crash fields when the agent omits all extras', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      const patch = MicroserviceStatusManager.update.firstCall.args[1]
+      expect(patch).to.not.have.property('lastError')
+      expect(patch).to.not.have.property('lastErrorAt')
+      expect(patch).to.not.have.property('restartCount')
+    })
+
+    it('does not fail the PUT when extras are malformed', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'RUNNING',
+          cpuUsage: 1,
+          lastError: { nested: true },
+          lastErrorAt: 'bogus',
+          restartCount: 'n/a'
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledOnce
+      const patch = MicroserviceStatusManager.update.firstCall.args[1]
+      expect(patch).to.not.have.property('lastError')
+      expect(patch.status).to.equal('RUNNING')
+    })
+
+    it('treats omitted RUNNING cpu as 0 for this sample', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING' }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({ status: 'RUNNING', cpuUsage: 0, memoryUsage: 0 }),
+        transaction
+      )
+    })
+
+    it('marks an omitted desired-active microservice UNKNOWN with zeros', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([{
+        uuid: omittedUuid,
+        iofogUuid: fogUuid,
+        isActivated: true,
+        applicationId: 7,
+      }])
+      ApplicationManager.findAll.resolves([{ id: 7, isActivated: true }])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({
+          status: microserviceState.UNKNOWN,
+          cpuUsage: 0,
+          memoryUsage: 0,
+          startTime: 0,
+          operatingDuration: 0,
+        }),
+        transaction
+      )
+      expect(MicroserviceExecStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({ status: 'INACTIVE', execSessionId: '' }),
+        transaction
+      )
+    })
+
+    it('marks an omitted desired-inactive microservice STOPPED with zeros', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([{
+        uuid: omittedUuid,
+        iofogUuid: fogUuid,
+        isActivated: true,
+        applicationId: 7,
+      }])
+      ApplicationManager.findAll.resolves([{ id: 7, isActivated: false }])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{ id: reportedUuid, status: 'RUNNING', cpuUsage: 1 }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({
+          status: microserviceState.STOPPED,
+          cpuUsage: 0,
+          memoryUsage: 0,
+        }),
+        transaction
+      )
+      expect(MicroserviceExecStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({ status: 'INACTIVE', execSessionId: '' }),
+        transaction
+      )
+    })
+
+    it('marks an omitted microservice STOPPED when the microservice itself is inactive', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([{
+        uuid: omittedUuid,
+        iofogUuid: fogUuid,
+        isActivated: false,
+        applicationId: 7,
+      }])
+      ApplicationManager.findAll.resolves([{ id: 7, isActivated: true }])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: [omittedUuid] },
+        sinon.match({ status: microserviceState.STOPPED, cpuUsage: 0 }),
+        transaction
+      )
     })
   })
 

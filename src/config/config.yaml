@@ -75,6 +75,7 @@ settings:
   # defaultJobInterval: 120                 # Default job interval in seconds
   fogStatusUpdateInterval: 30             # Fog status update interval in seconds
   fogStatusUpdateTolerance: 3             # Fog status update tolerance
+  fogStatusLivenessChunkSize: 50          # Fogs processed per quiet-node liveness transaction (default: 50)
   fogExpiredTokenCleanupInterval: 300     # Fog expired token cleanup interval in seconds
   eventRetentionDays: 7                 # Days to retain events (default: 7)
   eventCleanupInterval: 86400            # Cleanup job interval in seconds (default: 24 hours)

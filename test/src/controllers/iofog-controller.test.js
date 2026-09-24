@@ -30,10 +30,7 @@ describe('ioFog Controller', () => {
     def('logFileCount', () => 8)
     def('statusFrequency', 6)
     def('changeFrequency', 18)
-    def('deviceScanFrequency', 28)
-    def('bluetoothEnabled', () => false)
     def('watchdogEnabled', () => true)
-    def('abstractedHardwareEnabled', () => false)
     def('archId', () => 0)
 
     def('req', () => ({
@@ -53,10 +50,7 @@ describe('ioFog Controller', () => {
         logFileCount: $logFileCount,
         statusFrequency: $statusFrequency,
         changeFrequency: $changeFrequency,
-        deviceScanFrequency: $deviceScanFrequency,
-        bluetoothEnabled: $bluetoothEnabled,
         watchdogEnabled: $watchdogEnabled,
-        abstractedHardwareEnabled: $abstractedHardwareEnabled,
         archId: $archId,
       },
     }))
@@ -86,10 +80,7 @@ describe('ioFog Controller', () => {
         logFileCount: $logFileCount,
         statusFrequency: $statusFrequency,
         changeFrequency: $changeFrequency,
-        deviceScanFrequency: $deviceScanFrequency,
-        bluetoothEnabled: $bluetoothEnabled,
         watchdogEnabled: $watchdogEnabled,
-        abstractedHardwareEnabled: $abstractedHardwareEnabled,
         archId: $archId,
       }, false)
     })
@@ -130,10 +121,7 @@ describe('ioFog Controller', () => {
     def('logFileCount', () => 8)
     def('statusFrequency', 6)
     def('changeFrequency', 18)
-    def('deviceScanFrequency', 28)
-    def('bluetoothEnabled', () => false)
     def('watchdogEnabled', () => true)
-    def('abstractedHardwareEnabled', () => false)
     def('archId', () => 0)
 
     def('req', () => ({
@@ -156,10 +144,7 @@ describe('ioFog Controller', () => {
         logFileCount: $logFileCount,
         statusFrequency: $statusFrequency,
         changeFrequency: $changeFrequency,
-        deviceScanFrequency: $deviceScanFrequency,
-        bluetoothEnabled: $bluetoothEnabled,
         watchdogEnabled: $watchdogEnabled,
-        abstractedHardwareEnabled: $abstractedHardwareEnabled,
         archId: $archId,
       },
     }))
@@ -189,10 +174,7 @@ describe('ioFog Controller', () => {
         logFileCount: $logFileCount,
         statusFrequency: $statusFrequency,
         changeFrequency: $changeFrequency,
-        deviceScanFrequency: $deviceScanFrequency,
-        bluetoothEnabled: $bluetoothEnabled,
         watchdogEnabled: $watchdogEnabled,
-        abstractedHardwareEnabled: $abstractedHardwareEnabled,
         archId: $archId,
       }, false)
     })
@@ -487,82 +469,6 @@ describe('ioFog Controller', () => {
     context('when ioFogService#setFogRebootCommandEndPoint succeeds', () => {
       it(`succeeds`, () => {
         return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('getHalHardwareInfoEndPoint()', () => {
-    def('user', () => 'user!')
-    def('uuid', () => 'testUuid')
-
-    def('req', () => ({
-      params: {
-        uuid: $uuid,
-      },
-    }))
-    def('response', () => Promise.resolve())
-    def('subject', () => $subject.getHalHardwareInfoEndPoint($req))
-
-    beforeEach(() => {
-      $sandbox.stub(ioFogService, 'getHalHardwareInfoEndPoint').returns($response)
-    })
-
-    it('calls ioFogService.getHalHardwareInfoEndPoint with correct args', async () => {
-      await $subject
-      expect(ioFogService.getHalHardwareInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, false)
-    })
-
-    context('when ioFogService#getHalHardwareInfoEndPoint fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when ioFogService#getHalHardwareInfoEndPoint succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.equal(undefined)
-      })
-    })
-  })
-
-  describe('getHalUsbInfoEndPoint.()', () => {
-    def('user', () => 'user!')
-    def('uuid', () => 'testUuid')
-
-    def('req', () => ({
-      params: {
-        uuid: $uuid,
-      },
-    }))
-    def('response', () => Promise.resolve({ info: undefined }))
-    def('subject', () => $subject.getHalUsbInfoEndPoint($req))
-
-    beforeEach(() => {
-      $sandbox.stub(ioFogService, 'getHalUsbInfoEndPoint').returns($response)
-    })
-
-    it('calls ioFogService.getHalUsbInfoEndPoint with correct args', async () => {
-      await $subject
-      expect(ioFogService.getHalUsbInfoEndPoint).to.have.been.calledWith({ uuid: $uuid }, false)
-    })
-
-    context('when ioFogService#getHalUsbInfoEndPoint fails', () => {
-      const error = 'Error!'
-
-      def('response', () => Promise.reject(error))
-
-      it(`fails with "${error}"`, () => {
-        return expect($subject).to.be.rejectedWith(error)
-      })
-    })
-
-    context('when ioFogService#getHalUsbInfoEndPoint succeeds', () => {
-      it(`succeeds`, () => {
-        return expect($subject).to.eventually.have.property('info')
       })
     })
   })

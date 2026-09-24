@@ -58,6 +58,7 @@ module.exports = {
   // Settings Configuration
   FOG_STATUS_UPDATE_INTERVAL: 'settings.fogStatusUpdateInterval',
   FOG_STATUS_UPDATE_TOLERANCE: 'settings.fogStatusUpdateTolerance',
+  FOG_STATUS_LIVENESS_CHUNK_SIZE: 'settings.fogStatusLivenessChunkSize',
   FOG_EXPIRED_TOKEN_CLEANUP_INTERVAL: 'settings.fogExpiredTokenCleanupInterval',
   EVENT_RETENTION_DAYS: 'settings.eventRetentionDays',
   EVENT_CLEANUP_INTERVAL: 'settings.eventCleanupInterval',

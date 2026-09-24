@@ -118,6 +118,39 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.FLOAT,
       field: 'system_total_cpu'
     },
+    systemCpus: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('systemCpus'))
+      },
+      field: 'system_cpus'
+    },
+    systemTotalMemory: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('systemTotalMemory'))
+      },
+      field: 'system_total_memory'
+    },
+    systemTotalDisk: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('systemTotalDisk'))
+      },
+      field: 'system_total_disk'
+    },
+    systemOs: {
+      type: DataTypes.TEXT,
+      field: 'system_os'
+    },
+    systemOsVersion: {
+      type: DataTypes.TEXT,
+      field: 'system_os_version'
+    },
+    systemKernelVersion: {
+      type: DataTypes.TEXT,
+      field: 'system_kernel_version'
+    },
     securityStatus: {
       type: DataTypes.TEXT,
       defaultValue: 'OK',
@@ -237,16 +270,6 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: '/var/log/iofog/',
       field: 'log_directory'
     },
-    bluetoothEnabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      field: 'bluetooth'
-    },
-    abstractedHardwareEnabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      field: 'hal'
-    },
     logFileCount: {
       type: DataTypes.BIGINT,
       get () {
@@ -278,11 +301,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 20,
       field: 'change_frequency'
-    },
-    deviceScanFrequency: {
-      type: DataTypes.INTEGER,
-      defaultValue: 20,
-      field: 'device_scan_frequency'
     },
     tunnel: {
       type: DataTypes.TEXT,
@@ -342,6 +360,52 @@ module.exports = (sequelize, DataTypes) => {
         return convertToInt(this.getDataValue('volumeMountLastUpdate'), 0)
       },
       field: 'volume_mount_last_update'
+    },
+    modelStatus: {
+      type: DataTypes.TEXT,
+      field: 'model_status'
+    },
+    runtimeClasses: {
+      type: DataTypes.TEXT,
+      field: 'runtime_classes'
+    },
+    availableCdiDevices: {
+      type: DataTypes.TEXT,
+      field: 'available_cdi_devices'
+    },
+    activeModels: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      get () {
+        return convertToInt(this.getDataValue('activeModels'), 0)
+      },
+      field: 'active_models'
+    },
+    modelLastUpdate: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('modelLastUpdate'), 0)
+      },
+      field: 'model_last_update'
+    },
+    knowledgeStatus: {
+      type: DataTypes.TEXT,
+      field: 'knowledge_status'
+    },
+    activeKnowledge: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      get () {
+        return convertToInt(this.getDataValue('activeKnowledge'), 0)
+      },
+      field: 'active_knowledge'
+    },
+    knowledgeLastUpdate: {
+      type: DataTypes.BIGINT,
+      get () {
+        return convertToInt(this.getDataValue('knowledgeLastUpdate'), 0)
+      },
+      field: 'knowledge_last_update'
     },
     warningMessage: {
       type: DataTypes.TEXT,
@@ -409,6 +473,24 @@ module.exports = (sequelize, DataTypes) => {
 
     Fog.belongsToMany(models.Tags, { through: 'IofogTags', as: 'tags' })
     Fog.belongsToMany(models.VolumeMount, { through: 'FogVolumeMounts', as: 'volumeMounts' })
+    Fog.belongsToMany(models.FleetModel, {
+      through: models.FogModels,
+      as: 'models',
+      foreignKey: 'fog_uuid',
+      otherKey: 'model_uuid'
+    })
+    Fog.belongsToMany(models.FleetKnowledge, {
+      through: models.FogKnowledge,
+      as: 'knowledge',
+      foreignKey: 'fog_uuid',
+      otherKey: 'knowledge_uuid'
+    })
+    Fog.belongsToMany(models.RuntimeClass, {
+      through: models.FogRuntimeClasses,
+      as: 'runtimeClassLinks',
+      foreignKey: 'fog_uuid',
+      otherKey: 'runtime_class_name'
+    })
   }
 
   return Fog
