@@ -52,6 +52,18 @@ const getAgentLinkedVolumeMountsEndpoint = async function (req, fog) {
   return { volumeMounts: await AgentService.getAgentLinkedVolumeMounts(fog) }
 }
 
+const getAgentLinkedModelsEndpoint = async function (req, fog) {
+  return { models: await AgentService.getAgentLinkedModels(fog) }
+}
+
+const getAgentLinkedKnowledgeEndpoint = async function (req, fog) {
+  return { knowledge: await AgentService.getAgentLinkedKnowledge(fog) }
+}
+
+const getAgentLinkedRuntimeClassesEndpoint = async function (req, fog) {
+  return { runtimeClasses: await AgentService.getAgentLinkedRuntimeClasses(fog) }
+}
+
 const getAgentLogSessionsEndPoint = async function (req, fog) {
   return AgentService.getAgentLogSessions(fog)
 }
@@ -76,18 +88,6 @@ const getAgentTunnelEndPoint = async function (req, fog) {
 
 const getAgentChangeVersionCommandEndPoint = async function (req, fog) {
   return AgentService.getAgentChangeVersionCommand(fog)
-}
-
-const updateHalHardwareInfoEndPoint = async function (req, fog) {
-  const hardwareData = req.body
-
-  return AgentService.updateHalHardwareInfo(hardwareData, fog)
-}
-
-const updateHalUsbInfoEndPoint = async function (req, fog) {
-  const usbData = req.body
-
-  return AgentService.updateHalUsbInfo(usbData, fog)
 }
 
 const deleteNodeEndPoint = async function (req, fog) {
@@ -115,11 +115,12 @@ module.exports = {
   getAgentRegistriesEndPoint: AuthDecorator.checkFogToken(getAgentRegistriesEndPoint),
   getAgentTunnelEndPoint: AuthDecorator.checkFogToken(getAgentTunnelEndPoint),
   getAgentChangeVersionCommandEndPoint: AuthDecorator.checkFogToken(getAgentChangeVersionCommandEndPoint),
-  updateHalHardwareInfoEndPoint: AuthDecorator.checkFogToken(updateHalHardwareInfoEndPoint),
-  updateHalUsbInfoEndPoint: AuthDecorator.checkFogToken(updateHalUsbInfoEndPoint),
   deleteNodeEndPoint: AuthDecorator.checkFogToken(deleteNodeEndPoint),
   resetAgentConfigChangesEndPoint: AuthDecorator.checkFogToken(resetAgentConfigChangesEndPoint),
   getAgentLinkedVolumeMountsEndpoint: AuthDecorator.checkFogToken(getAgentLinkedVolumeMountsEndpoint),
+  getAgentLinkedModelsEndpoint: AuthDecorator.checkFogToken(getAgentLinkedModelsEndpoint),
+  getAgentLinkedKnowledgeEndpoint: AuthDecorator.checkFogToken(getAgentLinkedKnowledgeEndpoint),
+  getAgentLinkedRuntimeClassesEndpoint: AuthDecorator.checkFogToken(getAgentLinkedRuntimeClassesEndpoint),
   getControllerCAEndPoint: AuthDecorator.checkFogToken(getControllerCAEndPoint),
   getAgentLogSessionsEndPoint: AuthDecorator.checkFogToken(getAgentLogSessionsEndPoint),
   getAgentExecSessionsEndPoint: AuthDecorator.checkFogToken(getAgentExecSessionsEndPoint),

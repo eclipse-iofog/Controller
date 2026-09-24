@@ -40,7 +40,7 @@ module.exports = {
     rules: [
       {
         apiGroups: [''],
-        resources: ['microservices', 'systemMicroservices', 'fogs', 'applications', 'systemApplications', 'applicationTemplates', 'services', 'router', 'networkTopology', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'tunnels', 'certificates', 'capabilities', 'cluster', 'serviceAccounts', 'events', 'users', 'authUsers', 'authGroups', 'config', 'controller', 'execSessions', 'systemExecSessions', 'logs', 'systemLogs'],
+        resources: ['microservices', 'systemMicroservices', 'fogs', 'applications', 'systemApplications', 'applicationTemplates', 'microserviceTemplates', 'services', 'router', 'networkTopology', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'models', 'knowledge', 'runtimeClasses', 'tunnels', 'certificates', 'capabilities', 'cluster', 'serviceAccounts', 'events', 'users', 'authUsers', 'authGroups', 'config', 'controller', 'execSessions', 'systemExecSessions', 'logs', 'systemLogs'],
         verbs: ['*']
       },
       {
@@ -62,7 +62,7 @@ module.exports = {
     rules: [
       {
         apiGroups: [''],
-        resources: ['microservices', 'applications', 'applicationTemplates', 'services', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'certificates', 'capabilities', 'serviceAccounts', 'controller', 'execSessions', 'logs'],
+        resources: ['microservices', 'applications', 'applicationTemplates', 'microserviceTemplates', 'services', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'models', 'knowledge', 'runtimeClasses', 'certificates', 'capabilities', 'serviceAccounts', 'controller', 'execSessions', 'logs'],
         verbs: ['get', 'list', 'create', 'update', 'patch', 'delete']
       },
       {
@@ -84,7 +84,7 @@ module.exports = {
     rules: [
       {
         apiGroups: [''],
-        resources: ['microservices', 'fogs', 'applications', 'systemMicroservices', 'systemApplications', 'applicationTemplates', 'services', 'router', 'networkTopology', 'natsOperator', 'natsBootstrap', 'natsHub', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'certificates', 'capabilities', 'cluster', 'serviceAccounts', 'users', 'authUsers', 'authGroups', 'config', 'controller', 'roles', 'roleBindings'],
+        resources: ['microservices', 'fogs', 'applications', 'systemMicroservices', 'systemApplications', 'applicationTemplates', 'microserviceTemplates', 'services', 'router', 'networkTopology', 'natsOperator', 'natsBootstrap', 'natsHub', 'natsAccounts', 'natsUsers', 'natsAccountRules', 'natsUserRules', 'catalog', 'registries', 'secrets', 'configMaps', 'volumeMounts', 'models', 'knowledge', 'runtimeClasses', 'certificates', 'capabilities', 'cluster', 'serviceAccounts', 'users', 'authUsers', 'authGroups', 'config', 'controller', 'roles', 'roleBindings'],
         verbs: ['get', 'list']
       }
     ]

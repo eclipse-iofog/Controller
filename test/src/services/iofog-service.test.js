@@ -12,7 +12,6 @@ const NatsConnectionManager = require('../../../src/data/managers/nats-connectio
 const AppHelper = require('../../../src/helpers/app-helper')
 const Validator = require('../../../src/schemas')
 const ChangeTrackingService = require('../../../src/services/change-tracking-service')
-const CatalogService = require('../../../src/services/catalog-service')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const MicroserviceService = require('../../../src/services/microservices-service')
 const ApplicationManager = require('../../../src/data/managers/application-manager')
@@ -21,8 +20,6 @@ const FogPublicKeyManager = require('../../../src/data/managers/iofog-public-key
 const TagsManager = require('../../../src/data/managers/tags-manager')
 const ioFogProvisionKeyManager = require('../../../src/data/managers/iofog-provision-key-manager')
 const ioFogVersionCommandManager = require('../../../src/data/managers/iofog-version-command-manager')
-const HWInfoManager = require('../../../src/data/managers/hw-info-manager')
-const USBInfoManager = require('../../../src/data/managers/usb-info-manager')
 const Errors = require('../../../src/helpers/errors')
 const config = require('../../../src/config')
 const FogPlatformSpecManager = require('../../../src/data/managers/fog-platform-spec-manager')
@@ -137,9 +134,7 @@ describe('ioFog Service', () => {
       pruningFrequency: 10,
       availableDiskThreshold: 20,
       logLevel: 'INFO',
-      routerMode: 'edge',
-      abstractedHardwareEnabled: false,
-      bluetoothEnabled: false
+      routerMode: 'edge'
     }
 
     def('subject', () => $subject.createFogEndPoint(fogData, isCLI, transaction))
@@ -185,14 +180,6 @@ describe('ioFog Service', () => {
       await $subject
       expect(RouterService.createRouterForFog).to.not.have.been.called
       expect(NatsService.ensureNatsForFog).to.not.have.been.called
-    })
-
-    it('does not run HAL/Bluetooth catalog work on the synchronous path', async () => {
-      $sandbox.stub(CatalogService, 'getHalCatalogItem').resolves({ id: 1 })
-      $sandbox.stub(CatalogService, 'getBluetoothCatalogItem').resolves({ id: 2 })
-      await $subject
-      expect(CatalogService.getHalCatalogItem).to.not.have.been.called
-      expect(CatalogService.getBluetoothCatalogItem).to.not.have.been.called
     })
 
     context('when validation fails', () => {
@@ -560,6 +547,55 @@ describe('ioFog Service', () => {
       expect(result).to.have.property('platformStatus', null)
     })
 
+    context('when knowledge status is stored as a JSON string', () => {
+      const knowledgeStatusJson = JSON.stringify([{ name: 'product-docs', source: 'managed' }])
+
+      beforeEach(() => {
+        ioFogManager.findOneWithTags.resolves(buildFogModel({
+          uuid,
+          name: 'testName',
+          knowledgeStatus: knowledgeStatusJson,
+          activeKnowledge: 1,
+          knowledgeLastUpdate: 1710000000000
+        }))
+      })
+
+      it('returns knowledgeStatus as the stored JSON string on user GET', async () => {
+        const result = await $subject
+        expect(result.knowledgeStatus).to.equal(knowledgeStatusJson)
+        expect(JSON.parse(result.knowledgeStatus)).to.eql([{ name: 'product-docs', source: 'managed' }])
+        expect(result.activeKnowledge).to.equal(1)
+        expect(result.knowledgeLastUpdate).to.equal(1710000000000)
+      })
+    })
+
+    context('when the status list is longer than the managed count', () => {
+      const knowledgeStatusJson = JSON.stringify([
+        { name: 'product-docs', source: 'managed', uuid: '3f2c1111-2222-3333-4444-555566667777' },
+        { name: 'local-notes', source: 'local' }
+      ])
+
+      beforeEach(() => {
+        ioFogManager.findOneWithTags.resolves(buildFogModel({
+          uuid,
+          name: 'testName',
+          knowledgeStatus: knowledgeStatusJson,
+          activeKnowledge: 1,
+          knowledgeLastUpdate: 1710000000000
+        }))
+      })
+
+      it('keeps activeKnowledge as the managed count', async () => {
+        const result = await $subject
+        const rows = JSON.parse(result.knowledgeStatus)
+        expect(result.knowledgeStatus).to.equal(knowledgeStatusJson)
+        expect(rows).to.have.length(2)
+        expect(result.activeKnowledge).to.equal(1)
+        expect(result.activeKnowledge).to.not.equal(rows.length)
+        expect(rows[1]).to.not.have.property('uuid')
+      })
+    })
+
     context('when platform status exists', () => {
       const lastTransitionAt = new Date('2026-06-24T12:00:00.000Z')
 
@@ -869,44 +905,6 @@ describe('ioFog Service', () => {
     it('queues reboot change tracking', async () => {
       await $subject
       expect(ChangeTrackingService.update).to.have.been.calledWith(uuid, ChangeTrackingService.events.reboot, transaction)
-    })
-  })
-
-  describe('.getHalHardwareInfoEndPoint()', () => {
-    const uuidObj = { uuid: 'testUuid' }
-    const hwInfo = { cpu: 'arm64' }
-
-    def('subject', () => $subject.getHalHardwareInfoEndPoint(uuidObj, isCLI, transaction))
-
-    beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').resolves(true)
-      $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: uuidObj.uuid })
-      $sandbox.stub(HWInfoManager, 'findOne').resolves(hwInfo)
-    })
-
-    it('returns HAL hardware info', async () => {
-      const result = await $subject
-      expect(result).to.equal(hwInfo)
-      expect(HWInfoManager.findOne).to.have.been.calledWith({ iofogUuid: uuidObj.uuid }, transaction)
-    })
-  })
-
-  describe('.getHalUsbInfoEndPoint()', () => {
-    const uuidObj = { uuid: 'testUuid' }
-    const usbInfo = { devices: [] }
-
-    def('subject', () => $subject.getHalUsbInfoEndPoint(uuidObj, isCLI, transaction))
-
-    beforeEach(() => {
-      $sandbox.stub(Validator, 'validate').resolves(true)
-      $sandbox.stub(ioFogManager, 'findOne').resolves({ uuid: uuidObj.uuid })
-      $sandbox.stub(USBInfoManager, 'findOne').resolves(usbInfo)
-    })
-
-    it('returns HAL USB info', async () => {
-      const result = await $subject
-      expect(result).to.equal(usbInfo)
-      expect(USBInfoManager.findOne).to.have.been.calledWith({ iofogUuid: uuidObj.uuid }, transaction)
     })
   })
 })

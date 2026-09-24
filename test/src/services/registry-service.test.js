@@ -23,6 +23,9 @@ function buildRegistryRecord (fields = {}) {
     password: 'encrypted-secret',
     isPublic: false,
     userEmail: 'user@example.com',
+    type: 'oci',
+    ca: null,
+    insecure: false,
     ...fields
   }
 }
@@ -65,7 +68,10 @@ describe('Registry Service', () => {
       expect(RegistryManager.create).to.have.been.calledWithMatch({
         url: registryData.url,
         username: registryData.username,
-        userEmail: registryData.email
+        userEmail: registryData.email,
+        type: 'oci',
+        ca: null,
+        insecure: false
       }, transaction)
       expect(SecretHelper.encryptSecretInternal).to.have.been.calledWith(
         { value: registryData.password },
@@ -100,6 +106,75 @@ describe('Registry Service', () => {
         expect(RegistryManager.update).to.not.have.been.called
       })
     })
+
+    it('rejects private OCI registries without username and password', () => {
+      return expect($service.createRegistry({
+        url: 'https://registry.example.com',
+        isPublic: false,
+        type: 'oci'
+      }, transaction)).to.be.rejectedWith(ErrorMessages.REGISTRY_PRIVATE_OCI_CREDENTIALS_REQUIRED)
+    })
+
+    it('creates a private Hugging Face registry with a token', async () => {
+      const hfRegistry = {
+        url: 'https://hf.example.com',
+        isPublic: false,
+        type: 'hf',
+        password: 'hf_token'
+      }
+      RegistryManager.create.resolves(buildRegistryRecord({
+        id: 18,
+        url: hfRegistry.url,
+        type: 'hf',
+        password: hfRegistry.password,
+        isPublic: false,
+        username: ''
+      }))
+
+      const result = await $service.createRegistry(hfRegistry, transaction)
+
+      expect(RegistryManager.create).to.have.been.calledWithMatch({
+        url: hfRegistry.url,
+        type: 'hf',
+        password: hfRegistry.password,
+        insecure: false
+      }, transaction)
+      expect(result).to.eql({ id: 18 })
+    })
+
+    it('rejects creating a second Hub registry', () => {
+      return expect($service.createRegistry({
+        url: 'https://huggingface.co',
+        isPublic: true,
+        type: 'hf'
+      }, transaction)).to.be.rejectedWith(ErrorMessages.REGISTRY_IS_SYSTEM)
+    })
+
+    it('rejects an invalid CA bundle', () => {
+      return expect($service.createRegistry({
+        url: 'https://registry.example.com',
+        isPublic: true,
+        ca: 'not-valid-base64!!!'
+      }, transaction)).to.be.rejectedWith(ErrorMessages.REGISTRY_INVALID_CA)
+    })
+
+    it('stores empty ca as null', async () => {
+      await $service.createRegistry({
+        url: 'https://registry.example.com',
+        isPublic: true,
+        ca: ''
+      }, transaction)
+      expect(RegistryManager.create).to.have.been.calledWithMatch({ ca: null }, transaction)
+    })
+
+    it('stores a valid base64 ca bundle', async () => {
+      await $service.createRegistry({
+        url: 'https://registry.example.com',
+        isPublic: true,
+        ca: 'Y2VydA=='
+      }, transaction)
+      expect(RegistryManager.create).to.have.been.calledWithMatch({ ca: 'Y2VydA==' }, transaction)
+    })
   })
 
   describe('.findRegistries()', () => {
@@ -111,14 +186,24 @@ describe('Registry Service', () => {
       $sandbox.stub(RegistryManager, 'findAllWithAttributes').resolves(registries)
     })
 
-    it('returns registries without password field', async () => {
+    it('returns registries without password field and with type, ca, and insecure defaults', async () => {
       const result = await $subject
       expect(RegistryManager.findAllWithAttributes).to.have.been.calledWith(
         {},
         { exclude: ['password'] },
         transaction
       )
-      expect(result.registries).to.equal(registries)
+      expect(result.registries).to.eql([{
+        id: 16,
+        url: 'https://registry.example.com',
+        username: 'user',
+        password: 'encrypted-secret',
+        isPublic: false,
+        userEmail: 'user@example.com',
+        type: 'oci',
+        ca: null,
+        insecure: false
+      }])
     })
   })
 
@@ -148,6 +233,19 @@ describe('Registry Service', () => {
 
     it('rejects system registry ids', () => {
       return expect($service.deleteRegistry({ id: 1 }, isCLI, transaction))
+        .to.be.rejectedWith(ErrorMessages.REGISTRY_IS_SYSTEM)
+    })
+
+    it('rejects the Hub registry by url and type regardless of id', () => {
+      RegistryManager.findOne.resolves(buildRegistryRecord({
+        id: 9,
+        url: 'https://huggingface.co',
+        type: 'hf',
+        isPublic: true,
+        username: '',
+        password: ''
+      }))
+      return expect($service.deleteRegistry({ id: 9 }, isCLI, transaction))
         .to.be.rejectedWith(ErrorMessages.REGISTRY_IS_SYSTEM)
     })
 
@@ -209,6 +307,44 @@ describe('Registry Service', () => {
         .to.be.rejectedWith(ErrorMessages.REGISTRY_IS_SYSTEM)
     })
 
+    it('rejects Hub url or type changes that would break identity', async () => {
+      RegistryManager.findOne.resolves(buildRegistryRecord({
+        id: 9,
+        url: 'https://huggingface.co',
+        type: 'hf',
+        isPublic: true
+      }))
+      await expect($service.updateRegistry({ url: 'https://example.com' }, 9, isCLI, transaction))
+        .to.be.rejectedWith(ErrorMessages.REGISTRY_IS_SYSTEM)
+      await expect($service.updateRegistry({ type: 'oci' }, 9, isCLI, transaction))
+        .to.be.rejectedWith(ErrorMessages.REGISTRY_IS_SYSTEM)
+    })
+
+    it('clears ca to null when an empty string is provided', async () => {
+      await $service.updateRegistry({ ca: '' }, registryId, isCLI, transaction)
+      expect(RegistryManager.update).to.have.been.calledWith(
+        { id: registryId },
+        sinon.match({ ca: null }),
+        transaction
+      )
+    })
+
+    it('allows Hub token updates without changing identity fields', async () => {
+      RegistryManager.findOne.resolves(buildRegistryRecord({
+        id: 9,
+        url: 'https://huggingface.co',
+        type: 'hf',
+        isPublic: true,
+        password: ''
+      }))
+      await $service.updateRegistry({ password: 'hf_token' }, 9, isCLI, transaction)
+      expect(RegistryManager.update).to.have.been.calledWith(
+        { id: 9 },
+        sinon.match({ password: 'hf_token' }),
+        transaction
+      )
+    })
+
     context('when registry is missing', () => {
       beforeEach(() => {
         RegistryManager.findOne.resolves(null)
@@ -243,7 +379,7 @@ describe('Registry Service', () => {
     context('when password is cleared and vault reference exists', () => {
       beforeEach(() => {
         $sandbox.stub(vaultManager, 'isEnabled').returns(true)
-        RegistryManager.findOne.resolves({ ...existing, password: 'vault:ref' })
+        RegistryManager.findOne.resolves({ ...existing, password: 'vault:ref', isPublic: true })
         $sandbox.stub(SecretHelper, 'isVaultReference').returns(true)
         $sandbox.stub(SecretHelper, 'deleteSecret').resolves()
       })
@@ -268,10 +404,15 @@ describe('Registry Service', () => {
       $sandbox.stub(RegistryManager, 'findOne').resolves(registry)
     })
 
-    it('returns the registry record', async () => {
+    it('returns the registry record with type, ca, and insecure', async () => {
       const result = await $subject
       expect(RegistryManager.findOne).to.have.been.calledWith({ id: registryId }, transaction)
-      expect(result).to.equal(registry)
+      expect(result).to.include({
+        id: registryId,
+        type: 'oci',
+        ca: null,
+        insecure: false
+      })
     })
 
     context('when registry is missing', () => {
@@ -280,6 +421,34 @@ describe('Registry Service', () => {
       })
 
       it('rejects with NotFoundError', () => expect($subject).to.be.rejectedWith(Errors.NotFoundError))
+    })
+  })
+
+  describe('.assertOciRegistryForImage()', () => {
+    beforeEach(() => {
+      $sandbox.stub(RegistryManager, 'findOne')
+    })
+
+    it('accepts an OCI registry', async () => {
+      RegistryManager.findOne.resolves(buildRegistryRecord({ id: 4, type: 'oci' }))
+      const registry = await $service.assertOciRegistryForImage(4, transaction)
+      expect(registry.type).to.equal('oci')
+    })
+
+    it('rejects a Hugging Face registry id', () => {
+      RegistryManager.findOne.resolves(buildRegistryRecord({
+        id: 3,
+        url: 'https://huggingface.co',
+        type: 'hf'
+      }))
+      return expect($service.assertOciRegistryForImage(3, transaction))
+        .to.be.rejectedWith(AppHelper.formatMessage(ErrorMessages.REGISTRY_NOT_OCI_FOR_IMAGE, 3))
+    })
+
+    it('rejects a missing registry', () => {
+      RegistryManager.findOne.resolves(null)
+      return expect($service.assertOciRegistryForImage(99, transaction))
+        .to.be.rejectedWith(AppHelper.formatMessage(ErrorMessages.REGISTRY_NOT_OCI_FOR_IMAGE, 99))
     })
   })
 })

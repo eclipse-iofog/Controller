@@ -1,5 +1,129 @@
 # Changelog
 
+## [v3.9.0-rc.9]
+
+### Added
+
+- **Fog status (host capacity + OS)** — agent `PUT /api/v3/agent/status` accepts and persists `systemCpus`, `systemTotalMemory`, `systemAvailableMemory`, `systemTotalDisk`, `systemAvailableDisk`, `systemOs`, `systemOsVersion`, and `systemKernelVersion`. User `GET /api/v3/iofog` and list return the stored values. `systemTotalCpu` remains host CPU busy **0–100%**; `diskUsage` remains Edgelet data-directory usage in **GiB**, not host filesystem totals. Columns on 3.9.0 baseline and 3.8→3.9 upgrade (sqlite, mysql, postgres). Omitted keys leave prior values unchanged.
+
+### Changed
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.5** → **v1.1.0-rc.6**
+
+## [v3.9.0-rc.8]
+
+### Changed
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.4** → **v1.1.0-rc.5**
+
+## [v3.9.0-rc.7]
+
+### Changed
+
+- **Fog status** — user GET and list return `knowledgeStatus` as the stored JSON string, matching `modelStatus`. Callers parse it.
+- Dockerfile runtime base image digest pin refreshed for **`ubi9/nodejs-24-minimal`**.
+
+## [v3.9.0-rc.6]
+
+Fleet Knowledge artifacts: curated documents, datasets, and vector indexes distributed like Models, with a separate name namespace and Hub dataset pulls.
+
+### Added
+
+- **Fleet Knowledge API** — `GET/POST/PATCH/DELETE /api/v3/knowledge`, YAML create/upsert (`kind: Knowledge`), and volumeMount-style `GET/POST/DELETE …/knowledge/:name/link`; server-generated uuid; agent `GET /api/v3/agent/knowledge` returns linked rows only (`{ "knowledge": [ … ] }`).
+- **`PATCH /api/v3/microservices/:uuid/knowledge`** — user microservices only; `microserviceKnowledge` change flag and rebuild rules for bind path / permissions / empty↔non-empty catalog transitions.
+- **Fog status** — `knowledgeStatus` (JSON string), `activeKnowledge` (managed count), `knowledgeLastUpdate` (Unix ms).
+- **v3.9.0 schema** — `Knowledge`, `FogKnowledge`, catalog tables, change-tracking flags, fog status columns on baseline and 3.8→3.9 upgrade.
+
+### Changed
+
+- **`modelLastUpdate`** — documented as Unix milliseconds (same clock as `knowledgeLastUpdate`).
+- **MS catalog validation** — `knowledge.bindPath` must not collide with volumes, tmpfs, or the models catalog path. A non-empty `bindPath` on a models or knowledge catalog requires at least one item.
+- **RBAC + swagger** — resource `knowledge`; viewer get/list; SRE/developer/admin full + link.
+- Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder stages)
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.3** → **v1.1.0-rc.4**
+
+### Notes
+
+- Knowledge names are a separate namespace from Models. HF Knowledge uses the Hub dataset API; there is no `repoType` field.
+- `format` is a soft hint. Known values persist; anything else stores `unknown`. Unknown format is not a 400.
+- `getChanges.prune` still does not delete volumes. Unused **local** Knowledge prune is agent-side on the same flag. `system prune` does not drop Knowledge trees.
+
+## [v3.9.0-rc.5]
+
+Additive microservice `VOLUME` mapping `scope` for Edgelet private vs node-global shared claims. Reclaim stays on-node (`edgelet volume`); no new Controller prune flag.
+
+### Added
+
+- **`volumeMappings[].scope`** — `private` (default) or `shared`. Meaningful only when `type` is `volume`. Omit, null, or empty → `private`. Unknown values on `type: volume` are **400**. Other mapping types always store `private`.
+- **`VolumeMappings.scope`** column on 3.9.0 baseline and 3.8→3.9 upgrade (sqlite, mysql, postgres).
+
+### Changed
+
+- **Agent microservice list** includes `scope` on each volume mapping (lowercase).
+- **Volume-mapping create/delete** sets microservice `rebuild` and `microserviceCommon` so the agent applies the change.
+- **`type: volume` `hostDestination`** charset matches Edgelet: `[a-zA-Z0-9][a-zA-Z0-9_.-]*`.
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.2** → **v1.1.0-rc.3**
+
+### Notes
+
+- Shared names are node-global. Controller does not unique-check names or `runAsUser` across consumers (local workloads exist). Use distinct names (`nodered-config`).
+- Controller and system microservices always persist `private`. Explicit `scope: shared` on those workloads is **400**.
+- `deleteWithCleanup` remains unused; operators reclaim with `edgelet volume` / `deprovision --purge-volumes`.
+- Switching private → shared does not copy existing UUID directories. Older agents ignore `scope` (every `VOLUME` stays per-UUID) with no merge after upgrade.
+
+## [v3.9.0-rc.3]
+
+Observed microservice status and fog liveness: live CPU/memory only while a microservice is RUNNING, and node quietness judged by when Controller last received a status PUT.
+
+### Fixed
+
+- **Stopped/inactive microservices** no longer keep the last CPU/memory sample after stop, deactivate, or a non-RUNNING agent report.
+- **Fog liveness** uses Controller receipt time (`lastStatusTime`), not the agent's clock, so clock skew no longer flaps nodes UNKNOWN.
+- **Status jobs** walk the fleet in small transactions and no longer delete microservices from the liveness cleaner.
+
+### Added
+
+- **Microservice last-crash columns** — `last_error`, `last_error_at`, `restart_count` on `MicroserviceStatuses` (baseline 3.9.0 and 3.8→3.9 upgrade).
+
+### Changed
+
+- **GET microservice meters** — `status.cpuUsage` and `status.memoryUsage` are 0 unless observed `status` is `RUNNING`.
+- **Operator stop / application deactivate** — GET shows `STOPPING` and zero meters immediately, before the next agent PUT.
+- **Microservice last crash** — GET `status` always includes `lastError`, `lastErrorAt`, and `restartCount`. `errorMessage` is the current failure (cleared by the agent after 30s RUNNING); last crash is kept after recovery.
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.1** → **v1.1.0-rc.2**
+
+## [v3.9.0-rc.2]
+
+### Fixed
+
+- **`PATCH /api/v3/iofog/{uuid}` after Controller upgrade** — stale `bluetoothEnabled` / `abstractedHardwareEnabled` keys in `"FogPlatformSpecs".spec_json` (written before HAL removal) caused validation failure with misleading `Invalid fog platform spec field 'instance'`. Platform spec merge and upsert now whitelist allowed fields only; validation errors name the rejected field.
+- **`POST /api/v3/runtimeClasses/{name}/link`** — refused link when the RuntimeClass name is not in the target fog `availableRuntimes` (same rule as microservice deploy runtime validation).
+
+
+## [v3.9.0-rc.1]
+
+Fleet models, RuntimeClass, registry extensions, microservice catalog PATCH, MicroserviceTemplate, and HAL/BLE removal for Edgelet v1.1+ handoff. Targets **v3.9.0** schema (user tags).
+
+### Added
+
+- **Fleet models API** — `GET/POST/PATCH/DELETE /api/v3/models`, YAML create/upsert, and volumeMount-style `GET/POST/DELETE …/models/:name/link`; server-generated uuid; agent `GET /api/v3/agent/models` returns linked rows only.
+- **RuntimeClass API** — `GET/POST/PATCH/DELETE /api/v3/runtimeClasses`, YAML, link endpoints (edgelet fogs only), and agent `GET /api/v3/agent/runtimeClasses`.
+- **Registry `type` / `ca` / `insecure`** — Hub system registry by Hugging Face url+`hf`; MS and catalog image pulls remain **oci-only**.
+- **`PATCH /api/v3/microservices/:uuid/models`** — `microserviceModels` change flag and rebuild rules for bind path / permissions / empty↔non-empty catalog transitions.
+- **Microservice container fields** — commands/cmd alias, CDI devices, capabilities, health check, and related agent wire fields.
+- **MicroserviceTemplate** — CRUD + YAML; deploy overlay via `POST /microservices` + `template`.
+- **Agent status ingest** — `modelStatus`, `activeModels`, `modelLastUpdate`, `runtimeClasses`, `availableCdiDevices`, `podId`; getChanges flags `models`, `runtimeClasses`, `microserviceModels`.
+- **v3.9.0 schema** — `Models`, `RuntimeClasses`, link tables, registry columns, template tables. Fresh install uses baseline 3.9.0 migrate+seed; upgrade from 3.8.0 applies incremental 3.9.0 only.
+
+### Changed
+
+- **MS deploy** — auto-links referenced fleet models and RuntimeClass on edgelet agents; validates runtime against `availableRuntimes`.
+- **RBAC + swagger** — models, runtimeClasses, microserviceTemplates, and agent model/runtime routes documented and catalogued.
+- Embedded **EdgeOps Console** default version **v1.0.13** → **v1.1.0-rc.1**
+
+### Removed
+
+- **HAL/BLE provisioning** — user HAL/USB routes, RESTBlue/HAL system catalog items, fog `bluetooth`/`hal` flags, and `deviceScanFrequency` from agent config wire (Edge Guard retained).
+- **Agent HAL routes** — hardware inventory PUT/GET paths under `/api/v3/agent/hal/*`.
+
 
 ## [v3.8.3-rc.3] - September 2026
 

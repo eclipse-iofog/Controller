@@ -54,8 +54,6 @@ const fogPlatformSpec = {
     jsMemoryStoreSize: { type: 'string', maxLength: 32 },
     networkRouter: { type: ['string', 'null'] },
     containerEngine: { type: 'string', enum: ['edgelet', 'docker', 'podman'] },
-    bluetoothEnabled: { type: 'boolean' },
-    abstractedHardwareEnabled: { type: 'boolean' },
     tags: {
       type: 'array',
       items: {
@@ -95,14 +93,23 @@ function serializeJson (object, label) {
   return json
 }
 
+function formatFogPlatformSpecValidationError (error) {
+  let property = (error.property || '').replace(/^instance\.?/, '')
+  if (!property || property === 'instance') {
+    const match = error.message && error.message.match(/additional property "([^"]+)"/)
+    if (match) {
+      property = match[1]
+    }
+  }
+  return property
+    ? `Invalid fog platform spec field '${property}'`
+    : 'Invalid fog platform spec'
+}
+
 async function validateFogPlatformSpec (object) {
   const response = validator.validate(object || {}, fogPlatformSpec)
   if (!response.valid) {
-    const error = response.errors[0]
-    const property = (error.property || '').replace('instance.', '')
-    throw new Errors.ValidationError(
-      property ? `Invalid fog platform spec field '${property}'` : 'Invalid fog platform spec'
-    )
+    throw new Errors.ValidationError(formatFogPlatformSpecValidationError(response.errors[0]))
   }
   return object
 }
@@ -159,9 +166,7 @@ const FOG_PLATFORM_SPEC_SCALAR_FIELDS = [
   'jsStorageSize',
   'jsMemoryStoreSize',
   'networkRouter',
-  'containerEngine',
-  'bluetoothEnabled',
-  'abstractedHardwareEnabled'
+  'containerEngine'
 ]
 
 const FOG_PLATFORM_SPEC_ARRAY_FIELDS = [
@@ -177,18 +182,26 @@ function normalizeSpecTags (tags) {
   return tags.map((tag) => (typeof tag === 'string' ? { value: tag } : tag))
 }
 
-function buildPlatformSpecFromFogData (fogData, options = {}) {
+function pickPlatformSpecFields (source) {
+  if (!source) {
+    return {}
+  }
   const spec = {}
   for (const field of FOG_PLATFORM_SPEC_SCALAR_FIELDS) {
-    if (fogData[field] !== undefined) {
-      spec[field] = fogData[field]
+    if (source[field] !== undefined) {
+      spec[field] = source[field]
     }
   }
   for (const field of FOG_PLATFORM_SPEC_ARRAY_FIELDS) {
-    if (fogData[field] !== undefined) {
-      spec[field] = field === 'tags' ? normalizeSpecTags(fogData[field]) : fogData[field]
+    if (source[field] !== undefined) {
+      spec[field] = field === 'tags' ? normalizeSpecTags(source[field]) : source[field]
     }
   }
+  return spec
+}
+
+function buildPlatformSpecFromFogData (fogData, options = {}) {
+  const spec = pickPlatformSpecFields(fogData)
   if (options.applyCreateDefaults) {
     if (spec.routerMode === undefined) {
       spec.routerMode = 'edge'
@@ -201,7 +214,7 @@ function buildPlatformSpecFromFogData (fogData, options = {}) {
 }
 
 function mergePlatformSpecPatch (existingSpec, patchFogData) {
-  const merged = { ...(existingSpec || {}) }
+  const merged = pickPlatformSpecFields(existingSpec)
   for (const field of FOG_PLATFORM_SPEC_SCALAR_FIELDS) {
     if (patchFogData[field] !== undefined) {
       merged[field] = patchFogData[field]
@@ -232,6 +245,7 @@ module.exports = {
   serializeConditionsJson,
   FOG_PLATFORM_SPEC_SCALAR_FIELDS,
   FOG_PLATFORM_SPEC_ARRAY_FIELDS,
+  pickPlatformSpecFields,
   buildPlatformSpecFromFogData,
   mergePlatformSpecPatch
 }

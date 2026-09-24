@@ -142,7 +142,7 @@ After login, API calls use `Authorization: Bearer <access_token>`. Controller re
 
 **User** subject: `preferred_username` → `username` → `email` → `sub`.
 
-External IdP setup (scopes, PKCE, redirect URIs, Keycloak checklist): [external-oidc-client-setup.md](external-oidc-client-setup.md).
+External IdP client (scopes, PKCE, redirect URIs, access-token `aud`): [external-oidc-client-setup.md](external-oidc-client-setup.md). Default groups/roles and Keycloak / Entra ID / Okta / Auth0 recipes: [external-oidc-providers.md](external-oidc-providers.md).
 
 ---
 
@@ -203,7 +203,8 @@ See [external-oidc-client-setup.md](external-oidc-client-setup.md) § Verificati
 
 | Document | Topic |
 |----------|-------|
-| [external-oidc-client-setup.md](external-oidc-client-setup.md) | External IdP client, scopes, Keycloak checklist |
+| [external-oidc-client-setup.md](external-oidc-client-setup.md) | External IdP client, scopes, redirect URI, access-token `aud` |
+| [external-oidc-providers.md](external-oidc-providers.md) | Default groups/roles; Keycloak, Entra ID, Okta, Auth0 recipes |
 | [rbac-reference.md](rbac-reference.md) | Roles, bindings, public routes |
 | [architecture.md](architecture.md) | Auth modes summary, API surfaces |
 | [swagger.yaml](swagger.yaml) | User and auth admin endpoints |

@@ -1,3 +1,4 @@
+const { Op } = require('sequelize')
 const TransactionDecorator = require('../decorators/transaction-decorator')
 const { PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
@@ -5,6 +6,7 @@ const MicroserviceManager = require('../data/managers/microservice-manager')
 const MicroserviceStatusManager = require('../data/managers/microservice-status-manager')
 const MicroserviceExecStatusManager = require('../data/managers/microservice-exec-status-manager')
 const { microserviceState, microserviceExecState } = require('../enums/microservice-state')
+const { zeroRuntimeMetrics } = require('../helpers/microservice-runtime-metrics')
 
 const Config = require('../config')
 const ApplicationManager = require('../data/managers/application-manager')
@@ -12,55 +14,68 @@ const logger = require('../logger')
 
 const scheduleTime = Config.get('settings.fogStatusUpdateInterval') * 1000
 
-async function run () {
-  try {
-    const _updateStoppedApplicationMicroserviceStatus = TransactionDecorator.generateTransaction(
-      updateStoppedApplicationMicroserviceStatus,
-      { priority: PRIORITY_BACKGROUND, label: 'stoppedAppStatus.application' }
-    )
-    const _updateStoppedMicroserviceStatus = TransactionDecorator.generateTransaction(
-      updateStoppedMicroserviceStatus,
-      { priority: PRIORITY_BACKGROUND, label: 'stoppedAppStatus.microservice' }
-    )
+const STALE_DESIRED_INACTIVE_STATUSES = new Set([
+  microserviceState.DELETED,
+  microserviceState.DELETING,
+  microserviceState.RUNNING,
+  microserviceState.STOPPING
+])
 
-    // Handle microservices from deactivated applications
-    await _updateStoppedApplicationMicroserviceStatus()
-    // Handle individually deactivated microservices
-    await _updateStoppedMicroserviceStatus()
+let inFlight = false
+
+function shouldForceObservedStopped (microservice) {
+  const status = microservice.microserviceStatus && microservice.microserviceStatus.status
+  return STALE_DESIRED_INACTIVE_STATUSES.has(status)
+}
+
+async function run () {
+  if (inFlight) {
+    return
+  }
+  inFlight = true
+  try {
+    await module.exports.runSafetyNetPass()
   } catch (error) {
     logger.error('Error during stopped application status update:', error)
   } finally {
+    inFlight = false
     setTimeout(run, scheduleTime)
   }
 }
 
-async function updateStoppedApplicationMicroserviceStatus (transaction) {
-  // Get all deactivated applications
+async function runSafetyNetPass () {
+  const updateStoppedApplicationMicroserviceStatus = TransactionDecorator.generateTransaction(
+    updateApplicationMicroservices,
+    { priority: PRIORITY_BACKGROUND, label: 'stoppedAppStatus.application' }
+  )
+  const updateStoppedMicroserviceStatus = TransactionDecorator.generateTransaction(
+    updateDeactivatedMicroservices,
+    { priority: PRIORITY_BACKGROUND, label: 'stoppedAppStatus.microservice' }
+  )
+
+  await updateStoppedApplicationMicroserviceStatus()
+  await updateStoppedMicroserviceStatus()
+}
+
+async function updateApplicationMicroservices (transaction) {
   const stoppedApplications = await ApplicationManager.findAllWithAttributes({ isActivated: false }, ['id'], transaction)
 
   if (stoppedApplications.length === 0) {
     return
   }
 
-  // Get all microservices from these applications
   const applicationIds = stoppedApplications.map(app => app.id)
-  const { Op } = require('sequelize')
   const stoppedMicroservices = await MicroserviceManager.findAllWithStatuses({ applicationId: { [Op.in]: applicationIds } }, transaction)
 
-  await _updateMicroserviceStatusStopped(stoppedMicroservices, transaction)
+  await updateMicroserviceStatusStopped(stoppedMicroservices, transaction)
 }
 
-async function updateStoppedMicroserviceStatus (transaction) {
-  // Get all individually deactivated microservices (where microservice isActivated = false but parent application is still active)
-  const { Op } = require('sequelize')
-
-  // First get all active applications
+async function updateDeactivatedMicroservices (transaction) {
   const activeApplications = await ApplicationManager.findAllWithAttributes({ isActivated: true }, ['id'], transaction)
   if (activeApplications.length === 0) {
     return
   }
 
-  // Then get microservices that are individually deactivated but belong to active applications
   const activeApplicationIds = activeApplications.map(app => app.id)
   const stoppedMicroservices = await MicroserviceManager.findAllWithStatuses({
     isActivated: false,
@@ -71,27 +86,38 @@ async function updateStoppedMicroserviceStatus (transaction) {
     return
   }
 
-  await _updateMicroserviceStatusStopped(stoppedMicroservices, transaction)
+  await updateMicroserviceStatusStopped(stoppedMicroservices, transaction)
 }
 
-async function _updateMicroserviceStatusStopped (stoppedMicroservices, transaction) {
-  const microserviceStatusIds = stoppedMicroservices
-    .filter((microservice) => microservice.microserviceStatus && (microservice.microserviceStatus.status === microserviceState.DELETED ||
-       microservice.microserviceStatus.status === microserviceState.DELETING))
-    .map((microservice) => microservice.microserviceStatus.id)
-  const microserviceExecStatusIds = stoppedMicroservices
-    .filter((microservice) =>
-      microservice.microserviceStatus &&
-      (microservice.microserviceStatus.status === microserviceState.DELETED ||
-       microservice.microserviceStatus.status === microserviceState.DELETING) &&
-      microservice.microserviceExecStatus
-    )
+async function updateMicroserviceStatusStopped (stoppedMicroservices, transaction) {
+  const toStop = (stoppedMicroservices || []).filter(shouldForceObservedStopped)
+  const microserviceStatusIds = toStop.map((microservice) => microservice.microserviceStatus.id)
+  const microserviceExecStatusIds = toStop
+    .filter((microservice) => microservice.microserviceExecStatus)
     .map((microservice) => microservice.microserviceExecStatus.id)
-  await MicroserviceStatusManager.update({ id: microserviceStatusIds }, { status: microserviceState.STOPPED }, transaction)
-  await MicroserviceExecStatusManager.update({ id: microserviceExecStatusIds }, { execSesssionId: '', status: microserviceExecState.INACTIVE }, transaction)
-  return stoppedMicroservices
+
+  if (microserviceStatusIds.length) {
+    await MicroserviceStatusManager.update(
+      { id: microserviceStatusIds },
+      Object.assign({ status: microserviceState.STOPPED }, zeroRuntimeMetrics()),
+      transaction
+    )
+  }
+  if (microserviceExecStatusIds.length) {
+    await MicroserviceExecStatusManager.update(
+      { id: microserviceExecStatusIds },
+      { execSessionId: '', status: microserviceExecState.INACTIVE },
+      transaction
+    )
+  }
+  return toStop
 }
 
 module.exports = {
-  run
+  run,
+  runSafetyNetPass,
+  updateApplicationMicroservices,
+  updateDeactivatedMicroservices,
+  updateMicroserviceStatusStopped,
+  shouldForceObservedStopped
 }

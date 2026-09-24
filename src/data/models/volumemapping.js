@@ -23,6 +23,12 @@ module.exports = (sequelize, DataTypes) => {
     type: {
       type: DataTypes.TEXT,
       field: 'type'
+    },
+    scope: {
+      type: DataTypes.ENUM('private', 'shared'),
+      allowNull: false,
+      defaultValue: 'private',
+      field: 'scope'
     }
   }, {
     tableName: 'VolumeMappings',

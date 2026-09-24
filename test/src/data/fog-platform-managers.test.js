@@ -7,7 +7,8 @@ const {
   parseSpecJson,
   serializeSpecJson,
   parseSpecSnapshot,
-  serializeSpecSnapshot
+  serializeSpecSnapshot,
+  mergePlatformSpecPatch
 } = require('../../../src/schemas/fog-platform-spec')
 const FogPlatformReconcileTaskManager = require('../../../src/data/managers/fog-platform-reconcile-task-manager')
 const ServicePlatformReconcileTaskManager = require('../../../src/data/managers/service-platform-reconcile-task-manager')
@@ -28,7 +29,27 @@ describe('Fog platform spec schema', () => {
       throw new Error('expected validation to fail')
     } catch (error) {
       expect(error.name).to.equal('ValidationError')
+      expect(error.message).to.equal("Invalid fog platform spec field 'unknownField'")
     }
+  })
+
+  it('mergePlatformSpecPatch drops removed fields from existing spec', async () => {
+    const merged = mergePlatformSpecPatch({
+      routerMode: 'edge',
+      natsMode: 'leaf',
+      host: '1.2.3.4',
+      bluetoothEnabled: false,
+      abstractedHardwareEnabled: false
+    }, {
+      host: '5.6.7.8'
+    })
+
+    expect(merged).to.eql({
+      routerMode: 'edge',
+      natsMode: 'leaf',
+      host: '5.6.7.8'
+    })
+    await validateFogPlatformSpec(merged)
   })
 
   it('round-trips spec JSON through parse and serialize', () => {

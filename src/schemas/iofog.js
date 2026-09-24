@@ -16,16 +16,13 @@ const iofogCreate = {
     diskLimit: { type: 'integer', minimum: 0 },
     diskDirectory: { type: 'string' },
     memoryLimit: { type: 'integer', minimum: 0 },
-    cpuLimit: { type: 'integer', minimum: 0 },
+    cpuLimit: { type: 'integer', minimum: 5, maximum: 400 },
     logLimit: { type: 'integer', minimum: 0 },
     logDirectory: { type: 'string' },
     logFileCount: { type: 'integer', minimum: 0 },
     statusFrequency: { type: 'integer', minimum: 0 },
     changeFrequency: { type: 'integer', minimum: 0 },
-    deviceScanFrequency: { type: 'integer', minimum: 0 },
-    bluetoothEnabled: { type: 'boolean' },
     watchdogEnabled: { type: 'boolean' },
-    abstractedHardwareEnabled: { type: 'boolean' },
     archId: { type: 'integer', minimum: 0, maximum: 4 },
     pruningFrequency: { type: 'integer', minimum: 0 },
     availableDiskThreshold: { type: 'integer', minimum: 0 },
@@ -93,16 +90,13 @@ const iofogUpdate = {
     diskLimit: { type: 'integer', minimum: 0 },
     diskDirectory: { type: 'string' },
     memoryLimit: { type: 'integer', minimum: 0 },
-    cpuLimit: { type: 'integer', minimum: 0 },
+    cpuLimit: { type: 'integer', minimum: 5, maximum: 400 },
     logLimit: { type: 'integer', minimum: 0 },
     logDirectory: { type: 'string' },
     logFileCount: { type: 'integer', minimum: 0 },
     statusFrequency: { type: 'integer', minimum: 0 },
     changeFrequency: { type: 'integer', minimum: 0 },
-    deviceScanFrequency: { type: 'integer', minimum: 0 },
-    bluetoothEnabled: { type: 'boolean' },
     watchdogEnabled: { type: 'boolean' },
-    abstractedHardwareEnabled: { type: 'boolean' },
     archId: { type: 'integer', minimum: 0, maximum: 4 },
     pruningFrequency: { type: 'integer', minimum: 0 },
     availableDiskThreshold: { type: 'integer', minimum: 0 },
@@ -232,16 +226,6 @@ const filter = {
   additionalProperties: true
 }
 
-const halGet = {
-  id: '/halGet',
-  type: 'object',
-  properties: {
-    uuid: { type: 'string' }
-  },
-  required: ['uuid'],
-  additionalProperties: true
-}
-
 const iofogPrune = {
   id: '/iofogPrune',
   type: 'object',
@@ -294,6 +278,6 @@ const disableNodeExec = {
 module.exports = {
   mainSchemas: [iofogCreate, iofogUpdate, iofogDelete,
     iofogGet, iofogGenerateProvision, iofogSetVersionCommand,
-    iofogReboot, iofogFilters, halGet, iofogPrune, defaultRouterCreate, iofogTag, enableNodeExec, disableNodeExec],
+    iofogReboot, iofogFilters, iofogPrune, defaultRouterCreate, iofogTag, enableNodeExec, disableNodeExec],
   innerSchemas: [filter, iofogTag]
 }

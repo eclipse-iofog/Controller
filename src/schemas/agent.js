@@ -31,13 +31,12 @@ const updateAgentConfig = {
     diskLimit: { type: 'integer', minimum: 0 },
     diskDirectory: { type: 'string' },
     memoryLimit: { type: 'integer', minimum: 0 },
-    cpuLimit: { type: 'integer', minimum: 0 },
+    cpuLimit: { type: 'integer', minimum: 5, maximum: 400 },
     logLimit: { type: 'integer', minimum: 0 },
     logDirectory: { type: 'string' },
     logFileCount: { type: 'integer', minimum: 0 },
     statusFrequency: { type: 'integer', minimum: 0 },
     changeFrequency: { type: 'integer', minimum: 0 },
-    deviceScanFrequency: { type: 'integer', minimum: 0 },
     watchdogEnabled: { type: 'boolean' },
     latitude: { type: 'number', minimum: -90, maximum: 90 },
     longitude: { type: 'number', minimum: -180, maximum: 180 },
@@ -80,6 +79,12 @@ const updateAgentStatus = {
     systemAvailableDisk: { type: 'integer' },
     systemAvailableMemory: { type: 'integer' },
     systemTotalCpu: { type: 'number' },
+    systemCpus: { type: 'integer', minimum: 0 },
+    systemTotalMemory: { type: 'integer', minimum: 0 },
+    systemTotalDisk: { type: 'integer', minimum: 0 },
+    systemOs: { type: 'string' },
+    systemOsVersion: { type: 'string' },
+    systemKernelVersion: { type: 'string' },
     securityStatus: { type: 'string' },
     securityViolationInfo: { type: 'string' },
     microserviceStatus: { type: 'string' },
@@ -94,6 +99,20 @@ const updateAgentStatus = {
       type: 'array',
       items: { type: 'string' }
     },
+    runtimeClasses: {
+      type: 'array',
+      items: { type: 'object' }
+    },
+    availableCdiDevices: {
+      type: 'array',
+      items: { type: 'string' }
+    },
+    modelStatus: { type: 'string' },
+    activeModels: { type: 'integer', minimum: 0 },
+    modelLastUpdate: { type: 'integer', minimum: 0 },
+    knowledgeStatus: { type: ['string', 'array'] },
+    activeKnowledge: { type: 'integer', minimum: 0 },
+    knowledgeLastUpdate: { type: 'integer', minimum: 0 },
     runtimeAgentPhase: { type: 'string' },
     controlPlaneQuiesced: { type: 'boolean' },
     gpsMode: { type: 'string' },
@@ -123,34 +142,18 @@ const microserviceStatus = {
     memoryUsage: { type: 'number' },
     ipAddress: { type: 'string' },
     ipAddressExternal: { type: 'string' },
-    execSessionIds: { type: 'array', items: { type: 'string' } }
+    execSessionIds: { type: 'array', items: { type: 'string' } },
+    podId: { type: 'string' },
+    errorMessage: { type: 'string' },
+    lastError: { type: 'string' },
+    lastErrorAt: { type: 'integer' },
+    restartCount: { type: 'integer' }
   },
   required: ['id'],
   additionalProperties: true
 }
 
-const updateHardwareInfo = {
-  id: '/updateHardwareInfo',
-  type: 'object',
-  properties: {
-    info: { type: 'string' }
-  },
-  required: ['info'],
-  additionalProperties: true
-}
-
-const updateUsbInfo = {
-  id: '/updateUsbInfo',
-  type: 'object',
-  properties: {
-    info: { type: 'string' }
-  },
-  required: ['info'],
-  additionalProperties: true
-}
-
 module.exports = {
-  mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentGps, updateAgentStatus,
-    updateHardwareInfo, updateUsbInfo],
+  mainSchemas: [agentProvision, agentDeprovision, updateAgentConfig, updateAgentGps, updateAgentStatus],
   innerSchemas: [microserviceStatus]
 }

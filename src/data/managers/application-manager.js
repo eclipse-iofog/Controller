@@ -2,6 +2,20 @@ const BaseManager = require('./base-manager')
 const models = require('../models')
 const Application = models.Application
 const Microservice = models.Microservice
+const RbacServiceAccount = models.RbacServiceAccount
+
+const microserviceInclude = {
+  model: Microservice,
+  as: 'microservices',
+  required: false,
+  include: [
+    {
+      model: RbacServiceAccount,
+      as: 'serviceAccount',
+      required: false
+    }
+  ]
+}
 
 class ApplicationManager extends BaseManager {
   getEntity () {
@@ -44,13 +58,7 @@ class ApplicationManager extends BaseManager {
 
   async findOnePopulated (where, attributes, transaction) {
     const application = await Application.findOne({
-      include: [
-        {
-          model: Microservice,
-          as: 'microservices',
-          required: false
-        }
-      ],
+      include: [microserviceInclude],
       where,
       attributes
     }, { transaction })
@@ -66,13 +74,7 @@ class ApplicationManager extends BaseManager {
 
   async findAllPopulated (where, attributes, transaction) {
     const applications = await Application.findAll({
-      include: [
-        {
-          model: Microservice,
-          as: 'microservices',
-          required: false
-        }
-      ],
+      include: [microserviceInclude],
       where,
       attributes
     }, { transaction })

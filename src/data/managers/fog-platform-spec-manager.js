@@ -3,7 +3,8 @@ const models = require('../models')
 const {
   validateFogPlatformSpec,
   parseSpecJson,
-  serializeSpecJson
+  serializeSpecJson,
+  pickPlatformSpecFields
 } = require('../../schemas/fog-platform-spec')
 
 class FogPlatformSpecManager extends BaseManager {
@@ -24,8 +25,9 @@ class FogPlatformSpecManager extends BaseManager {
   }
 
   async upsertSpec (fogUuid, specObject, transaction) {
-    await validateFogPlatformSpec(specObject)
-    const specJson = serializeSpecJson(specObject)
+    const sanitized = pickPlatformSpecFields(specObject)
+    await validateFogPlatformSpec(sanitized)
+    const specJson = serializeSpecJson(sanitized)
 
     const existing = await this.findOne({ fogUuid }, transaction)
     if (existing) {
