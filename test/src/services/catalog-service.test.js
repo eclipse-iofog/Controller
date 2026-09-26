@@ -352,10 +352,10 @@ describe('Catalog Service', () => {
       $sandbox.stub(CatalogItemManager, 'findOne').resolves(buildCatalogItem({ category: 'SYSTEM' }))
     })
 
-    it('.getNatsCatalogItem() queries NATs system item', async () => {
+    it('.getNatsCatalogItem() queries NATS system item', async () => {
       await CatalogService.getNatsCatalogItem(transaction)
       expect(CatalogItemManager.findOne).to.have.been.calledWith({
-        name: 'NATs',
+        name: 'NATS',
         category: 'SYSTEM',
         publisher: 'Eclipse ioFog',
         registry_id: 1

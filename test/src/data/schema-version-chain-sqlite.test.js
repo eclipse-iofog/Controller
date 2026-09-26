@@ -169,7 +169,7 @@ describe('schema version chain (sqlite)', function () {
       expect(hub.type).to.equal('hf')
 
       const catalog = await sqliteAll(db, "SELECT name FROM CatalogItems WHERE category = 'SYSTEM' ORDER BY name")
-      expect(catalog.map((row) => row.name)).to.deep.equal(['Debug', 'NATs', 'Router'])
+      expect(catalog.map((row) => row.name)).to.deep.equal(['Debug', 'NATS', 'Router'])
 
       const tables = await sqliteAll(db, "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('Models', 'RuntimeClasses', 'FogModels', 'FogRuntimeClasses', 'MicroserviceTemplates', 'MicroserviceTemplateVariables', 'MicroserviceEntrypoints', 'MicroserviceDevices', 'MicroserviceTmpfs', 'MicroserviceUlimits', 'MicroserviceModels', 'MicroserviceModelItems', 'HWInfos', 'USBInfos')")
       const tableNames = tables.map((row) => row.name).sort()
@@ -269,6 +269,9 @@ describe('schema version chain (sqlite)', function () {
       const catalog = await sqliteAll(before, "SELECT name FROM CatalogItems WHERE name IN ('HAL', 'RESTBlue') ORDER BY name")
       expect(catalog.map((row) => row.name)).to.deep.equal(['HAL', 'RESTBlue'])
 
+      const natsCatalog = await sqliteGet(before, "SELECT name FROM CatalogItems WHERE name = 'NATs'")
+      expect(natsCatalog).to.not.equal(undefined)
+
       const hub = await sqliteGet(before, "SELECT id FROM Registries WHERE url = 'https://huggingface.co'")
       expect(hub).to.equal(undefined)
 
@@ -296,6 +299,9 @@ describe('schema version chain (sqlite)', function () {
 
       const catalog = await sqliteAll(after, "SELECT name FROM CatalogItems WHERE name IN ('HAL', 'RESTBlue')")
       expect(catalog).to.deep.equal([])
+
+      const systemCatalog = await sqliteAll(after, "SELECT name FROM CatalogItems WHERE category = 'SYSTEM' ORDER BY name")
+      expect(systemCatalog.map((row) => row.name)).to.deep.equal(['Debug', 'NATS', 'Router'])
 
       const hub = await sqliteGet(after, "SELECT id, url, type FROM Registries WHERE url = 'https://huggingface.co' AND type = 'hf'")
       expect(hub).to.not.equal(undefined)
@@ -374,7 +380,7 @@ describe('schema version chain (sqlite)', function () {
       expect(versions[0].seeder_version).to.equal('3.9.0')
 
       const catalog = await sqliteAll(db, "SELECT name FROM CatalogItems WHERE category = 'SYSTEM' ORDER BY name")
-      expect(catalog.map((row) => row.name)).to.deep.equal(['Debug', 'NATs', 'Router'])
+      expect(catalog.map((row) => row.name)).to.deep.equal(['Debug', 'NATS', 'Router'])
     } finally {
       await sqliteClose(db)
     }

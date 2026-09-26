@@ -10,7 +10,7 @@ INSERT INTO "CatalogItems" (name, description, category, publisher, disk_require
 VALUES
     ('Router', 'The built-in router for Edgelet.', 'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, false, 1),
     ('Debug', 'The built-in debugger for Edgelet.', 'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, false, 1),
-    ('NATs', 'NATs server microservice for Edgelet', 'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, true, 1);
+    ('NATS', 'NATS server microservice for Edgelet', 'SYSTEM', 'Eclipse ioFog', 0, 0, 'none.png', NULL, true, 1);
 
 INSERT INTO "Architectures" (id, name, image, description, network_catalog_item_id)
 VALUES

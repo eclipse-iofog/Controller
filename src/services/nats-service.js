@@ -854,7 +854,7 @@ async function _ensureNatsMicroservice (fog, mode, transaction) {
   if (!microservice) {
     const catalog = await CatalogService.getNatsCatalogItem(transaction)
     if (!catalog) {
-      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, 'NATs'))
+      throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.INVALID_CATALOG_ITEM_ID, 'NATS'))
     }
     const data = {
       uuid: AppHelper.generateUUID(),

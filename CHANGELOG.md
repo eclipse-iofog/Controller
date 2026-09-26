@@ -1,5 +1,20 @@
 # Changelog
 
+
+## [v3.9.0] - 2026-09-26
+
+Controller **v3.9.0** (GA). **Upgrade from v3.8.0** is supported. Feature and schema history is in the **v3.9.0-rc.*** sections below.
+
+### Fixed
+
+- **System NATS catalog item** — corrected the system catalog name **`NATs` → `NATS`** in `NATS_CATALOG_NAME`, `getNatsCatalogItem`, and NATS provisioning errors. **3.9.0 baseline** seed data uses `NATS`. **3.8→3.9 upgrade** applies an idempotent **`UPDATE` in the v3.9.0 seeder** (sqlite, mysql, postgres) so upgraded databases match code and startup system-image configuration. Existing NATS microservices keep the same `catalog_item_id`.
+
+### Changed
+
+- Embedded **EdgeOps Console** default version **v1.1.0-rc.6** → **v1.1.0** (GA) in Dockerfile, Makefile, CI build env, `.env.example`, and `scripts/build-console-dev.js`.
+- Dockerfile runtime base image digest pin refreshed for **`ubi9/nodejs-24-minimal`**.
+
+
 ## [v3.9.0-rc.9]
 
 ### Added
