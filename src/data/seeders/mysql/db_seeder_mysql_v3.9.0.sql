@@ -10,3 +10,8 @@ DELETE FROM CatalogItemImages WHERE catalog_item_id IN (SELECT id FROM (SELECT i
 DELETE FROM CatalogItemInputTypes WHERE catalog_item_id IN (SELECT id FROM (SELECT id FROM CatalogItems WHERE name IN ('HAL', 'RESTBlue')) AS catalog_ids);
 DELETE FROM CatalogItemOutputTypes WHERE catalog_item_id IN (SELECT id FROM (SELECT id FROM CatalogItems WHERE name IN ('HAL', 'RESTBlue')) AS catalog_ids);
 DELETE FROM CatalogItems WHERE name IN ('HAL', 'RESTBlue');
+
+UPDATE CatalogItems
+SET name = 'NATS',
+    description = 'NATS server microservice for Edgelet'
+WHERE name = 'NATs';

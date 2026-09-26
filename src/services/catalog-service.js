@@ -132,7 +132,7 @@ const deleteCatalogItemEndPoint = async function (id, isCLI, transaction) {
 
 async function getNatsCatalogItem (transaction) {
   return CatalogItemManager.findOne({
-    name: 'NATs',
+    name: 'NATS',
     category: 'SYSTEM',
     publisher: 'Eclipse ioFog',
     registry_id: 1
