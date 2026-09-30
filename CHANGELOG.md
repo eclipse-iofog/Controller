@@ -19,7 +19,7 @@ Controller **v3.9.0** (GA). **Upgrade from v3.8.0** is supported. Feature and sc
 - **`brace-expansion` 5.0.9 → 5.0.12** override — address GHSA-q2hr-2g5m-vwhr, GHSA-qhr7-859c-m2p7, GHSA-6j4f-fj2g-mc7p (minimatch transitive DoS).
 - **`ip-address` ^10.3.1 → ^10.7.2** override — address SSRF/trust-boundary advisories in the Kubernetes client SOCKS chain (GHSA-rpw4-54j3-4h4q, GHSA-2vr4-cq9g-pvrc, GHSA-j6r3-76f7-8jcv, GHSA-h3mg-xc3c-68pw).
 - **`node-gyp` → `undici` ^6.28.0 → ^6.29.0** override — address build-time `undici` advisories pulled by **`sqlite3`** native install.
-
+- **`@grpc/grpc-js` 1.14.4 → 1.14.5** override — address GHSA-m9gg-hp2v-232j and GHSA-f596-whhp-79r4 (transitive via `@google-cloud/secret-manager` / OpenTelemetry SDK).
 
 ## [v3.9.0-rc.9]
 
