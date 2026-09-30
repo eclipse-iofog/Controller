@@ -104,7 +104,9 @@ describe('Fog platform service', () => {
       $sandbox.stub(NatsInstanceManager, 'findOne').resolves(null)
       $sandbox.stub(NatsInstanceManager, 'findByFog').resolves({ id: 5, isLeaf: true })
       $sandbox.stub(NatsConnectionManager, 'findAllWithNats').resolves([])
-      $sandbox.stub(IofogService, '_handleRouterCertificates').resolves()
+      $sandbox.stub(IofogService, '_handleRouterCertificates').resolves(false)
+      $sandbox.stub(IofogService, '_reconcileNatsCertificates').resolves(false)
+      $sandbox.stub(IofogService, '_updateMicroserviceExtraHosts').resolves()
       $sandbox.stub(NatsService, 'ensureNatsForFogPhased').resolves({})
       $sandbox.stub(NatsService, 'cleanupNatsForFogPhased').resolves()
       $sandbox.stub(ReconcileOutboxManager, 'enqueueNats').resolves()
@@ -357,6 +359,202 @@ describe('Fog platform service', () => {
           sinon.match.has('upstreamNatsServers', ['default-nats-hub'])
         )
       })
+    })
+
+    function volumeMountUpdates () {
+      return ChangeTrackingService.update.getCalls().filter(
+        (call) => call.args[1] === ChangeTrackingService.events.volumeMounts
+      )
+    }
+
+    it('sets volumeMounts only when certificate prep writes a secret', async () => {
+      IofogService._handleRouterCertificates.resolves(true)
+
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      expect(volumeMountUpdates()).to.have.lengthOf(1)
+      expect(volumeMountUpdates()[0].args[0]).to.equal(fogUuid)
+    })
+
+    it('does not set volumeMounts when stored certificates already list the operator host', async () => {
+      IofogService._handleRouterCertificates.resolves(false)
+      IofogService._reconcileNatsCertificates.resolves(false)
+
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      expect(volumeMountUpdates()).to.have.lengthOf(0)
+    })
+
+    it('passes enriched fog data to router and NATS certificate prep', async () => {
+      const enrichedFog = {
+        ...fog,
+        host: 'row.example',
+        ipAddress: '10.9.9.9',
+        ipAddressExternal: '203.0.113.4'
+      }
+      FogManager.findOneWithTags.resolves(enrichedFog)
+      FogPlatformSpecManager.getParsedSpec.resolves({
+        fogUuid,
+        generation: 2,
+        spec: { ...spec, host: 'spec.example' }
+      })
+
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      const expectedFog = sinon.match({
+        host: 'spec.example',
+        ipAddress: '10.9.9.9',
+        ipAddressExternal: '203.0.113.4'
+      })
+      expect(IofogService._handleRouterCertificates).to.have.been.calledWith(
+        expectedFog,
+        fogUuid,
+        false,
+        transaction
+      )
+      expect(IofogService._reconcileNatsCertificates).to.have.been.calledWith(
+        expectedFog,
+        false,
+        transaction
+      )
+    })
+
+    it('replaces router certificates when router mode crosses none', async () => {
+      RouterManager.findOne.callsFake((query) => {
+        if (query && query.isDefault) {
+          return Promise.resolve({ id: 1, iofogUuid: 'default', isDefault: true })
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(RouterService, 'createRouterForFog').resolves({
+        id: 99,
+        iofogUuid: fogUuid,
+        isEdge: true
+      })
+
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      expect(IofogService._handleRouterCertificates).to.have.been.calledWith(
+        sinon.match({ host: spec.host }),
+        fogUuid,
+        true,
+        transaction
+      )
+    })
+
+    it('does not rotate router certificates when switching between edge and interior', async () => {
+      FogPlatformSpecManager.getParsedSpec.resolves({
+        fogUuid,
+        generation: 2,
+        spec: { ...spec, routerMode: 'interior' }
+      })
+
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      expect(IofogService._handleRouterCertificates).to.have.been.calledWith(
+        sinon.match.any,
+        fogUuid,
+        false,
+        transaction
+      )
+    })
+
+    it('replaces NATS certificates when NATS mode crosses none', async () => {
+      NatsInstanceManager.findByFog.onCall(0).resolves(null)
+
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      expect(IofogService._reconcileNatsCertificates).to.have.been.calledWith(
+        sinon.match({ host: spec.host }),
+        true,
+        transaction
+      )
+    })
+
+    it('does not rotate NATS certificates when switching between leaf and server', async () => {
+      NatsInstanceManager.findByFog.resolves({ id: 5, isLeaf: false, iofogUuid: fogUuid })
+      FogPlatformSpecManager.getParsedSpec.resolves({
+        fogUuid,
+        generation: 2,
+        spec: { ...spec, natsMode: 'server' }
+      })
+
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      expect(IofogService._reconcileNatsCertificates).to.have.been.calledWith(
+        sinon.match.any,
+        false,
+        transaction
+      )
+    })
+
+    it('does not reissue router certificates when NATS mode enters none', async () => {
+      $sandbox.stub(IofogService, '_deleteNatsMicroserviceByFog').resolves()
+      FogPlatformSpecManager.getParsedSpec.resolves({
+        fogUuid,
+        generation: 2,
+        spec: { ...spec, natsMode: 'none' }
+      })
+
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      expect(IofogService._reconcileNatsCertificates).to.not.have.been.called
+      expect(IofogService._handleRouterCertificates).to.have.been.calledWith(
+        sinon.match.any,
+        fogUuid,
+        false,
+        transaction
+      )
+      expect(NatsService.cleanupNatsForFogPhased).to.have.been.calledOnce
+    })
+
+    it('updates microservice extra hosts from the operator host when spec and fog hosts match', async () => {
+      await FogPlatformService.reconcileFog(fogUuid)
+
+      expect(IofogService._updateMicroserviceExtraHosts).to.have.been.calledOnceWith(
+        fogUuid,
+        spec.host,
+        transaction
+      )
+    })
+  })
+
+  describe('.buildFogDataFromSpecAndFog()', () => {
+    it('uses the spec host and copies IP addresses from the fog row', () => {
+      const fogData = FogPlatformService.buildFogDataFromSpecAndFog(
+        {
+          uuid: fogUuid,
+          name: 'edge-a',
+          host: 'row.example',
+          ipAddress: '10.1.1.1',
+          ipAddressExternal: '0.0.0.0',
+          tags: []
+        },
+        { host: 'spec.example', routerMode: 'edge', natsMode: 'leaf' }
+      )
+
+      expect(fogData.host).to.equal('spec.example')
+      expect(fogData.ipAddress).to.equal('10.1.1.1')
+      expect(fogData.ipAddressExternal).to.equal('0.0.0.0')
+    })
+
+    it('uses the fog host when the spec host is unset', () => {
+      const fogData = FogPlatformService.buildFogDataFromSpecAndFog(
+        { uuid: fogUuid, name: 'edge-a', host: 'row.example', tags: [] },
+        { routerMode: 'edge', natsMode: 'leaf' }
+      )
+
+      expect(fogData.host).to.equal('row.example')
+    })
+  })
+
+  describe('.modeCrossedNone()', () => {
+    it('is true only when a mode enters or leaves none', () => {
+      expect(FogPlatformService.modeCrossedNone('none', 'edge')).to.equal(true)
+      expect(FogPlatformService.modeCrossedNone('leaf', 'none')).to.equal(true)
+      expect(FogPlatformService.modeCrossedNone('edge', 'interior')).to.equal(false)
+      expect(FogPlatformService.modeCrossedNone('leaf', 'server')).to.equal(false)
+      expect(FogPlatformService.modeCrossedNone('edge', 'edge')).to.equal(false)
     })
   })
 

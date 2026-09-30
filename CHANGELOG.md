@@ -7,6 +7,7 @@ Controller **v3.9.0** (GA). **Upgrade from v3.8.0** is supported. Feature and sc
 
 ### Fixed
 
+- **Fog host certificates** — fog platform reconcile creates or replaces router and NATS certificates when the stored host list omits the operator host, or when router or NATS mode crosses `none`. The new certificate lists the operator host and the static local and bridge names. Fog IP addresses are not copied, so a previous host address still on the fog row is not kept. Switching `edge`/`interior` or `leaf`/`server` leaves certificates in place when the operator host is already listed. Replacing a certificate updates the TLS secret in place and increments the linked volume mount version. **`volumeMounts`** is set when a certificate secret is written.
 - **System NATS catalog item** — corrected the system catalog name **`NATs` → `NATS`** in `NATS_CATALOG_NAME`, `getNatsCatalogItem`, and NATS provisioning errors. **3.9.0 baseline** seed data uses `NATS`. **3.8→3.9 upgrade** applies an idempotent **`UPDATE` in the v3.9.0 seeder** (sqlite, mysql, postgres) so upgraded databases match code and startup system-image configuration. Existing NATS microservices keep the same `catalog_item_id`.
 
 ### Changed

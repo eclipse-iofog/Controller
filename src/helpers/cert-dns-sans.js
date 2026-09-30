@@ -5,6 +5,26 @@ function getControllerNamespace () {
   return process.env.CONTROLLER_NAMESPACE || config.get('app.namespace', 'datasance')
 }
 
+function addOperatorHost (hosts, host) {
+  if (host == null) return
+  const trimmed = String(host).trim()
+  if (trimmed) hosts.add(trimmed)
+}
+
+function parseStoredCertificateHosts (hosts) {
+  if (hosts == null) return []
+  return String(hosts)
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry !== '')
+}
+
+function certificateHostsInclude (hosts, operatorHost) {
+  const needle = operatorHost == null ? '' : String(operatorHost).trim()
+  if (!needle) return true
+  return new Set(parseStoredCertificateHosts(hosts)).has(needle)
+}
+
 function buildRouterLocalCertificateHostList (fogData, { isDefaultRouter = false } = {}) {
   const hosts = new Set()
   const defaultHosts = [
@@ -16,9 +36,7 @@ function buildRouterLocalCertificateHostList (fogData, { isDefaultRouter = false
     'service.local'
   ]
   defaultHosts.forEach(host => hosts.add(host))
-  if (fogData.host) hosts.add(fogData.host)
-  if (fogData.ipAddress) hosts.add(fogData.ipAddress)
-  if (fogData.ipAddressExternal) hosts.add(fogData.ipAddressExternal)
+  addOperatorHost(hosts, fogData.host)
   hosts.add(Constants.ROUTER_BRIDGE_DNS_SAN)
   if (isDefaultRouter) {
     const namespace = getControllerNamespace()
@@ -35,11 +53,12 @@ function routerLocalCertificateHosts (fogData, options) {
 }
 
 function buildNatsServerCertificateHostList (fog) {
-  const hosts = [fog.host, fog.ipAddress, fog.ipAddressExternal].filter(Boolean)
-  if (hosts.length === 0) {
-    hosts.push('localhost')
+  const hosts = new Set()
+  addOperatorHost(hosts, fog.host)
+  if (hosts.size === 0) {
+    hosts.add('localhost')
   }
-  return hosts
+  return Array.from(hosts)
 }
 
 function buildNatsMqttCertificateHostList (fog) {
@@ -48,6 +67,8 @@ function buildNatsMqttCertificateHostList (fog) {
 
 module.exports = {
   getControllerNamespace,
+  certificateHostsInclude,
+  parseStoredCertificateHosts,
   buildRouterLocalCertificateHostList,
   routerLocalCertificateHosts,
   buildNatsServerCertificateHostList,
