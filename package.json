@@ -112,7 +112,7 @@
     "jose": "^4.15.9",
     "js-yaml": "4.3.2",
     "jsonschema": "1.5.0",
-    "moment": "2.30.1",
+    "moment": "2.31.0",
     "multer": "2.3.0",
     "mysql2": "3.23.1",
     "@nats-io/transport-node": "^3.4.0",
