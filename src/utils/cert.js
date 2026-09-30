@@ -4,6 +4,10 @@ const BigNumber = require('bignumber.js')
 const logger = require('../logger')
 const { runInTransaction, PRIORITY_BACKGROUND } = require('../helpers/transaction-runner')
 
+// Maximum accepted size (bytes) for PEM-encoded certificate/key input to avoid
+// excessive CPU/memory usage when parsing attacker-supplied data (CWE-400)
+const MAX_PEM_SIZE = 64 * 1024
+
 // Types for CA input
 const CA_TYPES = {
   K8S_SECRET: 'k8s-secret',
@@ -435,7 +439,11 @@ async function _generateCertificateBody ({
   // Set up the certificate based on whether we have a CA or not
   if (caCert) {
     // If we have a CA, use it to sign the certificate
-    const caForgeCert = forge.pki.certificateFromPem(caCert.certPem || caCert.crtData)
+    const caCertPem = caCert.certPem || caCert.crtData
+    if ((caCertPem && caCertPem.length > MAX_PEM_SIZE) || (caCert.key && caCert.key.length > MAX_PEM_SIZE)) {
+      throw new Error('CA certificate or key exceeds maximum allowed size')
+    }
+    const caForgeCert = forge.pki.certificateFromPem(caCertPem)
     const caForgeKey = forge.pki.privateKeyFromPem(caCert.key)
 
     // Set the issuer from the CA
