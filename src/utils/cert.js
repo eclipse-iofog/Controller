@@ -361,6 +361,7 @@ async function generateCertificate ({
   expiration = 5 * 365 * 24 * 60 * 60 * 1000,
   ca,
   isRenewal = false,
+  updateExisting = false,
   transaction
 }) {
   try {
@@ -371,6 +372,7 @@ async function generateCertificate ({
       expiration,
       ca,
       isRenewal,
+      updateExisting,
       transaction
     })
   } catch (error) {
@@ -386,6 +388,7 @@ async function _generateCertificateBody ({
   expiration,
   ca,
   isRenewal,
+  updateExisting,
   transaction
 }) {
   const caCert = await getCAFromInput(ca, transaction)
@@ -527,20 +530,27 @@ async function _generateCertificateBody ({
   // Use the secret service to store the certificate
   const SecretService = require('../services/secret-service')
 
-  if (isRenewal) {
-    // For renewals, delete the existing secret first
-    try {
-      await SecretService.deleteSecretEndpoint(name, transaction)
-    } catch (error) {
-      // If the secret doesn't exist, that's okay, just continue
-      if (error.name !== 'NotFoundError') {
-        throw error
+  if (updateExisting) {
+    await SecretService.updateSecretEndpoint(name, {
+      type: 'tls',
+      data: secretData
+    }, transaction)
+  } else {
+    if (isRenewal) {
+      // For renewals, delete the existing secret first
+      try {
+        await SecretService.deleteSecretEndpoint(name, transaction)
+      } catch (error) {
+        // If the secret doesn't exist, that's okay, just continue
+        if (error.name !== 'NotFoundError') {
+          throw error
+        }
       }
     }
-  }
 
-  // Create new secret with certificate data
-  await SecretService.createSecretEndpoint(secret, transaction)
+    // Create new secret with certificate data
+    await SecretService.createSecretEndpoint(secret, transaction)
+  }
 
   return {
     cert: certPem,

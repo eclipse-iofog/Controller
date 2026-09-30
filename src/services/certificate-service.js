@@ -403,6 +403,49 @@ async function _createCertificateEndpointInner (certData, transaction) {
   }
 }
 
+async function replaceCertificateEndpoint (certData, transaction) {
+  const validation = await Validator.validate(certData, Validator.schemas.certificateCreate)
+  if (!validation.valid) {
+    throw new Errors.ValidationError(validation.error)
+  }
+  validateCertType(certData.ca.type)
+  if (certData.expiration) {
+    certData.expiration = processExpiration(certData.expiration)
+  }
+
+  const certRecord = await CertificateManager.findCertificateByName(certData.name, transaction)
+  if (!certRecord) {
+    throw new Errors.NotFoundError(AppHelper.formatMessage(ErrorMessages.CERTIFICATE_NOT_FOUND, certData.name))
+  }
+
+  const generated = await generateCertificate({
+    name: certData.name,
+    subject: certData.subject,
+    hosts: certData.hosts,
+    expiration: certData.expiration,
+    ca: certData.ca,
+    updateExisting: true,
+    transaction
+  })
+  const certDetails = parseCertificate(generated.cert)
+
+  await CertificateManager.updateCertificate(certRecord.id, {
+    subject: certDetails.subject,
+    hosts: certData.hosts,
+    validFrom: certDetails.validFrom,
+    validTo: certDetails.validTo,
+    serialNumber: certDetails.serialNumber
+  }, transaction)
+
+  return {
+    name: certData.name,
+    subject: certData.subject,
+    hosts: certData.hosts,
+    valid_from: certDetails.validFrom,
+    valid_to: certDetails.validTo
+  }
+}
+
 async function getCertificateEndpoint (name, transaction) {
   const certRecord = await CertificateManager.findCertificateByName(name, transaction)
 
@@ -675,6 +718,7 @@ module.exports = {
   listCAEndpoint: TransactionDecorator.generateTransaction(listCAEndpoint),
   deleteCAEndpoint: TransactionDecorator.generateTransaction(deleteCAEndpoint),
   createCertificateEndpoint: TransactionDecorator.generateTransaction(createCertificateEndpoint),
+  replaceCertificateEndpoint: TransactionDecorator.generateTransaction(replaceCertificateEndpoint),
   getCertificateEndpoint: TransactionDecorator.generateTransaction(getCertificateEndpoint),
   listCertificatesEndpoint: TransactionDecorator.generateTransaction(listCertificatesEndpoint),
   deleteCertificateEndpoint: TransactionDecorator.generateTransaction(deleteCertificateEndpoint),

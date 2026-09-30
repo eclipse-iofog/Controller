@@ -39,7 +39,9 @@ v3.8 is a **new install only** release (no v3.7 → v3.8 database migrator).
 |----------|-----------------|
 | New v3.8 fleet | Install Controller v3.8; provision Edgelet agents normally (CAs are ensured on first agent, or import custom CAs first — see below) |
 | Old v3.7 lab with per-agent CAs | **Wipe and reinstall** (new DB + new secrets) per greenfield policy — do not attempt in-place PKI migration |
-| Agent host / IP change | Controller recreates affected router/NATS certs and sets the **`volumeMounts`** change flag so Edgelet reloads mounted secrets (automatic) |
+| Operator host change | Controller replaces affected router and NATS certificates with the new operator host. Static bridge and local names stay. Agent IP addresses are not copied onto the certificate. The linked volume mount **version** increments, and **`volumeMounts`** is set |
+| Router or NATS mode crosses `none` | Controller creates or replaces the certificates that mode requires |
+| Agent IP change | Does not reissue certificates |
 
 ---
 
@@ -60,11 +62,12 @@ Supported names: `router-site-ca`, `nats-site-ca`, `default-router-local-ca`, `d
 
 ### Agent provision and host changes
 
-When an agent is provisioned or its **host** changes, Controller:
+When an agent is provisioned, its operator host changes, or router or NATS mode crosses `none`, Controller:
 
-1. Ensures missing fleet CAs (self-signed, 60-month validity) or uses operator-imported CAs when present.
-2. Creates or recreates router local-server / local-agent and NATS MQTT certs with current DNS SANs (including bridge SANs such as `router.default.svc.bridge.local`).
-3. Sets **`volumeMounts`** (and related) change tracking so Edgelet picks up new secret mounts.
+1. Ensures missing fleet CAs (self-signed, 60-month validity) or uses operator-imported CAs when present. Site CAs are not rotated for host or mode changes.
+2. Creates or replaces the router and NATS certificates required by the current mode, including bridge SANs such as `router.default.svc.bridge.local`. The operator host is the platform spec host when set, otherwise the fog host. A certificate is replaced when its record is missing, when the stored host list does not include the operator host, or when that service's mode crosses `none`. Switching router `edge` and `interior`, or NATS `leaf` and `server`, does not replace certificates that already list the operator host.
+3. Puts the operator host on the new certificate, together with the static local and bridge names. Fog `ipAddress` and `ipAddressExternal` are not added, so a previous host address still stored on the fog row is not kept. An agent IP change alone does not recreate certificates.
+4. Updates an existing certificate secret in place. That increments the linked volume mount **version** (the same path as a secret or config map update) and sets **`volumeMounts`** so Edgelet reloads the new secret. A certificate that did not exist yet is created; its mount starts at version 1 when the router or NATS workload links it.
 
 No manual PKI step is required for normal agent lifecycle.
 

@@ -45,8 +45,14 @@ function buildFogDataFromSpecAndFog (fog, spec) {
     jsMemoryStoreSize: spec.jsMemoryStoreSize,
     networkRouter: spec.networkRouter,
     containerEngine: spec.containerEngine || fog.containerEngine,
-    tags: fogTags.length > 0 ? fogTags : specTags
+    tags: fogTags.length > 0 ? fogTags : specTags,
+    ipAddress: fog.ipAddress,
+    ipAddressExternal: fog.ipAddressExternal
   }
+}
+
+function modeCrossedNone (previousMode, nextMode) {
+  return previousMode !== nextMode && (previousMode === 'none' || nextMode === 'none')
 }
 
 function validateSystemFogInvariants (fog, spec) {
@@ -258,11 +264,8 @@ async function reconcileFogPrepare (fogUuid, transaction) {
   validateSystemFogInvariants(fog, spec)
 
   const router = await RouterManager.findOne({ iofogUuid: fogUuid }, transaction)
-  const oldRouterMode = router ? (router.isEdge ? 'edge' : 'interior') : 'none'
-  const isRouterModeChanged = spec.routerMode !== oldRouterMode &&
-    (spec.routerMode === 'none' || oldRouterMode === 'none')
-  const isHostChanged = spec.host != null && spec.host !== fog.host
-  const shouldRecreateCerts = isRouterModeChanged || isHostChanged
+  const routerModeCrossedNone = modeCrossedNone(topologyBefore.routerMode, spec.routerMode)
+  const natsModeCrossedNone = modeCrossedNone(topologyBefore.natsMode, spec.natsMode)
 
   return {
     fog,
@@ -271,8 +274,8 @@ async function reconcileFogPrepare (fogUuid, transaction) {
     generation,
     topologyBefore,
     endpointsBefore,
-    shouldRecreateCerts,
-    isHostChanged,
+    routerModeCrossedNone,
+    natsModeCrossedNone,
     natsConfig: await resolveNatsConfigFromSpec(fogUuid, spec, transaction),
     isFirstReconcile: !status || status.observedGeneration === 0,
     router
@@ -280,17 +283,28 @@ async function reconcileFogPrepare (fogUuid, transaction) {
 }
 
 async function reconcileFogCertPrep (fogUuid, prep) {
-  await transactionRunner.runInTransaction(
-    (transaction) => IofogService._handleRouterCertificates(
-      prep.fogData,
-      fogUuid,
-      prep.shouldRecreateCerts,
-      transaction
-    ),
+  const secretsWritten = await transactionRunner.runInTransaction(
+    async (transaction) => {
+      const routerWritten = await IofogService._handleRouterCertificates(
+        prep.fogData,
+        fogUuid,
+        prep.routerModeCrossedNone,
+        transaction
+      )
+      let natsWritten = false
+      if (prep.spec.natsMode !== 'none') {
+        natsWritten = await IofogService._reconcileNatsCertificates(
+          prep.fogData,
+          prep.natsModeCrossedNone,
+          transaction
+        )
+      }
+      return !!(routerWritten || natsWritten)
+    },
     { priority: PRIORITY_BACKGROUND, label: 'fogPlatform.certPrep' }
   )
 
-  if (prep.shouldRecreateCerts) {
+  if (secretsWritten) {
     await transactionRunner.runInTransaction(
       (transaction) => ChangeTrackingService.update(
         fogUuid,
@@ -298,13 +312,6 @@ async function reconcileFogCertPrep (fogUuid, prep) {
         transaction
       ),
       { priority: PRIORITY_BACKGROUND, label: 'fogPlatform.certPrepVolumeMounts' }
-    )
-  }
-
-  if (prep.isHostChanged && prep.spec.natsMode !== 'none') {
-    await transactionRunner.runInTransaction(
-      (transaction) => IofogService._reconcileNatsCertificatesOnHostChange(prep.fog, transaction),
-      { priority: PRIORITY_BACKGROUND, label: 'fogPlatform.certPrepNatsHost' }
     )
   }
 }
@@ -381,8 +388,8 @@ async function reconcileFogPlatform (fogUuid, prep, transaction) {
     await ServiceBridgeConfig.recomputeServiceBridgeConfig(fogUuid, baseRouterConfig, transaction)
   }
 
-  if (spec.host && spec.host !== fog.host) {
-    await IofogService._updateMicroserviceExtraHosts(fogUuid, spec.host, transaction)
+  if (fogData.host) {
+    await IofogService._updateMicroserviceExtraHosts(fogUuid, fogData.host, transaction)
   }
 
   if (prep.isFirstReconcile) {
@@ -527,6 +534,7 @@ async function reconcileFogDelete (fogUuid, transaction) {
 
 module.exports = {
   buildFogDataFromSpecAndFog,
+  modeCrossedNone,
   validateSystemFogInvariants,
   captureTopologySnapshot,
   captureEndpointSnapshot,

@@ -35,7 +35,8 @@ const Constants = require('../helpers/constants')
 const {
   routerLocalCertificateHosts,
   buildNatsServerCertificateHostList,
-  buildNatsMqttCertificateHostList
+  buildNatsMqttCertificateHostList,
+  certificateHostsInclude
 } = require('../helpers/cert-dns-sans')
 const Op = require('sequelize').Op
 const CertificateService = require('./certificate-service')
@@ -118,58 +119,119 @@ async function getSiteCertificateHosts (fogData) {
   //     if (routerHost.ipAddress) hosts.add(routerHost.ipAddress)
   //   }
   // }
-  if (fogData.host) hosts.add(fogData.host)
-  if (fogData.ipAddress) hosts.add(fogData.ipAddress)
-  if (fogData.ipAddressExternal) hosts.add(fogData.ipAddressExternal)
+  if (fogData.host != null && String(fogData.host).trim() !== '') hosts.add(String(fogData.host).trim())
   return Array.from(hosts).join(',') || 'localhost'
 }
 
-async function _recreateCertificateIfExists (name, subject, hosts, ca, transaction) {
+async function _ensureCertificateAuthority (name, transaction) {
   try {
-    const existingCert = await CertificateService.getCertificateEndpoint(name, transaction)
-    if (!existingCert) {
-      return
-    }
-    await CertificateService.deleteCertificateEndpoint(name, transaction)
-    await CertificateService.createCertificateEndpoint({
-      name,
-      subject: `${subject}`,
-      hosts,
-      ca
-    }, transaction)
+    await CertificateService.getCAEndpoint(name, transaction)
   } catch (err) {
-    if (err.name === 'NotFoundError') {
-      return
+    if (err.name !== 'NotFoundError') {
+      if (err.name === 'ConflictError') return
+      throw err
+    }
+    try {
+      await CertificateService.createCAEndpoint({
+        name,
+        subject: `${name}`,
+        expiration: 60,
+        type: 'self-signed'
+      }, transaction)
+    } catch (createErr) {
+      if (createErr.name !== 'ConflictError') throw createErr
+    }
+  }
+}
+
+async function _replaceCertificateIfRequired (name, subject, hosts, ca, operatorHost, modeCrossedNone, transaction, expiration) {
+  let existing = null
+  try {
+    existing = await CertificateService.getCertificateEndpoint(name, transaction)
+  } catch (err) {
+    if (err.name !== 'NotFoundError') throw err
+  }
+
+  const hostListed = existing && certificateHostsInclude(existing.hosts, operatorHost)
+  if (existing && hostListed && !modeCrossedNone) {
+    logger.debug('Certificate already lists operator host: ' + name)
+    return false
+  }
+
+  const certData = {
+    name,
+    subject: `${subject}`,
+    hosts,
+    ca
+  }
+  if (expiration != null) certData.expiration = expiration
+
+  if (existing) {
+    logger.debug('Replacing certificate: ' + name)
+    try {
+      await CertificateService.replaceCertificateEndpoint(certData, transaction)
+      logger.debug('Successfully wrote certificate: ' + name)
+      return true
+    } catch (err) {
+      if (err.name === 'ConflictError') {
+        logger.debug('Certificate already exists (conflict): ' + name)
+        return false
+      }
+      throw err
+    }
+  }
+
+  logger.debug('Certificate not found, creating: ' + JSON.stringify({ name, subject, hosts }))
+
+  try {
+    await CertificateService.createCertificateEndpoint(certData, transaction)
+    logger.debug('Successfully wrote certificate: ' + name)
+    return true
+  } catch (err) {
+    if (err.name === 'ConflictError') {
+      logger.debug('Certificate already exists (conflict): ' + name)
+      return false
     }
     throw err
   }
 }
 
-async function _reconcileNatsCertificatesOnHostChange (fog, transaction) {
-  const fogToken = _fogToken(fog)
+async function _reconcileNatsCertificates (fogData, natsModeCrossedNone, transaction) {
+  await _ensureCertificateAuthority(NATS_SITE_CA, transaction)
+  await _ensureCertificateAuthority(DEFAULT_NATS_LOCAL_CA, transaction)
+
+  const fogToken = _fogToken(fogData)
   const serverCertName = `nats-server-${fogToken}`
   const mqttCertName = `nats-mqtt-server-${fogToken}`
-  const serverHosts = buildNatsServerCertificateHostList(fog).join(',')
-  const mqttHosts = buildNatsMqttCertificateHostList(fog).join(',')
+  const serverHosts = buildNatsServerCertificateHostList(fogData).join(',')
+  const mqttHosts = buildNatsMqttCertificateHostList(fogData).join(',')
 
-  await _recreateCertificateIfExists(
+  const serverWritten = await _replaceCertificateIfRequired(
     serverCertName,
     serverCertName,
     serverHosts,
     { type: 'direct', secretName: NATS_SITE_CA },
-    transaction
+    fogData.host,
+    natsModeCrossedNone,
+    transaction,
+    60
   )
-  await _recreateCertificateIfExists(
+  const mqttWritten = await _replaceCertificateIfRequired(
     mqttCertName,
     mqttCertName,
     mqttHosts,
     { type: 'direct', secretName: DEFAULT_NATS_LOCAL_CA },
-    transaction
+    fogData.host,
+    natsModeCrossedNone,
+    transaction,
+    60
   )
+  return serverWritten || mqttWritten
 }
 
-async function _handleRouterCertificates (fogData, uuid, shouldRecreateCerts, transaction) {
+async function _handleRouterCertificates (fogData, uuid, routerModeCrossedNone, transaction) {
   logger.debug('Starting _handleRouterCertificates for fog: ' + JSON.stringify({ uuid, host: fogData.host }))
+  let secretsWritten = false
 
   // Helper to check CA existence
   async function ensureCA (name, subject) {
@@ -199,54 +261,18 @@ async function _handleRouterCertificates (fogData, uuid, shouldRecreateCerts, tr
     }
   }
 
-  // Helper to check cert existence
-  async function ensureCert (name, subject, hosts, ca, shouldRecreate = false) {
+  async function ensureCert (name, subject, hosts, ca) {
     logger.debug('Checking certificate existence: ' + JSON.stringify({ name, subject, hosts, ca }))
-    try {
-      const existingCert = await CertificateService.getCertificateEndpoint(name, transaction)
-      if (shouldRecreate && existingCert) {
-        logger.debug('Certificate exists and needs recreation: ' + name)
-        await CertificateService.deleteCertificateEndpoint(name, transaction)
-        logger.debug('Deleted existing certificate: ' + name)
-        // Create new certificate
-        await CertificateService.createCertificateEndpoint({
-          name,
-          subject: `${subject}`,
-          hosts,
-          ca
-        }, transaction)
-        logger.debug('Successfully recreated certificate: ' + name)
-      } else if (!existingCert) {
-        logger.debug('Certificate not found, creating new certificate: ' + JSON.stringify({ name, subject, hosts, ca }))
-        await CertificateService.createCertificateEndpoint({
-          name,
-          subject: `${subject}`,
-          hosts,
-          ca
-        }, transaction)
-        logger.debug('Successfully created certificate: ' + name)
-      } else {
-        logger.debug('Certificate already exists: ' + name)
-      }
-    } catch (err) {
-      if (err.name === 'NotFoundError') {
-        logger.debug('Certificate not found, creating new certificate: ' + JSON.stringify({ name, subject, hosts, ca }))
-        await CertificateService.createCertificateEndpoint({
-          name,
-          subject: `${subject}`,
-          hosts,
-          ca
-        }, transaction)
-        logger.debug('Successfully created certificate: ' + name)
-      } else if (err.name === 'ConflictError') {
-        logger.debug('Certificate already exists (conflict): ' + name)
-        // Already exists, ignore
-      } else {
-        logger.error('Error in ensureCert - Name: ' + name + ', Subject: ' + subject + ', Hosts: ' + hosts + ', CA: ' + JSON.stringify(ca) + ', Error: ' + err.message + ', Type: ' + err.name + ', Code: ' + err.code)
-        logger.error('Stack trace: ' + err.stack)
-        throw err
-      }
-    }
+    const written = await _replaceCertificateIfRequired(
+      name,
+      subject,
+      hosts,
+      ca,
+      fogData.host,
+      routerModeCrossedNone,
+      transaction
+    )
+    if (written) secretsWritten = true
   }
 
   try {
@@ -265,11 +291,10 @@ async function _handleRouterCertificates (fogData, uuid, shouldRecreateCerts, tr
         `router-local-agent-${fogData.name}`,
         `${uuid}`,
         localHosts,
-        { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA },
-        shouldRecreateCerts
+        { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA }
       )
       logger.debug('Successfully completed _handleRouterCertificates for routerMode none')
-      return
+      return secretsWritten
     }
 
     // For other router modes, ensure all other certificates
@@ -280,8 +305,7 @@ async function _handleRouterCertificates (fogData, uuid, shouldRecreateCerts, tr
       `router-site-server-${fogData.name}`,
       `${uuid}`,
       siteHosts,
-      { type: 'direct', secretName: SITE_CA_CERT },
-      shouldRecreateCerts
+      { type: 'direct', secretName: SITE_CA_CERT }
     )
 
     logger.debug('Ensuring DEFAULT_ROUTER_LOCAL_CA exists')
@@ -294,8 +318,7 @@ async function _handleRouterCertificates (fogData, uuid, shouldRecreateCerts, tr
       `router-local-server-${fogData.name}`,
       `${uuid}`,
       localHosts,
-      { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA },
-      shouldRecreateCerts
+      { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA }
     )
 
     // Always ensure local-agent cert exists
@@ -304,14 +327,15 @@ async function _handleRouterCertificates (fogData, uuid, shouldRecreateCerts, tr
       `router-local-agent-${fogData.name}`,
       `${uuid}`,
       localHosts,
-      { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA },
-      shouldRecreateCerts
+      { type: 'direct', secretName: DEFAULT_ROUTER_LOCAL_CA }
     )
 
     logger.debug('Successfully completed _handleRouterCertificates')
+    return secretsWritten
   } catch (error) {
     logger.error('Certificate operation failed - UUID: ' + uuid + ', RouterMode: ' + fogData.routerMode + ', Error: ' + error.message + ', Type: ' + error.name + ', Code: ' + error.code)
     logger.error('Stack trace: ' + error.stack)
+    return secretsWritten
   }
 }
 
@@ -576,9 +600,9 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
 async function _updateMicroserviceExtraHosts (fogUuid, host, transaction) {
   const microserviceExtraHosts = await MicroserviceExtraHostManager.findAll({ targetFogUuid: fogUuid }, transaction)
   for (const extraHost of microserviceExtraHosts) {
+    if (extraHost.value === host) continue
     extraHost.value = host
     await extraHost.save()
-    // Update tracking change for microservice
     await MicroserviceExtraHostManager.updateOriginMicroserviceChangeTracking(extraHost, transaction)
   }
 }
@@ -1416,7 +1440,7 @@ module.exports = {
   _handleRouterCertificates,
   _deleteFogRouter,
   _processDeleteCommand,
-  _reconcileNatsCertificatesOnHostChange,
+  _reconcileNatsCertificates,
   _deleteNatsMicroserviceByFog,
   _updateMicroserviceExtraHosts
 }
