@@ -1,1 +1,7 @@
-{}
+{
+  "1240912": {
+    "active": true,
+    "expiry": "2027-01-12",
+    "notes": "GHSA-86w9-cpqp-85rv / CVE-2026-85393. node-forge <=1.4.0 has no patched release. Controller generates and signs certs and parses PEM fields; it does not verify untrusted PKCS#1 signatures with node-forge."
+  }
+}

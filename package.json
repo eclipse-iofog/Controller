@@ -1,6 +1,6 @@
 {
   "name": "controller",
-  "version": "3.9.0",
+  "version": "3.9.1",
   "description": "A cloud-native operations controller for managing edge computing workloads, edgelet nodes, and deployments across Eclipse IoFog and Datasance PoT.",
   "main": "./src/main.js",
   "author": "Eclipse ioFog Project",
@@ -103,7 +103,7 @@
     "daemonize2": "0.4.2",
     "dotenv": "^16.5.0",
     "ejs": "3.1.10",
-    "express": "4.22.2",
+    "express": "4.22.3",
     "express-session": "1.19.0",
     "formidable": "3.5.4",
     "ftp": "0.3.10",
@@ -149,7 +149,7 @@
     "sequelize-cli": "6.6.2",
     "sinon": "17.0.1",
     "sinon-chai": "3.7.0",
-    "snyk": "^1.1291.0",
+    "snyk": "^1.1308.0",
     "standard": "17.1.2"
   },
   "files": [
@@ -173,6 +173,9 @@
     "ip-address": "^10.7.2",
     "node-gyp": {
       "undici": "^6.29.0"
+    },
+    "express": {
+      "proxy-addr": "2.0.8"
     },
     "qs": "6.16.0"
 
