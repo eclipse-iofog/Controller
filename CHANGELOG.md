@@ -1,6 +1,24 @@
 # Changelog
 
 
+## [v3.9.1] - 2026-10-12
+
+Patch release. No schema or API change. Upgrade from v3.9.0 is a Controller and image replace.
+
+### Added
+
+- **Operator docs** — configuration and environment overrides (`docs/controller-config.md`), NATS account and user provisioning (`docs/nats-access.md`), `NatsAccountRule` and `NatsUserRule` fields (`docs/nats-rules.md`), router `kind: Service` (`docs/service-interconnection.md`), and the three networking topology guides for the control plane, messaging fabric, and service interconnection.
+- **RBAC reference** — system-role table now lists verbs per resource, including `networkTopology`. Documents the password-change gate (`protect()` only; `/api/v3/user/*` handlers do not call it) and the Edgelet local API roles `agent-admin` and `microservice`.
+
+### Changed
+
+- **`express` 4.22.2 → 4.22.3**, with an `express` → **`proxy-addr` 2.0.8** override — address GHSA-jqcg-44mw-7w3h (IPv4-mapped IPv6 trust-subnet spoofing).
+- **Audit exception** — `.nsprc` ignores advisory **1240912** (`node-forge` <= 1.4.0, GHSA-86w9-cpqp-85rv / CVE-2026-85393) until **2027-01-12**. No patched release exists. Controller generates and signs certificates and parses PEM fields; it does not verify untrusted PKCS#1 signatures with `node-forge`.
+- **`snyk` ^1.1291.0 → ^1.1308.0** (devDependency).
+- Embedded **EdgeOps Console** default **v1.1.0 → v1.1.1** in the Dockerfile, Makefile, CI build env, `.env.example`, and `scripts/build-console-dev.js`.
+- Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder) and **`ubi9/nodejs-24-minimal`**.
+- OpenAPI tag **Microservice Templates** now has a description.
+
 ## [v3.9.0] - 2026-09-26
 
 Controller **v3.9.0** (GA). **Upgrade from v3.8.0** is supported. Feature and schema history is in the **v3.9.0-rc.*** sections below.

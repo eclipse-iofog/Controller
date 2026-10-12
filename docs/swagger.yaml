@@ -8742,6 +8742,8 @@ tags:
     description: Manage your applications
   - name: Application Template
     description: Manage your application templates
+  - name: Microservice Templates
+    description: Manage your microservice templates
   - name: Catalog
     description: Manage your catalog
   - name: Registries
