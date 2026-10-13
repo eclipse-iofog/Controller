@@ -344,7 +344,7 @@ const updateAgentStatus = async function (agentStatus, fog, transaction) {
 
   if (agentStatus.warningMessage.includes('HW signature changed') || agentStatus.warningMessage.includes('HW signature mismatch')) {
     fogStatus.securityStatus = 'WARNING'
-    fogStatus.securityViolationInfo = 'Auto deprovisioned by Agent. HW signature mismatch'
+    fogStatus.securityViolationInfo = 'Quarantined: HW signature mismatch'
   } else {
     fogStatus.securityStatus = 'OK'
     fogStatus.securityViolationInfo = 'No violation'

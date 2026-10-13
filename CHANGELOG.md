@@ -1,7 +1,7 @@
 # Changelog
 
 
-## [v3.9.1] - 2026-10-12
+## [v3.9.1] - 2026-10-13
 
 Patch release. No schema or API change. Upgrade from v3.9.0 is a Controller and image replace.
 
@@ -18,6 +18,10 @@ Patch release. No schema or API change. Upgrade from v3.9.0 is a Controller and 
 - Embedded **EdgeOps Console** default **v1.1.0 → v1.1.1** in the Dockerfile, Makefile, CI build env, `.env.example`, and `scripts/build-console-dev.js`.
 - Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder) and **`ubi9/nodejs-24-minimal`**.
 - OpenAPI tag **Microservice Templates** now has a description.
+
+### Fixed
+
+- **Agent status on hardware-signature change** — `securityViolationInfo` is now `Quarantined: HW signature mismatch` (34 characters). The previous text exceeded `Fogs.security_violation_info VARCHAR(36)`, so `PUT /api/v3/agent/status` returned 500 when `warningMessage` contained `HW signature changed` or `HW signature mismatch`.
 
 ## [v3.9.0] - 2026-09-26
 
