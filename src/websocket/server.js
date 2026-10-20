@@ -151,6 +151,14 @@ function normalizeErrorLogArgs (args) {
   return args
 }
 
+function verifiedAccessUsername (req) {
+  const claims = req && req.verifiedAccessToken
+  if (!claims || typeof claims !== 'object') {
+    return null
+  }
+  return claims.preferred_username || claims.username || claims.email || claims.sub || null
+}
+
 function createSafeLogger (loggerInstance) {
   return new Proxy(loggerInstance, {
     get (target, prop, receiver) {
@@ -1934,10 +1942,7 @@ class WebSocketServer {
 
       setImmediate(async () => {
         try {
-          let actorId = null
-          if (req.headers && req.headers.authorization) {
-            actorId = EventService.extractUsernameFromToken(req.headers.authorization)
-          }
+          const actorId = verifiedAccessUsername(req)
           await EventService.createWsConnectEvent({
             timestamp: Date.now(),
             endpointType: 'user',
@@ -1992,10 +1997,7 @@ class WebSocketServer {
 
         setImmediate(async () => {
           try {
-            let actorId = null
-            if (req.headers && req.headers.authorization) {
-              actorId = EventService.extractUsernameFromToken(req.headers.authorization)
-            }
+            const actorId = verifiedAccessUsername(req)
             await EventService.createWsDisconnectEvent({
               timestamp: Date.now(),
               endpointType: 'user',
@@ -2900,11 +2902,7 @@ class WebSocketServer {
       // 10. Record WebSocket connection event (non-blocking)
       setImmediate(async () => {
         try {
-          // Extract actorId from token (req.kauth not available for WebSocket connections)
-          let actorId = null
-          if (req.headers && req.headers.authorization) {
-            actorId = EventService.extractUsernameFromToken(req.headers.authorization)
-          }
+          const actorId = verifiedAccessUsername(req)
           await EventService.createWsConnectEvent({
             timestamp: Date.now(),
             endpointType: 'user',
@@ -2979,11 +2977,7 @@ class WebSocketServer {
         // Record WebSocket disconnection event (non-blocking)
         setImmediate(async () => {
           try {
-            // Extract actorId from token (req.kauth not available for WebSocket connections)
-            let actorId = null
-            if (req.headers && req.headers.authorization) {
-              actorId = EventService.extractUsernameFromToken(req.headers.authorization)
-            }
+            const actorId = verifiedAccessUsername(req)
             await EventService.createWsDisconnectEvent({
               timestamp: Date.now(),
               endpointType: 'user',

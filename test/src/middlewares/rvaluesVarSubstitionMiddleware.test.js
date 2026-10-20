@@ -1,170 +1,174 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
+const fs = require('fs')
+const { Liquid } = require('../../../src/lib/liquidjs/liquid.node.cjs')
 
-const { substitutionMiddleware } = require('../../../src/helpers/template-helper')
+const {
+  renderRequestTemplates,
+  authorizedSubstitutionMiddleware
+} = require('../../../src/helpers/template-helper')
 const MicroservicesService = require('../../../src/services/microservices-service')
 const ApplicationManager = require('../../../src/data/managers/application-manager')
 const FogService = require('../../../src/services/iofog-service')
 
-describe('rvaluesVarSubstitionMiddleware', () => {
-  def('subject', () => substitutionMiddleware)
+function mockResponse () {
+  return {
+    statusCode: null,
+    body: null,
+    status (code) {
+      this.statusCode = code
+      return this
+    },
+    json (payload) {
+      this.body = payload
+      return this
+    }
+  }
+}
+
+describe('rvalues variable substitution', () => {
   def('sandbox', () => sinon.createSandbox())
 
   afterEach(() => $sandbox.restore())
 
-  context('GET request method not calling microservices and fog list services', () => {
+  context('direct render', () => {
     def('name', () => 'testName')
 
-    def('req', () => ({
-      method: 'GET',
-      body: {
-        name: $name,
-      },
-    }))
-
-    def('responseApp', () => Promise.resolve())
-    def('responseFogList', () => Promise.resolve())
-    def('response', () => Promise.resolve())
-    def('nextfct', () => sinon.spy())
-    def('subject', () => $subject($req, $response, $nextfct))
-
     beforeEach(() => {
-      $sandbox.stub(MicroservicesService, 'listMicroservicesEndPoint').resolves($responseApp)
-      $sandbox.stub(FogService, 'getFogListEndPoint').resolves($responseFogList)
+      $sandbox.stub(MicroservicesService, 'listMicroservicesEndPoint').resolves({ microservices: [] })
+      $sandbox.stub(FogService, 'getFogListEndPoint').resolves({ fogs: [] })
+      $sandbox.stub(FogService, 'getFogEndPoint').resolves({})
+      $sandbox.stub(ApplicationManager, 'findOnePopulated').resolves({ microservices: [] })
     })
 
-    it('not calls listMicroservicesEndPoint and getFogListEndPoint GET method', async () => {
-      await $subject
-      expect($nextfct).to.have.been.called
+    it('does not call lookup services for a GET body', async () => {
+      const req = {
+        method: 'GET',
+        body: { name: $name }
+      }
+      await renderRequestTemplates(req)
       expect(FogService.getFogListEndPoint).to.not.have.been.called
       expect(MicroservicesService.listMicroservicesEndPoint).to.not.have.been.called
+      expect(req.body.name).to.equal($name)
     })
 
-    context('when variable interpolation/expansion needed', () => {
-      def('req', () => ({
+    it('expands a normal POST template', async () => {
+      const req = {
         method: 'POST',
         body: {
           name: $name,
-          description: '{{ self.name | upcase }}',
-        },
-      }))
-
-      it('succeeds', async () => {
-        await $subject
-        expect($req.body.description).to.be.equal($name.toUpperCase())
-      })
-    })
-  })
-
-  context('POST request method triggering middleware', () => {
-    def('name', () => 'testName')
-
-    def('body', () => ({
-      body: {
-        name: $name,
-        description: '{{ self.name | upcase }}',
-        service1URL: ''
-      },
-    }))
-    def('req', () => ({
-      method: 'POST',
-      query: { application: $name },
-      ...$body
-    }))
-
-    def('responseApp', () => ({
-      microservices: []
-    }))
-    def('responseFog', () => ({}))
-
-    def('response', () => Promise.resolve())
-    def('nextfct', () => sinon.spy())
-    def('subject', () => $subject($req, $response, $nextfct))
-
-    beforeEach(() => {
-      $sandbox.stub(ApplicationManager, 'findOnePopulated').resolves($responseApp)
-      $sandbox.stub(MicroservicesService, 'listMicroservicesEndPoint').resolves($responseApp)
-      $sandbox.stub(FogService, 'getFogEndPoint').resolves($responseFog)
+          description: '{{ self.name | upcase }}'
+        }
+      }
+      await renderRequestTemplates(req)
+      expect(req.body.description).to.equal($name.toUpperCase())
     })
 
-    it('calls next after POST body substitution', async () => {
-      await $subject
-      expect($nextfct).to.have.been.called
-      expect($req.body.description).to.be.equal($name.toUpperCase())
-    })
-
-    context('Variables substitution and filter findMicroserviceAgent', () => {
-      def('redisAppName', () => 'redisApp')
-      def('body', () => ({
-        body: {
-          name: $name,
-          description: '{{ self.name | upcase }}',
-          serviceredisURL: `{% assign redisApp = \"${$redisAppName}\" | findApplication %}{% assign redismsvc = redisApp.microservices | where: \"name\", \"redis\" | first %}{{ redismsvc | findMicroserviceAgent | map: \"host\"}}:{{ redismsvc | map: \"ports\" | first | first |map: \"external\" | first | toString }}`,
-          videoURL: `{% assign redisApp = \"${$redisAppName}\" | findApplication %}{{ redisApp.microservices | where: \"name\", \"objdetecv4\" | first | map: \"env\" | first | where: \"key\" , \"RES_URL\" | first | map: \"value\" | first }}`,
-        },
-      }))
-      def('responseApp', () => ({
+    it('applies findApplication and findMicroserviceAgent when managers are stubbed', async () => {
+      const redisAppName = 'redisApp'
+      const responseApp = {
         microservices: [
           {
             name: 'objdetecv4',
             applicationId: 1,
-            ports: [
-              {
-                internal: 8080,
-                external: 8091,
-                publicMode: false
-              }
-            ],
-            env: [
-              {
-                key: 'RES_URL',
-                value: 'http://mycam/img/video.mjpeg'
-              }
-            ]
+            ports: [{ internal: 8080, external: 8091, publicMode: false }],
+            env: [{ key: 'RES_URL', value: 'http://mycam/img/video.mjpeg' }]
           },
           {
             name: 'redis',
             iofogUuid: 'TkLh8wzcxb86CRnHQyJkx6VF468JFd4f',
-            ports: [
-              {
-                internal: 6379,
-                external: 6379,
-                publicMode: false
-              }
-            ],
-            application: 'main-app',
-            flowId: 1
+            ports: [{ internal: 6379, external: 6379, publicMode: false }]
           }
         ]
-      }))
-      def('responseFog', () => ({
+      }
+      ApplicationManager.findOnePopulated.resolves(responseApp)
+      MicroservicesService.listMicroservicesEndPoint.resolves(responseApp)
+      FogService.getFogEndPoint.resolves({
         uuid: 'TkLh8wzcxb86CRnHQyJkx6VF468JFd4f',
-        name: 'agent01',
-        location: 'building01manager',
-        host: 'myhost01',
-      }))
-
-      beforeEach(() => {
-        const Transaction = require('sequelize/lib/transaction')
-        $sandbox.matchTransaction = sinon.match.instanceOf(Transaction)
+        host: 'myhost01'
       })
 
-      it('performs variable substitutions and applies filter', async () => {
-        await $subject
-        expect($nextfct).to.have.been.called
-        expect(FogService.getFogEndPoint).to.have.been.called
-        expect(FogService.getFogEndPoint).to.have.been.calledWith({ uuid: 'TkLh8wzcxb86CRnHQyJkx6VF468JFd4f' }, false)
-        expect(ApplicationManager.findOnePopulated).to.have.been.calledOnce
-        expect(ApplicationManager.findOnePopulated).to.have.been.calledWith(
-          { exclude: ['created_at', 'updated_at'] },
-          $sandbox.matchTransaction
-        )
-        expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.called
-        expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith({ applicationName: $redisAppName }, false)
+      const req = {
+        method: 'POST',
+        body: {
+          name: $name,
+          serviceredisURL: `{% assign redisApp = "${redisAppName}" | findApplication %}{% assign redismsvc = redisApp.microservices | where: "name", "redis" | first %}{{ redismsvc | findMicroserviceAgent | map: "host" }}:{{ redismsvc | map: "ports" | first | first | map: "external" | first | toString }}`,
+          videoURL: `{% assign redisApp = "${redisAppName}" | findApplication %}{{ redisApp.microservices | where: "name", "objdetecv4" | first | map: "env" | first | where: "key", "RES_URL" | first | map: "value" | first }}`
+        }
+      }
 
-        expect($req.body.serviceredisURL).to.be.equal('myhost01:6379')
-        expect($req.body.videoURL).to.be.equal('http://mycam/img/video.mjpeg')
-      })
+      await renderRequestTemplates(req)
+
+      expect(FogService.getFogEndPoint).to.have.been.calledWith(
+        { uuid: 'TkLh8wzcxb86CRnHQyJkx6VF468JFd4f' },
+        false
+      )
+      expect(MicroservicesService.listMicroservicesEndPoint).to.have.been.calledWith(
+        { applicationName: redisAppName },
+        false
+      )
+      expect(req.body.serviceredisURL).to.equal('myhost01:6379')
+      expect(req.body.videoURL).to.equal('http://mycam/img/video.mjpeg')
+    })
+  })
+
+  context('route gate', () => {
+    beforeEach(() => {
+      $sandbox.stub(MicroservicesService, 'listMicroservicesEndPoint').resolves({ microservices: [] })
+      $sandbox.stub(FogService, 'getFogListEndPoint').resolves({ fogs: [] })
+    })
+
+    it('does not render a POST without a verified principal', async () => {
+      const req = {
+        method: 'POST',
+        path: '/api/v3/registries',
+        body: {
+          name: 'testName',
+          url: '{{ "" | findAgent | size }}'
+        }
+      }
+      const res = mockResponse()
+      const next = sinon.spy()
+
+      await authorizedSubstitutionMiddleware(req, res, next)
+
+      expect(next).to.not.have.been.called
+      expect(res.statusCode).to.equal(401)
+      expect(req.body.url).to.equal('{{ "" | findAgent | size }}')
+      expect(FogService.getFogListEndPoint).to.not.have.been.called
+      expect(MicroservicesService.listMicroservicesEndPoint).to.not.have.been.called
+    })
+  })
+
+  context('engine limits', () => {
+    it('throws when a range is wider than 10000', async () => {
+      const engine = new Liquid()
+      try {
+        await engine.parseAndRender('{{ (1..10001) | size }}')
+        expect.fail('expected an oversized range to throw')
+      } catch (error) {
+        expect(error.message).to.match(/10000/)
+      }
+    })
+
+    it('still renders a small range', async () => {
+      const engine = new Liquid()
+      const rendered = await engine.parseAndRender('{{ (1..3) | size }}')
+      expect(Number(rendered)).to.equal(3)
+    })
+
+    it('does not read the filesystem for an include', async () => {
+      const readFileSync = $sandbox.spy(fs, 'readFileSync')
+      const req = {
+        method: 'POST',
+        body: { note: "{% include 'package.json' %}" }
+      }
+
+      await renderRequestTemplates(req)
+
+      expect(readFileSync).to.not.have.been.called
+      expect(req.body.note).to.be.a('string')
+      expect(req.body.note).to.not.match(/"dependencies"/)
     })
   })
 })

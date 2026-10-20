@@ -23,7 +23,7 @@ const { createRemoteJWKSet, createLocalJWKSet, jwtVerify } = require('jose')
 const config = require('./index')
 const logger = require('../logger')
 const { getPublicUrl: resolvePublicUrl } = require('./auth-urls')
-const { getActiveSigningMaterial, getPublicJwk } = require('./auth-jwks')
+const AuthJwks = require('./auth-jwks')
 const { isPublicCatalogRoute } = require('../lib/rbac/route-catalog-utils')
 
 let oidcInstance = null
@@ -122,6 +122,40 @@ function buildKauthGrant (claims, rawToken) {
   }
 }
 
+function stripBearerToken (token) {
+  return String(token || '').replace(/^Bearer\s+/i, '').trim()
+}
+
+/**
+ * Verify an operator access token (HTTP and WebSocket).
+ * Rejects when auth is not configured, the signature/issuer/audience/expiry check fails,
+ * or the token is a refresh token.
+ * @param {string} token Raw JWT or `Bearer <jwt>`
+ * @returns {Promise<object>} Verified JWT payload
+ */
+async function verifyUserAccessToken (token) {
+  if (!isAuthConfigured()) {
+    throw new Error('Auth configuration required')
+  }
+
+  const rawToken = stripBearerToken(token)
+  if (!rawToken) {
+    throw new Error('Missing access token')
+  }
+
+  await ensureDiscovery()
+  const verifyOptions = { issuer: issuerString }
+  if (configuredClientId) {
+    verifyOptions.audience = configuredClientId
+  }
+
+  const { payload } = await jwtVerify(rawToken, jwks, verifyOptions)
+  if (payload.token_use === 'refresh') {
+    throw new Error('Refresh token cannot be used as access token')
+  }
+  return payload
+}
+
 function getDiscoveryOptions () {
   const allowHttp = config.getBoolean('auth.insecureAllowHttp', false)
   if (!allowHttp) {
@@ -133,8 +167,8 @@ function getDiscoveryOptions () {
 }
 
 async function ensureEmbeddedJwks () {
-  const { privateJwk } = await getActiveSigningMaterial()
-  jwks = createLocalJWKSet({ keys: [getPublicJwk(privateJwk)] })
+  const { privateJwk } = await AuthJwks.getActiveSigningMaterial()
+  jwks = createLocalJWKSet({ keys: [AuthJwks.getPublicJwk(privateJwk)] })
   issuerString = getEmbeddedIssuerUrl()
   configuredClientId = getOidcSettings().clientId
   return null
@@ -247,16 +281,7 @@ function getOidcMiddleware () {
     }
 
     try {
-      await ensureDiscovery()
-      const verifyOptions = { issuer: issuerString }
-      if (configuredClientId) {
-        verifyOptions.audience = configuredClientId
-      }
-
-      const { payload } = await jwtVerify(token, jwks, verifyOptions)
-      if (payload.token_use === 'refresh') {
-        throw new Error('Refresh token cannot be used as access token')
-      }
+      const payload = await verifyUserAccessToken(token)
       req.kauth = buildKauthGrant(payload, token)
       return next()
     } catch (error) {
@@ -349,5 +374,6 @@ module.exports = {
   getOidcConfiguration: ensureDiscovery,
   getOauthClientConfiguration,
   resetDiscoveryForTests,
-  buildKauthGrant
+  buildKauthGrant,
+  verifyUserAccessToken
 }

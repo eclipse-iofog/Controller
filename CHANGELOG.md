@@ -1,5 +1,17 @@
 # Changelog
 
+## [v3.9.2] - 2026-10-20
+
+Patch release. No schema or API change. Upgrade from v3.9.1 is a Controller and image replace. The two fixes below apply to every release from v3.8.0 through v3.9.1.
+
+### Changed
+
+- Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder) and **`ubi9/nodejs-24-minimal`**.
+
+### Fixed
+
+- **Operator WebSocket access tokens** — user exec and log upgrades verify the access token (signature, issuer, audience, and expiry) before RBAC. An unsigned token, an expired token, a refresh token, or a token for another issuer or audience is rejected. Agent exec and log sockets still use the fog token. (CWE-347)
+- **Template rendering** — Liquid substitution on `POST`, `PUT`, and `PATCH` runs only after RBAC. The engine refuses template file reads, and it rejects a `range` wider than 10,000 or a render that passes 100,000 `for` iterations. (CWE-400)
 
 ## [v3.9.1] - 2026-10-13
 

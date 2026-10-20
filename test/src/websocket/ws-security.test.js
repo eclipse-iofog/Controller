@@ -1,18 +1,92 @@
 const { expect } = require('chai')
 const sinon = require('sinon')
 const WebSocket = require('ws')
+const { generateKeyPair, exportJWK, SignJWT } = require('jose')
 
 const WebSocketServerClass = require('../../../src/websocket/server')
 const authorizer = require('../../../src/lib/rbac/authorizer')
 const rbacMiddleware = require('../../../src/lib/rbac/middleware')
+const oidc = require('../../../src/config/oidc')
+const AuthJwks = require('../../../src/config/auth-jwks')
+const transactionRunner = require('../../../src/helpers/transaction-runner')
+const RbacCacheVersionManager = require('../../../src/data/managers/rbac-cache-version-manager')
+const {
+  applyOidcEnv,
+  snapshotOidcEnv,
+  restoreOidcEnv
+} = require('../../support/oidc-test-helpers')
 const {
   createMockWebSocket,
   createMockRequest,
-  buildFakeJwt,
   resetWebSocketServerSingleton,
   newTestIds,
   delay
 } = require('../../support/ws-session-harness')
+
+const EMBEDDED_ISSUER = 'https://controller.test/oidc'
+const EMBEDDED_AUDIENCE = 'controller'
+
+async function useEmbeddedSigningKey (sandbox) {
+  applyOidcEnv({
+    AUTH_MODE: 'embedded',
+    CONTROLLER_PUBLIC_URL: 'https://controller.test',
+    OIDC_CLIENT_ID: EMBEDDED_AUDIENCE
+  })
+  oidc.resetDiscoveryForTests()
+  AuthJwks.resetSigningMaterialCacheForTests()
+
+  const { privateKey } = await generateKeyPair('RS256')
+  const privateJwk = await exportJWK(privateKey)
+  privateJwk.kid = 'test-kid'
+  privateJwk.alg = 'RS256'
+  privateJwk.use = 'sig'
+  sandbox.stub(AuthJwks, 'getActiveSigningMaterial').resolves({
+    kid: 'test-kid',
+    privateJwk,
+    signingKey: privateKey
+  })
+  return privateKey
+}
+
+async function signOperatorToken (signingKey, claims = {}, options = {}) {
+  const builder = new SignJWT({
+    preferred_username: 'operator@example.com',
+    groups: ['admin'],
+    token_use: 'access',
+    ...claims
+  })
+    .setProtectedHeader({ alg: 'RS256', kid: 'test-kid' })
+    .setSubject(options.subject || 'user-uuid')
+    .setIssuer(options.issuer || EMBEDDED_ISSUER)
+    .setAudience(options.audience || EMBEDDED_AUDIENCE)
+    .setIssuedAt()
+
+  if (options.expiresAt) {
+    builder.setExpirationTime(options.expiresAt)
+  } else {
+    builder.setExpirationTime('15m')
+  }
+
+  return builder.sign(signingKey)
+}
+
+function forgeAdminToken () {
+  const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url')
+  return [
+    encode({ alg: 'none', typ: 'JWT' }),
+    encode({
+      sub: 'nobody',
+      preferred_username: 'attacker',
+      groups: ['admin']
+    }),
+    'not-a-signature'
+  ].join('.')
+}
+
+function allowSystemRoleWithoutDatabase (sandbox) {
+  sandbox.stub(RbacCacheVersionManager, 'getVersionWithoutTransaction').resolves(1)
+  sandbox.stub(transactionRunner, 'runInTransaction').callsFake(async (work) => work({}))
+}
 
 describe('WebSocket session security', () => {
   def('sandbox', () => sinon.createSandbox())
@@ -43,20 +117,110 @@ describe('WebSocket session security', () => {
       expect(ws.readyState).to.equal(WebSocket.CLOSED)
     })
 
-    it('calls handler when RBAC authorizer allows', async () => {
+    it('calls handler when a signed token passes and RBAC authorizer allows', async () => {
+      const envSnapshot = snapshotOidcEnv()
+      try {
+        const signingKey = await useEmbeddedSigningKey($sandbox)
+        const token = await signOperatorToken(signingKey, { groups: ['viewer'] })
+        const ws = createMockWebSocket()
+        const req = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)
+        req.headers.authorization = `Bearer ${token}`
+
+        $sandbox.stub(authorizer, 'authorizeRequest').resolves({ allowed: true })
+
+        const handlerCalled = sinon.stub().resolves()
+        const protectedHandler = rbacMiddleware.protectWebSocket(handlerCalled)
+
+        await protectedHandler(ws, req)
+
+        expect(handlerCalled).to.have.been.calledOnce
+        expect(req.verifiedAccessToken.preferred_username).to.equal('operator@example.com')
+      } finally {
+        restoreOidcEnv(envSnapshot)
+        oidc.resetDiscoveryForTests()
+        AuthJwks.resetSigningMaterialCacheForTests()
+      }
+    })
+  })
+
+  describe('operator access token verification', () => {
+    def('envSnapshot', () => snapshotOidcEnv())
+    def('signingKey', () => useEmbeddedSigningKey($sandbox))
+
+    afterEach(() => {
+      restoreOidcEnv($envSnapshot)
+      oidc.resetDiscoveryForTests()
+      AuthJwks.resetSigningMaterialCacheForTests()
+    })
+
+    async function connectExec (token) {
       const ws = createMockWebSocket()
       const req = createMockRequest(`/api/v3/microservices/exec/${$ids.microserviceUuid}`)
-      const token = buildFakeJwt()
-      req.headers.authorization = token
-
-      $sandbox.stub(authorizer, 'authorizeRequest').resolves({ allowed: true })
-
+      req.headers.authorization = `Bearer ${token}`
       const handlerCalled = sinon.stub().resolves()
-      const protectedHandler = rbacMiddleware.protectWebSocket(handlerCalled)
+      await rbacMiddleware.protectWebSocket(handlerCalled)(ws, req)
+      return { ws, req, handlerCalled }
+    }
 
-      await protectedHandler(ws, req)
+    it('denies a forged admin token', async () => {
+      await $signingKey
+      const { ws, handlerCalled } = await connectExec(forgeAdminToken())
+      expect(handlerCalled).to.not.have.been.called
+      expect(ws.readyState).to.equal(WebSocket.CLOSED)
+    })
 
+    it('denies a refresh token', async () => {
+      const token = await signOperatorToken(await $signingKey, { token_use: 'refresh' })
+      const { ws, handlerCalled } = await connectExec(token)
+      expect(handlerCalled).to.not.have.been.called
+      expect(ws.readyState).to.equal(WebSocket.CLOSED)
+    })
+
+    it('denies an expired token', async () => {
+      const token = await signOperatorToken(await $signingKey, {}, {
+        expiresAt: Math.floor(Date.now() / 1000) - 30
+      })
+      const { ws, handlerCalled } = await connectExec(token)
+      expect(handlerCalled).to.not.have.been.called
+      expect(ws.readyState).to.equal(WebSocket.CLOSED)
+    })
+
+    it('denies a token with the wrong audience', async () => {
+      const token = await signOperatorToken(await $signingKey, {}, { audience: 'other-client' })
+      const { ws, handlerCalled } = await connectExec(token)
+      expect(handlerCalled).to.not.have.been.called
+      expect(ws.readyState).to.equal(WebSocket.CLOSED)
+    })
+
+    it('denies a token with the wrong issuer', async () => {
+      const token = await signOperatorToken(await $signingKey, {}, { issuer: 'https://evil.example/oidc' })
+      const { ws, handlerCalled } = await connectExec(token)
+      expect(handlerCalled).to.not.have.been.called
+      expect(ws.readyState).to.equal(WebSocket.CLOSED)
+    })
+
+    it('denies a fog-shaped token on the user exec route', async () => {
+      await $signingKey
+      const { privateKey } = await generateKeyPair('EdDSA')
+      const fogToken = await new SignJWT({ groups: ['admin'], preferred_username: 'fog' })
+        .setProtectedHeader({ alg: 'EdDSA' })
+        .setSubject('fog-uuid')
+        .setIssuedAt()
+        .setExpirationTime('15m')
+        .sign(privateKey)
+
+      const { ws, handlerCalled } = await connectExec(fogToken)
+      expect(handlerCalled).to.not.have.been.called
+      expect(ws.readyState).to.equal(WebSocket.CLOSED)
+    })
+
+    it('allows a signed admin token through protectWebSocket', async () => {
+      allowSystemRoleWithoutDatabase($sandbox)
+      const token = await signOperatorToken(await $signingKey, { groups: ['admin'] })
+      const { ws, req, handlerCalled } = await connectExec(token)
       expect(handlerCalled).to.have.been.calledOnce
+      expect(ws.readyState).to.equal(WebSocket.OPEN)
+      expect(req.verifiedAccessToken.groups).to.deep.equal(['admin'])
     })
   })
 

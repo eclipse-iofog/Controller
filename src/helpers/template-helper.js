@@ -5,7 +5,22 @@ const { runInTransaction } = require('../helpers/transaction-runner')
 
 // ninja2 like template engine
 const { Liquid } = require('../lib/liquidjs/liquid.node.cjs')
-const templateEngine = new Liquid()
+
+function denyTemplateFileAccess () {
+  throw new Error('Template file access is disabled')
+}
+
+const templateEngine = new Liquid({
+  root: [],
+  dynamicPartials: false,
+  fs: {
+    exists: async () => false,
+    existsSync: () => false,
+    readFile: async () => denyTemplateFileAccess(),
+    readFileSync: () => denyTemplateFileAccess(),
+    resolve: (_root, file) => file
+  }
+})
 
 /**
  * Add filter findAgent to template engine.
@@ -136,24 +151,37 @@ const rvaluesVarSubstition = async (subjects, templateContext) => {
   return subjects
 }
 
-const substitutionMiddleware = async (req, res, next) => {
-  if (['POST', 'PUT', 'PATCH'].indexOf(req.method) > -1) {
-    // let user
-    const tmplContext = {
-      self: req.body
-      // Private context
-      // _user: user // need by edge resource and every on demand request
-    }
-    try {
-      await rvaluesVarSubstition(req.body, tmplContext)
-    } catch (e) {
-      next(e)
-    }
+const SUBSTITUTION_METHODS = ['POST', 'PUT', 'PATCH']
+
+async function renderRequestTemplates (req) {
+  if (!req || SUBSTITUTION_METHODS.indexOf(req.method) === -1) {
+    return
   }
-  next()
+  if (!req.body || typeof req.body !== 'object') {
+    return
+  }
+
+  const tmplContext = {
+    self: req.body
+  }
+  await rvaluesVarSubstition(req.body, tmplContext)
+}
+
+const authorizedSubstitutionMiddleware = async (req, res, next) => {
+  const rbacMiddleware = require('../lib/rbac/middleware')
+  try {
+    await rbacMiddleware.protect()(req, res, async () => {
+      await renderRequestTemplates(req)
+      next()
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 module.exports = {
   rvaluesVarSubstition,
-  substitutionMiddleware
+  renderRequestTemplates,
+  authorizedSubstitutionMiddleware,
+  substitutionMiddleware: authorizedSubstitutionMiddleware
 }

@@ -16,7 +16,7 @@ initialize().then(() => {
   const path = require('path')
   const { renderFile } = require('ejs')
   const xss = require('xss-clean')
-  const { substitutionMiddleware } = require('./helpers/template-helper')
+  const { authorizedSubstitutionMiddleware } = require('./helpers/template-helper')
   const multer = require('multer')
   const multerMemStorage = multer.memoryStorage()
   const uploadFile = (fileName) => multer({
@@ -163,7 +163,7 @@ initialize().then(() => {
       // Handle HTTP routes
       const middlewares = [route.middleware]
       if (route.supportSubstitution) {
-        middlewares.unshift(substitutionMiddleware)
+        middlewares.unshift(authorizedSubstitutionMiddleware)
       }
       if (route.fileInput) {
         middlewares.unshift(uploadFile(route.fileInput))
