@@ -5,7 +5,7 @@ const authorizer = require('./authorizer')
 const logger = require('../../logger')
 const config = require('../../config')
 const db = require('../../data/models')
-const { getOidcSettings } = require('../../config/oidc')
+const { getOidcSettings, verifyUserAccessToken } = require('../../config/oidc')
 const { PASSWORD_CHANGE_REQUIRED_CLAIM } = require('../../services/auth-token-service')
 
 const PASSWORD_CHANGE_ALLOWLIST = [
@@ -258,29 +258,21 @@ function findRouteDefinition (method, path) {
 }
 
 /**
- * Extract subjects from WebSocket request (for WebSocket connections)
+ * Extract RBAC subjects from a verified access-token payload.
+ * @param {object} payload Claims returned by verifyUserAccessToken
  */
-function extractSubjectsFromWebSocket (req, token) {
+function extractSubjectsFromClaims (payload) {
   const subjects = []
-
-  if (token) {
-    try {
-      const tokenParts = token.replace('Bearer ', '').split('.')
-      if (tokenParts.length === 3) {
-        const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
-
-        const user = extractUserSubject(payload)
-        if (user) {
-          subjects.push(user)
-        }
-
-        subjects.push(...extractGroupSubjects(payload))
-      }
-    } catch (error) {
-      logger.warn('Failed to extract subjects from WebSocket token:', error)
-    }
+  if (!payload || typeof payload !== 'object') {
+    return subjects
   }
 
+  const user = extractUserSubject(payload)
+  if (user) {
+    subjects.push(user)
+  }
+
+  subjects.push(...extractGroupSubjects(payload))
   return subjects
 }
 
@@ -366,27 +358,22 @@ function requirePermission (resource, verb) {
 async function authorizeWebSocket (req, token) {
   let subjects = []
   try {
-    // Extract subjects from WebSocket token
-    subjects = extractSubjectsFromWebSocket(req, token)
-    if (subjects.length === 0) {
-      return { allowed: false, reason: 'No subjects found in WebSocket token' }
+    let tokenPayload
+    try {
+      tokenPayload = await verifyUserAccessToken(token)
+    } catch (error) {
+      logger.warn(`WebSocket access token verification failed: ${error.message || error}`)
+      return { allowed: false, reason: 'Invalid authentication token' }
     }
 
-    let tokenPayload = null
-    if (token) {
-      try {
-        const tokenParts = token.replace('Bearer ', '').split('.')
-        if (tokenParts.length === 3) {
-          tokenPayload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString())
-        }
-      } catch (error) {
-        logger.warn('Failed to parse WebSocket token for password-change gate:', error)
-      }
+    subjects = extractSubjectsFromClaims(tokenPayload)
+    if (subjects.length === 0) {
+      return { allowed: false, reason: 'No subjects found in WebSocket token', claims: tokenPayload }
     }
 
     const passwordChangeGate = await enforcePasswordChangeGateForWebSocket(tokenPayload, req.url)
     if (passwordChangeGate.blocked) {
-      return { allowed: false, reason: passwordChangeGate.reason }
+      return { allowed: false, reason: passwordChangeGate.reason, claims: tokenPayload }
     }
 
     // Find route definition (use 'WS' as method)
@@ -394,7 +381,7 @@ async function authorizeWebSocket (req, token) {
     if (!routeDef) {
       // If route not in catalog, allow (for backward compatibility)
       logger.debug(`WebSocket route ${req.url} not found in RBAC catalog, allowing`)
-      return { allowed: true, reason: 'Route not in catalog' }
+      return { allowed: true, reason: 'Route not in catalog', claims: tokenPayload }
     }
 
     logger.debug(`WebSocket route found in catalog:`, {
@@ -431,7 +418,7 @@ async function authorizeWebSocket (req, token) {
       })
     }
 
-    return authResult
+    return { ...authResult, claims: tokenPayload }
   } catch (error) {
     logger.error('RBAC WebSocket authorization error:', JSON.stringify({
       error: error.message,
@@ -509,6 +496,8 @@ function protectWebSocket (handler) {
         }
         return
       }
+
+      req.verifiedAccessToken = authResult.claims
 
       // Authorization successful - call the original handler
       return handler(ws, req)
@@ -608,7 +597,7 @@ module.exports = {
   protectWebSocket, // RBAC protection for WebSocket connections
   skipRBAC,
   extractSubjects,
-  extractSubjectsFromWebSocket,
+  extractSubjectsFromClaims,
   findRouteDefinition,
   tokenRequiresPasswordChange,
   isPasswordChangeAllowlistedRoute

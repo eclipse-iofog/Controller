@@ -2,7 +2,7 @@
 # ioFog overrides: EDGEOPS_CONSOLE_REPO=https://github.com/eclipse-iofog/edgeops-console
 #                   EDGEOPS_CONSOLE_FLAVOR=iofog
 # node:24-bookworm — pin manifest list digest for reproducible multi-arch builds
-FROM node:24-bookworm@sha256:3d27e5c11e5786e309ec3e03f93ae536eb36e6e5eb3714d5eb3300a36157add0 AS console-builder
+FROM node:24-bookworm@sha256:14078204b6bb268c107ceff6d3c43f45a888105e5c2b18b14c32b3409d93a1b0 AS console-builder
 
 ARG EDGEOPS_CONSOLE_REPO=https://github.com/Datasance/edgeops-console
 ARG EDGEOPS_CONSOLE_VERSION=v1.1.1
@@ -28,7 +28,7 @@ RUN test -f build/index.html \
     && cp -a build /tmp/console/build
 
 
-FROM node:24-bookworm@sha256:3d27e5c11e5786e309ec3e03f93ae536eb36e6e5eb3714d5eb3300a36157add0 AS builder
+FROM node:24-bookworm@sha256:14078204b6bb268c107ceff6d3c43f45a888105e5c2b18b14c32b3409d93a1b0 AS builder
 
 ARG PKG_VERSION
 
@@ -48,7 +48,7 @@ RUN npm pack
 
 
 # ubi9/nodejs-24-minimal:latest — pin manifest list digest for reproducible multi-arch builds
-FROM registry.access.redhat.com/ubi9/nodejs-24-minimal@sha256:c0205a5c0bb750ec8a34248da9f87b4013cbfd46e327ec321996104913633fe9
+FROM registry.access.redhat.com/ubi9/nodejs-24-minimal@sha256:cfca5c8d4d7babc8b74f408db216c2fd4dec872f319c1579e001dcceb51d3058
 
 ARG EDGEOPS_CONSOLE_VERSION=v1.1.1
 ARG IMAGE_REGISTRY

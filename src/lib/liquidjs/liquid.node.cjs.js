@@ -121,6 +121,14 @@ function isObject(value) {
     return value !== null && (type === 'object' || type === 'function');
 }
 function range(start, stop, step = 1) {
+    const MAX_RANGE_SPAN = 10000;
+    if (!Number.isFinite(step) || step === 0) {
+        throw new Error('Liquid range exceeds maximum of 10000');
+    }
+    const span = Math.abs(stop - start) / Math.abs(step);
+    if (!Number.isFinite(span) || span > MAX_RANGE_SPAN) {
+        throw new Error('Liquid range exceeds maximum of 10000');
+    }
     const arr = [];
     for (let i = start; i < stop; i += step) {
         arr.push(i);
@@ -1859,6 +1867,11 @@ var For = {
         const scope = { forloop: new ForloopDrop(collection.length) };
         ctx.push(scope);
         for (const item of collection) {
+            const iterationRegister = ctx.getRegister('liquidForIterations', { count: 0 });
+            iterationRegister.count += 1;
+            if (iterationRegister.count > 100000) {
+                throw new Error('Liquid for-loop exceeds maximum of 100000 iterations');
+            }
             scope[this.variable] = item;
             yield r.renderTemplates(this.templates, ctx, emitter);
             if (emitter.break) {
