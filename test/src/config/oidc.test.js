@@ -355,5 +355,164 @@ describe('OIDC config', () => {
         resetEmbeddedOidcFetchForTests()
       }
     })
+
+    it('ignores an external issuer CA in embedded mode', async () => {
+      const fs = require('fs')
+      const path = require('path')
+      const logger = require('../../../src/logger')
+      const caPem = fs.readFileSync(path.join(__dirname, '../../tls-cert/ca.crt'))
+
+      await withEmbeddedIssuerServer(async (issuerBase) => {
+        const warn = $sandbox.stub(logger, 'warn')
+        process.env.OIDC_ISSUER_TLS_BASE64_CA = caPem.toString('base64')
+        const oidc = reloadOidcModule()
+        oidc.initOidc()
+
+        const clientConfig = await oidc.getOauthClientConfiguration()
+
+        expect(clientConfig.serverMetadata().issuer).to.equal(`${issuerBase}/oidc`)
+        expect(warn.calledWith('OIDC issuer CA is ignored when auth.mode is embedded')).to.equal(true)
+      })
+    })
+  })
+
+  describe('external issuer CA', () => {
+    const fs = require('fs')
+    const path = require('path')
+    const https = require('https')
+    const caPath = path.join(__dirname, '../../tls-cert/ca.crt')
+    const caPem = fs.readFileSync(caPath)
+
+    it('uses the CA file when both path and base64 are set', () => {
+      const { getExternalIssuerCaBuffer } = require('../../../src/config/oidc-fetch')
+      process.env.OIDC_ISSUER_TLS_PATH_CA = caPath
+      process.env.OIDC_ISSUER_TLS_BASE64_CA = Buffer.from('not-the-file').toString('base64')
+
+      const loaded = getExternalIssuerCaBuffer()
+      expect(loaded.equals(caPem)).to.equal(true)
+    })
+
+    it('decodes the base64 CA when no path is set', () => {
+      const { getExternalIssuerCaBuffer } = require('../../../src/config/oidc-fetch')
+      delete process.env.OIDC_ISSUER_TLS_PATH_CA
+      process.env.OIDC_ISSUER_TLS_BASE64_CA = caPem.toString('base64')
+
+      const loaded = getExternalIssuerCaBuffer()
+      expect(loaded.equals(caPem)).to.equal(true)
+    })
+
+    it('builds discovery and JWKS options with no custom trust when no issuer CA is set', () => {
+      applyExternalEnv()
+      const oidc = reloadOidcModule()
+
+      expect(oidc.getDiscoveryOptions()).to.equal(undefined)
+      expect(oidc.getRemoteJwksVerifyOptions()).to.equal(undefined)
+    })
+
+    it('passes a custom fetch and https agent when the issuer CA is set', () => {
+      const httpsModule = require('https')
+      const oidcClient = require('openid-client')
+      const { getExternalIssuerCaBuffer } = require('../../../src/config/oidc-fetch')
+      applyExternalEnv({
+        OIDC_ISSUER_TLS_PATH_CA: caPath
+      })
+      const oidc = reloadOidcModule()
+
+      const discoveryOptions = oidc.getDiscoveryOptions()
+      const verifyOptions = oidc.getRemoteJwksVerifyOptions(getExternalIssuerCaBuffer())
+
+      expect(discoveryOptions[oidcClient.customFetch]).to.be.a('function')
+      expect(verifyOptions.agent).to.be.instanceOf(httpsModule.Agent)
+      expect(verifyOptions.agent.options.rejectUnauthorized).to.equal(true)
+      expect(verifyOptions.agent.options.ca.length).to.be.greaterThan(1)
+    })
+
+    it('keeps allowInsecureRequests when an issuer CA is also set', () => {
+      const oidcClient = require('openid-client')
+      applyOidcEnv({
+        AUTH_MODE: 'external',
+        CONTROLLER_PUBLIC_URL: 'https://localhost:51121',
+        OIDC_ISSUER_URL: 'https://idp.example.com/realms/test',
+        OIDC_CLIENT_ID: 'controller',
+        OIDC_CLIENT_SECRET: 'external-test-secret',
+        AUTH_INSECURE_ALLOW_HTTP: 'true',
+        OIDC_ISSUER_TLS_PATH_CA: caPath
+      }, { sandbox: $sandbox })
+      const oidc = reloadOidcModule()
+      const discoveryOptions = oidc.getDiscoveryOptions()
+
+      expect(discoveryOptions.execute).to.have.length(1)
+      expect(discoveryOptions[oidcClient.customFetch]).to.be.a('function')
+    })
+
+    function listenPrivateIssuer () {
+      const key = fs.readFileSync(path.join(__dirname, '../../tls-cert/tls.key'))
+      const cert = fs.readFileSync(path.join(__dirname, '../../tls-cert/tls.crt'))
+      const server = https.createServer({ key, cert }, (req, res) => {
+        const { port } = server.address()
+        const issuer = `https://localhost:${port}`
+        if ((req.url || '').startsWith('/.well-known/openid-configuration')) {
+          res.writeHead(200, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({
+            issuer,
+            authorization_endpoint: `${issuer}/authorize`,
+            token_endpoint: `${issuer}/token`,
+            jwks_uri: `${issuer}/jwks`,
+            response_types_supported: ['code'],
+            subject_types_supported: ['public'],
+            id_token_signing_alg_values_supported: ['RS256']
+          }))
+          return
+        }
+        res.writeHead(404)
+        res.end()
+      })
+
+      return new Promise((resolve, reject) => {
+        server.listen(0, 'localhost', () => resolve(server))
+        server.on('error', reject)
+      })
+    }
+
+    it('fails discovery against a private CA when the issuer CA is unset', async () => {
+      const server = await listenPrivateIssuer()
+      const { port } = server.address()
+      applyExternalEnv({
+        OIDC_ISSUER_URL: `https://localhost:${port}`
+      })
+      const oidc = reloadOidcModule()
+
+      try {
+        await oidc.getOauthClientConfiguration()
+        expect.fail('discovery should reject an untrusted issuer certificate')
+      } catch (error) {
+        const cause = error.cause ? error.cause.message || String(error.cause) : ''
+        expect(`${error.message} ${cause}`).to.match(/fetch failed|certificate|UNABLE_TO_VERIFY|self[- ]signed/i)
+      } finally {
+        await new Promise((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()))
+        })
+      }
+    })
+
+    it('discovers an issuer signed by the configured private CA', async () => {
+      const server = await listenPrivateIssuer()
+      const { port } = server.address()
+      const issuer = `https://localhost:${port}`
+      applyExternalEnv({
+        OIDC_ISSUER_URL: issuer,
+        OIDC_ISSUER_TLS_PATH_CA: caPath
+      })
+      const oidc = reloadOidcModule()
+
+      try {
+        const clientConfig = await oidc.getOauthClientConfiguration()
+        expect(clientConfig.serverMetadata().issuer).to.equal(issuer)
+      } finally {
+        await new Promise((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()))
+        })
+      }
+    })
   })
 })

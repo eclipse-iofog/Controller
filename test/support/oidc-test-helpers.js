@@ -11,7 +11,9 @@ const OIDC_ENV_KEYS = [
   'AUTH_SESSION_STORE_TYPE',
   'AUTH_SESSION_STORE_TTL_MS',
   'AUTH_SESSION_SECRET',
-  'AUTH_INSECURE_ALLOW_HTTP'
+  'AUTH_INSECURE_ALLOW_HTTP',
+  'OIDC_ISSUER_TLS_PATH_CA',
+  'OIDC_ISSUER_TLS_BASE64_CA'
 ]
 
 function snapshotOidcEnv () {
@@ -50,6 +52,12 @@ function resolveOidcConfigOverrides (env = {}) {
         break
       case 'OIDC_ISSUER_URL':
         overrides['auth.issuerUrl'] = isCleared ? '' : value
+        break
+      case 'OIDC_ISSUER_TLS_PATH_CA':
+        overrides['auth.issuer.tls.path.ca'] = isCleared ? '' : value
+        break
+      case 'OIDC_ISSUER_TLS_BASE64_CA':
+        overrides['auth.issuer.tls.base64.ca'] = isCleared ? '' : value
         break
       case 'OIDC_CLIENT_ID':
         overrides['auth.client.id'] = isCleared ? '' : value

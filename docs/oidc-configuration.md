@@ -18,6 +18,8 @@ Set **`CONTROLLER_PUBLIC_URL`** to the URL clients use to reach Controller (HTTP
 
 Development with `http://localhost:*` requires **`AUTH_INSECURE_ALLOW_HTTP=true`**.
 
+An external HTTPS issuer signed by a private CA needs **`OIDC_ISSUER_TLS_PATH_CA`** (PEM file) or **`OIDC_ISSUER_TLS_BASE64_CA`** (base64 of that PEM). Path wins when both are set. The file may be one CA or a concatenated PEM bundle. Controller adds it to the Mozilla roots for discovery, the token call, and JWKS, and keeps certificate checks on. Embedded mode ignores these keys. **`NODE_EXTRA_CA_CERTS`** still works and applies to every HTTPS call in the process.
+
 ---
 
 ## Environment variables
@@ -32,6 +34,8 @@ Canonical names map to `config.yaml` under `auth.*` (see `src/config/env-mapping
 | `CONTROLLER_PUBLIC_URL` | both | Yes | External URL; embedded issuer base |
 | `TRUST_PROXY` | both | When proxied | Honor forwarded headers |
 | `OIDC_ISSUER_URL` | external | Yes | Full issuer URL (e.g. `https://auth.example.com/realms/myrealm`) |
+| `OIDC_ISSUER_TLS_PATH_CA` | external | Private CA | PEM file for the issuer CA. Wins over the base64 key |
+| `OIDC_ISSUER_TLS_BASE64_CA` | external | Private CA | Base64 of the issuer CA PEM (or PEM bundle) |
 | `OIDC_CLIENT_ID` | both | Yes | Confidential API client (default embedded: `controller`) |
 | `OIDC_CLIENT_SECRET` | both | external required; embedded optional | Client secret for token exchange |
 | `CONSOLE_URL` | both | Recommended | EdgeOps Console browser origin (defaults to public URL) |

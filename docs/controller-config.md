@@ -227,6 +227,8 @@ The auth block in the default file only activates `mode`, `insecureAllowHttp`, a
 | `auth.bootstrap.username` | empty | `OIDC_BOOTSTRAP_ADMIN_USERNAME` |
 | `auth.bootstrap.password` | empty | `OIDC_BOOTSTRAP_ADMIN_PASSWORD` |
 | `auth.issuerUrl` | empty | `OIDC_ISSUER_URL` |
+| `auth.issuer.tls.path.ca` | empty | `OIDC_ISSUER_TLS_PATH_CA` |
+| `auth.issuer.tls.base64.ca` | empty | `OIDC_ISSUER_TLS_BASE64_CA` |
 | `auth.client.id` | empty | `OIDC_CLIENT_ID` |
 | `auth.client.secret` | empty | `OIDC_CLIENT_SECRET` |
 | `auth.consoleClient` | empty | `OIDC_CONSOLE_CLIENT_ID` |
@@ -245,6 +247,8 @@ The auth block in the default file only activates `mode`, `insecureAllowHttp`, a
 | `auth.oidcTtl.idTokenTtlSeconds` | access-token TTL | `AUTH_OIDC_ID_TOKEN_TTL_SECONDS` |
 
 `auth.mode` is `embedded` or `external`. External mode uses `auth.issuerUrl`, `auth.client.id`, and `auth.client.secret`. Embedded mode runs the issuer inside Controller. The bootstrap username and password create the first admin. `auth.insecureAllowHttp` allows an `http` public URL in production. `auth.insecureAllowBootstrapLog` allows the bootstrap password path to be logged in production.
+
+External mode can trust an HTTPS issuer signed by a private CA. Set `OIDC_ISSUER_TLS_PATH_CA` or `OIDC_ISSUER_TLS_BASE64_CA`. Path wins when both are set. The value is a PEM CA or a concatenated PEM bundle. Base64 is those PEM bytes. Controller adds that CA to the Mozilla roots for discovery, the token call, and JWKS. Certificate checks stay on. Embedded mode ignores these keys. `NODE_EXTRA_CA_CERTS` remains a process-wide alternative.
 
 `OIDC_CONSOLE_CLIENT_ID` sets `auth.consoleClient` to the console client id string. The console client id is also read from `auth.consoleClient.id` when that key is an object. `AUTH_CONSOLE_CLIENT_ENABLED` sets `auth.consoleClient.enabled` and defaults to false when unset. Set the enabled flag when the console client should be registered. The id falls back to `ecn-viewer` when nothing is configured.
 

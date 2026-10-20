@@ -32,6 +32,7 @@ let embeddedOauthClientPromise = null
 let jwks = null
 let issuerString = null
 let configuredClientId = null
+let embeddedIssuerCaWarned = false
 
 const AUTH_MODES = ['embedded', 'external']
 
@@ -156,17 +157,48 @@ async function verifyUserAccessToken (token) {
   return payload
 }
 
+function warnIfEmbeddedIssuerCaIgnored () {
+  if (getAuthMode() !== 'embedded' || embeddedIssuerCaWarned) {
+    return
+  }
+
+  const { hasExternalIssuerCaConfig } = require('./oidc-fetch')
+  if (!hasExternalIssuerCaConfig()) {
+    return
+  }
+
+  embeddedIssuerCaWarned = true
+  logger.warn('OIDC issuer CA is ignored when auth.mode is embedded')
+}
+
 function getDiscoveryOptions () {
+  const options = {}
   const allowHttp = config.getBoolean('auth.insecureAllowHttp', false)
-  if (!allowHttp) {
+  if (allowHttp) {
+    // openid-client marks allowInsecureRequests @deprecated to discourage prod use;
+    // required for local http:// when AUTH_INSECURE_ALLOW_HTTP=true.
+    options.execute = [oidcClient.allowInsecureRequests]
+  }
+
+  if (getAuthMode() === 'external') {
+    const {
+      getExternalIssuerCaBuffer,
+      createExternalOidcFetch
+    } = require('./oidc-fetch')
+    const caBuffer = getExternalIssuerCaBuffer()
+    if (caBuffer) {
+      options[oidcClient.customFetch] = createExternalOidcFetch(caBuffer)
+    }
+  }
+
+  if (!options.execute && options[oidcClient.customFetch] === undefined) {
     return undefined
   }
-  // openid-client marks allowInsecureRequests @deprecated to discourage prod use;
-  // required for local http:// when AUTH_INSECURE_ALLOW_HTTP=true.
-  return { execute: [oidcClient.allowInsecureRequests] }
+  return options
 }
 
 async function ensureEmbeddedJwks () {
+  warnIfEmbeddedIssuerCaIgnored()
   const { privateJwk } = await AuthJwks.getActiveSigningMaterial()
   jwks = createLocalJWKSet({ keys: [AuthJwks.getPublicJwk(privateJwk)] })
   issuerString = getEmbeddedIssuerUrl()
@@ -192,20 +224,30 @@ async function ensureDiscovery () {
 
   discoveryPromise = (async () => {
     const issuer = new URL(issuerUrl)
+    const discoveryOptions = getDiscoveryOptions()
     const configuration = await oidcClient.discovery(
       issuer,
       clientId,
       clientSecret,
       undefined,
-      getDiscoveryOptions()
+      discoveryOptions
     )
+    if (discoveryOptions?.[oidcClient.customFetch]) {
+      configuration[oidcClient.customFetch] = discoveryOptions[oidcClient.customFetch]
+    }
     const metadata = configuration.serverMetadata()
 
     if (!metadata.jwks_uri) {
       throw new Error('OIDC issuer discovery did not return jwks_uri')
     }
 
-    jwks = createRemoteJWKSet(new URL(metadata.jwks_uri))
+    const { getExternalIssuerCaBuffer } = require('./oidc-fetch')
+    const caBuffer = getExternalIssuerCaBuffer()
+    const verifyOptions = getRemoteJwksVerifyOptions(caBuffer)
+    const jwksUrl = new URL(metadata.jwks_uri)
+    jwks = verifyOptions
+      ? createRemoteJWKSet(jwksUrl, verifyOptions)
+      : createRemoteJWKSet(jwksUrl)
     issuerString = metadata.issuer
     return configuration
   })().catch((error) => {
@@ -243,6 +285,7 @@ function initOidc () {
   }
 
   validateAuthConfig()
+  warnIfEmbeddedIssuerCaIgnored()
   oidcInstance = createOidcFacade()
   logger.info(`OIDC initialized successfully (${getAuthMode()} mode)`)
   return oidcInstance
@@ -291,6 +334,16 @@ function getOidcMiddleware () {
       })
       return next()
     }
+  }
+}
+
+function getRemoteJwksVerifyOptions (caBuffer) {
+  if (!caBuffer) {
+    return undefined
+  }
+  const { createExternalIssuerHttpsAgent } = require('./oidc-fetch')
+  return {
+    agent: createExternalIssuerHttpsAgent(caBuffer)
   }
 }
 
@@ -356,8 +409,10 @@ function resetDiscoveryForTests () {
   issuerString = null
   configuredClientId = null
   oidcInstance = null
-  const { resetEmbeddedOidcFetchForTests } = require('./oidc-fetch')
+  embeddedIssuerCaWarned = false
+  const { resetEmbeddedOidcFetchForTests, resetExternalOidcFetchForTests } = require('./oidc-fetch')
   resetEmbeddedOidcFetchForTests()
+  resetExternalOidcFetchForTests()
   const { resetAuthSessionStoreForTests } = require('./auth-session-store')
   resetAuthSessionStoreForTests()
 }
@@ -373,6 +428,8 @@ module.exports = {
   getOidcSettings,
   getOidcConfiguration: ensureDiscovery,
   getOauthClientConfiguration,
+  getDiscoveryOptions,
+  getRemoteJwksVerifyOptions,
   resetDiscoveryForTests,
   buildKauthGrant,
   verifyUserAccessToken
