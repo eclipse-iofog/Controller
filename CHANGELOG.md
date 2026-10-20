@@ -4,6 +4,10 @@
 
 Patch release. No schema or API change. Upgrade from v3.9.1 is a Controller and image replace. The two fixes below apply to every release from v3.8.0 through v3.9.1.
 
+### Added
+
+- **External OIDC issuer CA** — `OIDC_ISSUER_TLS_PATH_CA` (`auth.issuer.tls.path.ca`) or `OIDC_ISSUER_TLS_BASE64_CA` (`auth.issuer.tls.base64.ca`) trusts an HTTPS issuer signed by a private CA. Path wins when both are set. The CA is added to the Mozilla roots for discovery, the token call, and JWKS only. Certificate checks stay on. Embedded mode ignores these keys.
+
 ### Changed
 
 - Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder) and **`ubi9/nodejs-24-minimal`**.

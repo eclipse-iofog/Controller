@@ -160,6 +160,12 @@ auth:
 #     password: ""  # Bootstrap admin password (OIDC_BOOTSTRAP_ADMIN_PASSWORD)
   insecureAllowBootstrapLog: false  # Allow bootstrap log in prod (AUTH_INSECURE_ALLOW_BOOTSTRAP_LOG)
 #   issuerUrl:      # OIDC issuer URL (OIDC_ISSUER_URL); external mode only
+#   issuer:         # External issuer TLS trust; ignored when auth.mode is embedded
+#     tls:
+#       path:
+#         ca: ""    # CA PEM file path (OIDC_ISSUER_TLS_PATH_CA); path wins over base64
+#       base64:
+#         ca: ""    # CA PEM bytes, base64 (OIDC_ISSUER_TLS_BASE64_CA)
 #   client:
 #     id:           # Controller API client ID (OIDC_CLIENT_ID)
 #     secret:       # Controller API client secret (OIDC_CLIENT_SECRET)

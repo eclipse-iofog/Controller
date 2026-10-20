@@ -117,6 +117,8 @@ module.exports = {
   // Auth Configuration (OIDC — k8s-style; naming-map §13)
   AUTH_MODE: 'auth.mode',
   OIDC_ISSUER_URL: 'auth.issuerUrl',
+  OIDC_ISSUER_TLS_PATH_CA: 'auth.issuer.tls.path.ca',
+  OIDC_ISSUER_TLS_BASE64_CA: 'auth.issuer.tls.base64.ca',
   OIDC_CLIENT_ID: 'auth.client.id',
   OIDC_CLIENT_SECRET: 'auth.client.secret',
   OIDC_CONSOLE_CLIENT_ID: 'auth.consoleClient',

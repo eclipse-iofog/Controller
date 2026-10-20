@@ -39,6 +39,8 @@ In external mode:
 | `TRUST_PROXY` | When TLS terminates at ingress | `true` |
 | `AUTH_SESSION_STORE_TYPE` | HA + browser login | `database` (mysql/postgres) |
 | `AUTH_INSECURE_ALLOW_HTTP` | Development only | `true` when using `http://localhost:*` |
+| `OIDC_ISSUER_TLS_PATH_CA` | Private CA | PEM file for the issuer CA. Wins over base64 |
+| `OIDC_ISSUER_TLS_BASE64_CA` | Private CA | Base64 of the issuer CA PEM (or PEM bundle) |
 
 `OIDC_ISSUER_URL` must be the **issuer string**, not a generic IdP homepage. Discovery is:
 
@@ -47,6 +49,8 @@ GET {OIDC_ISSUER_URL}/.well-known/openid-configuration
 ```
 
 Do **not** set legacy `KC_*`, `auth.realm`, or `auth.realmKey`.
+
+When the issuer certificate is signed by a private CA, set `OIDC_ISSUER_TLS_PATH_CA` or `OIDC_ISSUER_TLS_BASE64_CA`. Path wins when both are set. Controller adds that CA to the Mozilla roots for discovery, the token call, and JWKS, and does not turn certificate checks off. These keys apply only when `AUTH_MODE=external`. `NODE_EXTRA_CA_CERTS` remains a process-wide alternative.
 
 Optional `OIDC_CONSOLE_CLIENT_ID` / `AUTH_CONSOLE_CLIENT_ENABLED` registers a **future SPA-direct** public client. Default is **off**. Primary Console login uses this confidential Controller client via the BFF. Do not point Console at a second public client unless you intend to enable that path.
 
