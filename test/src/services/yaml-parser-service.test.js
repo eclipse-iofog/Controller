@@ -1,6 +1,7 @@
 const { expect } = require('chai')
 
 const YamlParserService = require('../../../src/services/yaml-parser-service')
+const CatalogContainer = require('../../../src/helpers/microservice-container-catalog')
 
 describe('YAML Parser Service', () => {
   describe('.parseAppFile()', () => {
@@ -254,6 +255,37 @@ spec:
         type: 'bind'
       }])
       expect(result).to.not.have.property('volumes')
+    })
+
+    it('maps container supplemental group ids and leaves them out when the key is omitted', async () => {
+      const withGroups = `
+kind: Microservice
+metadata:
+  name: app-a/inference
+spec:
+  container:
+    supplementalGroups:
+      - 993
+      - 44
+    env: []
+`
+      const parsed = await YamlParserService.parseMicroserviceFile(withGroups)
+      expect(parsed.supplementalGroups).to.eql([993, 44])
+      expect(CatalogContainer.serializeContainerColumns(parsed).supplementalGroups).to.equal('[44,993]')
+
+      const omitted = `
+kind: Microservice
+metadata:
+  name: app-a/inference
+spec:
+  container:
+    runAsGroup: "1000"
+    env: []
+`
+      const update = await YamlParserService.parseMicroserviceFile(omitted)
+      expect(update).to.not.have.property('supplementalGroups')
+      expect(update.runAsGroup).to.equal('1000')
+      expect(CatalogContainer.serializeContainerColumns(update)).to.not.have.property('supplementalGroups')
     })
 
     it('passes container volume scope through to volumeMappings', async () => {

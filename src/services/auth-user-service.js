@@ -133,6 +133,46 @@ async function setUserGroups (user, groupIds, transaction) {
   }
 }
 
+function isUniqueConstraintError (error) {
+  return Boolean(error && error.name === 'SequelizeUniqueConstraintError')
+}
+
+async function hardDeleteUser (user, transaction) {
+  await AuthTokenService.revokeAllUserRefreshTokens(user.id, transaction)
+  await db.AuthUserGroup.destroy(withTransaction(transaction, {
+    where: { userId: user.id }
+  }))
+  await db.AuthMfa.destroy(withTransaction(transaction, {
+    where: { userId: user.id }
+  }))
+  await db.AuthPasswordResetSession.destroy(withTransaction(transaction, {
+    where: { userId: user.id }
+  }))
+  await db.AuthRefreshToken.destroy(withTransaction(transaction, {
+    where: { userId: user.id }
+  }))
+  await db.AuthUser.destroy(withTransaction(transaction, {
+    where: { id: user.id }
+  }))
+}
+
+async function claimEmail (email, transaction, exceptUserId) {
+  const where = { email }
+  if (exceptUserId) {
+    where.id = { [Op.ne]: exceptUserId }
+  }
+
+  const existing = await db.AuthUser.findOne(withTransaction(transaction, { where }))
+  if (!existing) {
+    return
+  }
+  if (!existing.deletedAt) {
+    throw new Errors.ConflictError('A user with this email already exists')
+  }
+
+  await hardDeleteUser(existing, transaction)
+}
+
 async function updatePassword (user, newPassword, transaction) {
   const policy = await AuthPolicyService.getPolicy(transaction)
   AuthPasswordService.validatePasswordComplexity(newPassword, policy)
@@ -183,25 +223,28 @@ async function createUser ({ email, password, groups }, transaction) {
     throw new Errors.ValidationError('email and password are required')
   }
 
-  const existing = await db.AuthUser.findOne(withTransaction(transaction, {
-    where: { email: normalizedEmail }
-  }))
-  if (existing && !existing.deletedAt) {
-    throw new Errors.ConflictError('A user with this email already exists')
-  }
+  await claimEmail(normalizedEmail, transaction)
 
   const policy = await AuthPolicyService.getPolicy(transaction)
   AuthPasswordService.validatePasswordComplexity(password, policy)
 
   const groupIds = await resolveGroupIds(groups, transaction)
   const userId = crypto.randomUUID()
-  const user = await db.AuthUser.create({
-    id: userId,
-    email: normalizedEmail,
-    passwordHash: await AuthPasswordService.hashPassword(password),
-    mustChangePassword: true,
-    isBootstrap: false
-  }, withTransaction(transaction))
+  let user
+  try {
+    user = await db.AuthUser.create({
+      id: userId,
+      email: normalizedEmail,
+      passwordHash: await AuthPasswordService.hashPassword(password),
+      mustChangePassword: true,
+      isBootstrap: false
+    }, withTransaction(transaction))
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      throw new Errors.ConflictError('A user with this email already exists')
+    }
+    throw error
+  }
 
   if (groupIds.length > 0) {
     await setUserGroups(user, groupIds, transaction)
@@ -229,17 +272,15 @@ async function updateUser (userId, payload, transaction) {
     if (!normalizedEmail) {
       throw new Errors.ValidationError('email is required')
     }
-    const duplicate = await db.AuthUser.findOne(withTransaction(transaction, {
-      where: {
-        email: normalizedEmail,
-        id: { [Op.ne]: user.id },
-        deletedAt: null
+    await claimEmail(normalizedEmail, transaction, user.id)
+    try {
+      await user.update({ email: normalizedEmail }, withTransaction(transaction))
+    } catch (error) {
+      if (isUniqueConstraintError(error)) {
+        throw new Errors.ConflictError('A user with this email already exists')
       }
-    }))
-    if (duplicate) {
-      throw new Errors.ConflictError('A user with this email already exists')
+      throw error
     }
-    await user.update({ email: normalizedEmail }, withTransaction(transaction))
   }
 
   if (payload.groups !== undefined) {
@@ -262,8 +303,7 @@ async function deleteUser (userId, actorUserId, transaction) {
     throw new Errors.ForbiddenError('Users cannot delete their own account')
   }
 
-  await user.update({ deletedAt: new Date() }, withTransaction(transaction))
-  await AuthTokenService.revokeAllUserRefreshTokens(user.id, transaction)
+  await hardDeleteUser(user, transaction)
   return { status: 'success' }
 }
 

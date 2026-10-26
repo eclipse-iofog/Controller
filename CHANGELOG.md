@@ -1,5 +1,24 @@
 # Changelog
 
+## [v3.9.3]
+
+Microservice `supplementalGroups` for Edgelet v1.1.3. A non-root process can join extra host group IDs, such as the group that owns a device node, without running privileged.
+
+### Added
+
+- **`supplementalGroups`** — array of numeric host group IDs on a microservice. At most 16 unique whole numbers from 0 through 4294967295. Omit, null, or `[]` means no extra groups. Duplicates, names, and non-integers are **400**. The list is stored sorted ascending.
+- **`Microservices.supplemental_groups`** on the 3.9.3 baseline and on the 3.9.3 upgrade (sqlite, mysql, postgres).
+
+### Changed
+
+- **Agent microservice list** includes flat `supplementalGroups` on every item (`[]` when there are none). A change to the list sets `rebuild` and the existing `microserviceList` flag. No new route and no new `getChanges` flag.
+- Dockerfile runtime base image digest pin refreshed for **`ubi9/nodejs-24-minimal`**.
+- Embedded **EdgeOps Console** default **v1.1.1 → v1.1.2**
+
+### Fixed
+
+- **Embedded auth user delete** removes the account so the same email can be created again. A user row left by an earlier soft delete is removed when that email is claimed.
+
 ## [v3.9.2] - 2026-10-20
 
 Patch release. No schema or API change. Upgrade from v3.9.1 is a Controller and image replace. The two fixes below apply to every release from v3.8.0 through v3.9.1.

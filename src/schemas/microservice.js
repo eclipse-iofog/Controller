@@ -1,4 +1,5 @@
 const { nameRegex, serviceNameRegex } = require('./utils/utils')
+const { supplementalGroupsSchema } = require('./microservice-container-spec')
 
 const microserviceCreate = {
   id: '/microserviceCreate',
@@ -67,6 +68,7 @@ const microserviceCreate = {
     },
     runAsUser: { type: 'string' },
     runAsGroup: { type: 'string' },
+    supplementalGroups: supplementalGroupsSchema,
     readOnlyRootFilesystem: { type: 'boolean' },
     platform: { type: 'string' },
     runtime: { type: 'string' },
@@ -222,6 +224,7 @@ const microserviceUpdate = {
     },
     runAsUser: { type: 'string' },
     runAsGroup: { type: 'string' },
+    supplementalGroups: supplementalGroupsSchema,
     readOnlyRootFilesystem: { type: 'boolean' },
     platform: { type: 'string' },
     runtime: { type: 'string' },

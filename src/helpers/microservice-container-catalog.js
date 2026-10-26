@@ -29,6 +29,9 @@ const ULIMIT_ALLOWLIST = new Set([
   'nofile', 'nproc', 'rss', 'rtprio', 'rttime', 'sigpending', 'stack'
 ])
 
+const MAX_SUPPLEMENTAL_GROUPS = 16
+const MAX_SUPPLEMENTAL_GROUP_ID = 4294967295
+
 function parseJsonField (raw) {
   if (raw == null || raw === '') {
     return null
@@ -403,6 +406,83 @@ function validateDevices (devices) {
   }
 }
 
+function sameGroupList (left, right) {
+  if (left.length !== right.length) {
+    return false
+  }
+  for (let i = 0; i < left.length; i++) {
+    if (left[i] !== right[i]) {
+      return false
+    }
+  }
+  return true
+}
+
+// Host group ids sorted ascending. An empty list means no extra groups.
+function normalizeSupplementalGroups (value) {
+  if (value == null) {
+    return []
+  }
+  if (!Array.isArray(value)) {
+    throw new Errors.ValidationError(ErrorMessages.MICROSERVICE_SUPPLEMENTAL_GROUPS_SHAPE)
+  }
+  if (value.length > MAX_SUPPLEMENTAL_GROUPS) {
+    throw new Errors.ValidationError(ErrorMessages.MICROSERVICE_SUPPLEMENTAL_GROUPS_LIMIT)
+  }
+  const gids = []
+  for (const entry of value) {
+    if (typeof entry !== 'number' || !Number.isInteger(entry) ||
+        entry < 0 || entry > MAX_SUPPLEMENTAL_GROUP_ID) {
+      throw new Errors.ValidationError(AppHelper.formatMessage(
+        ErrorMessages.MICROSERVICE_SUPPLEMENTAL_GROUPS_ENTRY,
+        entry
+      ))
+    }
+    gids.push(entry)
+  }
+  gids.sort((left, right) => left - right)
+  for (let i = 1; i < gids.length; i++) {
+    if (gids[i] === gids[i - 1]) {
+      throw new Errors.ValidationError(AppHelper.formatMessage(
+        ErrorMessages.MICROSERVICE_SUPPLEMENTAL_GROUPS_DUPLICATE,
+        gids[i]
+      ))
+    }
+  }
+  return gids
+}
+
+function supplementalGroupList (value) {
+  if (value == null || value === '') {
+    return []
+  }
+  if (typeof value === 'string') {
+    const parsed = parseJsonField(value)
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return normalizeSupplementalGroups(parsed)
+  }
+  return normalizeSupplementalGroups(value)
+}
+
+function supplementalGroupsRequireRebuild (spec, existing) {
+  if (!spec || spec.supplementalGroups === undefined) {
+    return false
+  }
+  const next = normalizeSupplementalGroups(spec.supplementalGroups)
+  const current = supplementalGroupList(existing && existing.supplementalGroups)
+  return !sameGroupList(next, current)
+}
+
+function readSupplementalGroups (raw) {
+  if (raw == null || raw === '') {
+    return []
+  }
+  const parsed = Array.isArray(raw) ? raw : parseJsonField(raw)
+  return Array.isArray(parsed) ? parsed : []
+}
+
 function validateTmpfs (tmpfs) {
   if (tmpfs == null || tmpfs === '') {
     return
@@ -464,6 +544,9 @@ function validateContainerFields (spec, existing = {}) {
   if (data.sysctls !== undefined) {
     data.sysctls = normalizeSysctls(data.sysctls)
   }
+  if (data.supplementalGroups !== undefined) {
+    data.supplementalGroups = normalizeSupplementalGroups(data.supplementalGroups)
+  }
   validateSysctls(data.sysctls, hostNetworkMode, ipcMode)
   validateUlimits(data.ulimits)
   validateDevices(data.devices)
@@ -500,6 +583,10 @@ function serializeContainerColumns (spec) {
       ? serializeJsonField(sysctls)
       : null
   }
+  if (data.supplementalGroups !== undefined) {
+    const groups = normalizeSupplementalGroups(data.supplementalGroups)
+    columns.supplementalGroups = groups.length > 0 ? serializeJsonField(groups) : null
+  }
   return columns
 }
 
@@ -530,6 +617,9 @@ function containerFieldsRequireRebuild (spec, existing) {
     return true
   }
   if (spec.knowledge !== undefined && catalogRequiresRebuild(existing.knowledge, normalizeCatalog(spec.knowledge))) {
+    return true
+  }
+  if (supplementalGroupsRequireRebuild(spec, existing)) {
     return true
   }
   return false
@@ -590,6 +680,7 @@ function hydrateJsonColumns (row) {
   }
   const hydrated = { ...row }
   hydrated.sysctls = parseJsonField(row.sysctls)
+  hydrated.supplementalGroups = readSupplementalGroups(row.supplementalGroups)
   return hydrated
 }
 
@@ -611,6 +702,7 @@ function applyAgentContainerFields (response, microservice, extras = {}) {
   if (microservice.runAsGroup) {
     response.runAsGroup = microservice.runAsGroup
   }
+  response.supplementalGroups = readSupplementalGroups(microservice.supplementalGroups)
   if (microservice.readOnlyRootFilesystem) {
     response.readOnlyRootFilesystem = true
   }
@@ -673,6 +765,8 @@ module.exports = {
   hydrateJsonColumns,
   applyAgentContainerFields,
   normalizeSysctls,
+  normalizeSupplementalGroups,
+  supplementalGroupsRequireRebuild,
   tokensFromRows,
   devicesFromRows,
   tmpfsFromRows,

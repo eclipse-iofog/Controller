@@ -146,15 +146,21 @@ describe('schema version chain (sqlite)', function () {
     cleanupSqlite(dbPath)
   })
 
-  it('fresh install reaches 3.9.0 with Hub registry and system catalog only', async () => {
+  it('fresh install reaches 3.9.3 with Hub registry and system catalog only', async () => {
     await provider.runVersionChainSQLite(dbPath)
 
     const db = await openSqlite(dbPath)
     try {
       const versions = await sqliteAll(db, 'SELECT migration_version, seeder_version FROM SchemaVersion ORDER BY id')
       expect(versions).to.have.length(1)
-      expect(versions[0].migration_version).to.equal('3.9.0')
-      expect(versions[0].seeder_version).to.equal('3.9.0')
+      expect(versions[0].migration_version).to.equal('3.9.3')
+      expect(versions[0].seeder_version).to.equal('3.9.3')
+
+      const msCols = await sqliteAll(db, 'PRAGMA table_info(Microservices)')
+      const supplementalGroups = msCols.find((col) => col.name === 'supplemental_groups')
+      expect(supplementalGroups).to.not.equal(undefined)
+      expect(supplementalGroups.notnull).to.equal(0)
+      expect(supplementalGroups.dflt_value).to.equal(null)
 
       const authGroups = await sqliteAll(db, 'SELECT name FROM AuthGroups ORDER BY name')
       expect(authGroups.map((row) => row.name)).to.deep.equal(['admin', 'developer', 'sre', 'viewer'])
@@ -251,12 +257,16 @@ describe('schema version chain (sqlite)', function () {
 
       const fogs = await db.Fog.findAll()
       expect(fogs).to.have.length(0)
+
+      expect(db.Microservice.rawAttributes.supplementalGroups.field).to.equal('supplemental_groups')
+      expect(db.Microservice.rawAttributes.supplementalGroups.type.key).to.equal('TEXT')
+      expect(db.Microservice.rawAttributes.supplementalGroups.allowNull).to.equal(true)
     } finally {
       await sequelize.close()
     }
   })
 
-  it('upgrade from 3.8.0 applies 3.9.0 without dropping architecture rows', async () => {
+  it('upgrade from 3.8.0 ends at 3.9.3 without dropping architecture rows', async () => {
     await provider.runVersionChainSQLite(dbPath, { untilVersion: '3.8.0' })
 
     const before = await openSqlite(dbPath)
@@ -287,11 +297,13 @@ describe('schema version chain (sqlite)', function () {
     const after = await openSqlite(dbPath)
     try {
       const versions = await sqliteAll(after, 'SELECT migration_version, seeder_version FROM SchemaVersion ORDER BY id')
-      expect(versions).to.have.length(2)
+      expect(versions).to.have.length(3)
       expect(versions[0].migration_version).to.equal('3.8.0')
       expect(versions[0].seeder_version).to.equal('3.8.0')
       expect(versions[1].migration_version).to.equal('3.9.0')
       expect(versions[1].seeder_version).to.equal('3.9.0')
+      expect(versions[2].migration_version).to.equal('3.9.3')
+      expect(versions[2].seeder_version).to.equal('3.9.3')
 
       const architectures = await sqliteAll(after, 'SELECT id, name FROM Architectures ORDER BY id')
       expect(architectures).to.have.length(5)
@@ -321,6 +333,10 @@ describe('schema version chain (sqlite)', function () {
       const msCols = await sqliteAll(after, 'PRAGMA table_info(Microservices)')
       const msColNames = msCols.map((col) => col.name)
       expect(msColNames).to.include('sysctls')
+      expect(msColNames).to.include('supplemental_groups')
+      const supplementalGroups = msCols.find((col) => col.name === 'supplemental_groups')
+      expect(supplementalGroups.notnull).to.equal(0)
+      expect(supplementalGroups.dflt_value).to.equal(null)
       expect(msColNames).to.include('run_as_group')
       expect(msColNames).to.not.include('entrypoint')
       expect(msColNames).to.not.include('commands')
@@ -356,6 +372,11 @@ describe('schema version chain (sqlite)', function () {
       const freshDb = await openSqlite(freshPath)
       const upgradeDb = await openSqlite(upgradePath)
       try {
+        const freshMsCols = await sqliteAll(freshDb, 'PRAGMA table_info(Microservices)')
+        const upgradeMsCols = await sqliteAll(upgradeDb, 'PRAGMA table_info(Microservices)')
+        expect(freshMsCols.map((col) => col.name)).to.include('supplemental_groups')
+        expect(upgradeMsCols.map((col) => col.name)).to.include('supplemental_groups')
+
         const freshDump = await dumpNormalizedSchema(freshDb)
         const upgradeDump = await dumpNormalizedSchema(upgradeDb)
         expect(freshDump).to.equal(upgradeDump)
@@ -376,8 +397,8 @@ describe('schema version chain (sqlite)', function () {
     try {
       const versions = await sqliteAll(db, 'SELECT migration_version, seeder_version FROM SchemaVersion ORDER BY id')
       expect(versions).to.have.length(1)
-      expect(versions[0].migration_version).to.equal('3.9.0')
-      expect(versions[0].seeder_version).to.equal('3.9.0')
+      expect(versions[0].migration_version).to.equal('3.9.3')
+      expect(versions[0].seeder_version).to.equal('3.9.3')
 
       const catalog = await sqliteAll(db, "SELECT name FROM CatalogItems WHERE category = 'SYSTEM' ORDER BY name")
       expect(catalog.map((row) => row.name)).to.deep.equal(['Debug', 'NATS', 'Router'])

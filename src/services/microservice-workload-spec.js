@@ -508,7 +508,8 @@ function shouldRebuildForWorkloadChange (existing, spec, { config, annotations, 
     spec.sysctls ||
     spec.ulimits ||
     spec.devices ||
-    spec.tmpfs
+    spec.tmpfs ||
+    CatalogContainer.supplementalGroupsRequireRebuild(spec, existing)
   )
 }
 

@@ -173,6 +173,11 @@ module.exports = (sequelize, DataTypes) => {
     sysctls: {
       type: DataTypes.TEXT,
       field: 'sysctls'
+    },
+    supplementalGroups: {
+      type: DataTypes.TEXT,
+      field: 'supplemental_groups',
+      allowNull: true
     }
   }, {
     tableName: 'Microservices',

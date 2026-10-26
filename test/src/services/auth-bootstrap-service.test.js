@@ -297,6 +297,38 @@ describe('auth-bootstrap-service', () => {
     expect(state.bootstrapUser.email).to.equal('admin')
     expect(await AuthPasswordService.verifyPassword(BOOTSTRAP_PASSWORD, state.bootstrapUser.passwordHash)).to.equal(true)
   })
+
+  it('replaces a soft-deleted user when bootstrap reuses that email', async () => {
+    const tombstone = createRecord({
+      id: 'old-user',
+      email: 'admin',
+      passwordHash: 'hash',
+      isBootstrap: false,
+      deletedAt: new Date()
+    })
+
+    const state = {
+      groups: new Map([
+        ['admin', createRecord({ id: 'grp-admin', name: 'admin', isSystem: true })]
+      ]),
+      users: new Map([[tombstone.id, tombstone]]),
+      bootstrapUser: null,
+      meta: null,
+      policy: createRecord({ id: 1, ...require('../../../src/services/auth-policy-service').DEFAULT_POLICY })
+    }
+
+    installBootstrapDb($sandbox, state)
+    process.env.OIDC_BOOTSTRAP_ADMIN_USERNAME = 'admin'
+    process.env.OIDC_BOOTSTRAP_ADMIN_PASSWORD = BOOTSTRAP_PASSWORD
+
+    const { runBootstrap } = reloadBootstrapService()
+    const result = await runBootstrap()
+
+    expect(result).to.deep.include({ skipped: false, username: 'admin' })
+    expect(tombstone._deleted).to.equal(true)
+    expect(state.bootstrapUser.id).to.not.equal(tombstone.id)
+    expect(state.bootstrapUser.email).to.equal('admin')
+  })
 })
 
 describe('Bootstrap username login + JWT claims', () => {

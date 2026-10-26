@@ -1,3 +1,19 @@
+const supplementalGroupsSchema = {
+  anyOf: [
+    { type: 'null' },
+    {
+      type: 'array',
+      items: {
+        type: 'integer',
+        minimum: 0,
+        maximum: 4294967295
+      },
+      maxItems: 16,
+      uniqueItems: true
+    }
+  ]
+}
+
 const microserviceContainerSpecProperties = {
   config: { type: 'string' },
   annotations: { type: 'string' },
@@ -9,6 +25,7 @@ const microserviceContainerSpecProperties = {
   ipcMode: { type: 'string' },
   runAsUser: { type: 'string' },
   runAsGroup: { type: 'string' },
+  supplementalGroups: supplementalGroupsSchema,
   readOnlyRootFilesystem: { type: 'boolean' },
   platform: { type: 'string' },
   cpuSetCpus: { type: 'string' },
@@ -115,5 +132,6 @@ const microserviceContainerSpecProperties = {
 
 module.exports = {
   mainSchemas: [],
-  microserviceContainerSpecProperties
+  microserviceContainerSpecProperties,
+  supplementalGroupsSchema
 }

@@ -4111,7 +4111,10 @@ paths:
     delete:
       tags:
         - Auth Users
-      summary: Soft-delete embedded auth user
+      summary: Delete embedded auth user
+      description: >
+        Removes the user and frees the email for a new account. The bootstrap admin
+        and the signed-in account cannot be deleted.
       operationId: deleteAuthUser
       security:
         - authToken: []
@@ -10110,6 +10113,19 @@ components:
             type: string
         runAsGroup:
           type: string
+        supplementalGroups:
+          type: array
+          maxItems: 16
+          uniqueItems: true
+          description: >-
+            Always present and flat on the microservice object, including when
+            empty. Empty is []. Numeric host group IDs, separate from
+            runAsGroup. At most 16 unique whole numbers from 0 through
+            4294967295, sorted ascending.
+          items:
+            type: integer
+            minimum: 0
+            maximum: 4294967295
         readOnlyRootFilesystem:
           type: boolean
         workingDir:
@@ -10199,6 +10215,20 @@ components:
           type: string
         runAsUser:
           type: string
+        supplementalGroups:
+          type: array
+          nullable: true
+          maxItems: 16
+          uniqueItems: true
+          description: >-
+            Extra host group IDs for the controller workload, separate from
+            runAsGroup. Omit leaves the stored list on a later register. null
+            or [] clears it. At most 16 unique whole numbers from 0 through
+            4294967295, stored sorted ascending.
+          items:
+            type: integer
+            minimum: 0
+            maximum: 4294967295
         platform:
           type: string
         cpuSetCpus:
@@ -10656,6 +10686,18 @@ components:
           type: string
         runAsGroup:
           type: string
+        supplementalGroups:
+          type: array
+          maxItems: 16
+          uniqueItems: true
+          description: >-
+            Host group IDs for this microservice, separate from runAsGroup.
+            Always an array. Empty is [] when there are none. At most 16 unique
+            whole numbers from 0 through 4294967295, sorted ascending.
+          items:
+            type: integer
+            minimum: 0
+            maximum: 4294967295
         readOnlyRootFilesystem:
           type: boolean
         platform:
@@ -10916,6 +10958,19 @@ components:
           type: string
         runAsGroup:
           type: string
+        supplementalGroups:
+          type: array
+          nullable: true
+          maxItems: 16
+          uniqueItems: true
+          description: >-
+            Extra host group IDs, separate from runAsGroup. Omit, null, or []
+            means no extra groups. At most 16 unique whole numbers from 0
+            through 4294967295. Stored sorted ascending.
+          items:
+            type: integer
+            minimum: 0
+            maximum: 4294967295
         readOnlyRootFilesystem:
           type: boolean
         platform:
@@ -11052,6 +11107,19 @@ components:
           type: string
         runAsGroup:
           type: string
+        supplementalGroups:
+          type: array
+          nullable: true
+          maxItems: 16
+          uniqueItems: true
+          description: >-
+            Extra host group IDs, separate from runAsGroup. Omit leaves the
+            stored list. null or [] clears it. At most 16 unique whole numbers
+            from 0 through 4294967295. Stored sorted ascending.
+          items:
+            type: integer
+            minimum: 0
+            maximum: 4294967295
         readOnlyRootFilesystem:
           type: boolean
         platform:

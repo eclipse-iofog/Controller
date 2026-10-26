@@ -1,6 +1,6 @@
 {
   "name": "controller",
-  "version": "3.9.2",
+  "version": "3.9.3",
   "description": "A cloud-native operations controller for managing edge computing workloads, edgelet nodes, and deployments across Eclipse IoFog and Datasance PoT.",
   "main": "./src/main.js",
   "author": "Eclipse ioFog Project",
@@ -77,9 +77,9 @@
     "iofog-controller": "src/main.js"
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.1042.0",
-    "@azure/identity": "^4.13.1",
-    "@azure/keyvault-secrets": "^4.10.0",
+    "@aws-sdk/client-secrets-manager": "^3.1156.0",
+    "@azure/identity": "^4.14.0",
+    "@azure/keyvault-secrets": "^4.11.2",
     "@google-cloud/secret-manager": "^6.1.1",
     "@kubernetes/client-node": "^1.4.0",
     "@msgpack/msgpack": "^3.1.2",
@@ -93,7 +93,7 @@
     "@opentelemetry/resources": "^2.10.0",
     "@opentelemetry/sdk-node": "^0.222.0",
     "bignumber.js": "^9.3.0",
-    "body-parser": "^1.20.6",
+    "body-parser": "^1.20.9",
     "command-line-args": "5.2.1",
     "command-line-usage": "7.0.3",
     "compare-versions": "^3.6.0",
@@ -113,7 +113,7 @@
     "js-yaml": "4.3.2",
     "jsonschema": "1.5.0",
     "moment": "2.31.0",
-    "multer": "2.4.0",
+    "multer": "2.5.0",
     "mysql2": "3.23.1",
     "@nats-io/transport-node": "^3.4.0",
     "nconf": "0.12.1",
@@ -131,7 +131,7 @@
     "sequelize": "6.37.8",
     "sqlite3": "^6.0.1",
     "string-format": "2.0.0",
-    "undici": "^7.30.0",
+    "undici": "^7.30.1",
     "ws": "^8.21.0",
     "xss-clean": "0.1.1"
   },
@@ -163,16 +163,17 @@
   "type": "commonjs",
   "overrides": {
     "@grpc/grpc-js": "1.14.5",
+    "@azure/msal-node": "7.1.1",
     "tar": "^7.5.19",
     "protobufjs": "^7.6.5",
     "js-yaml": "4.3.2",
     "brace-expansion": "5.0.12",
     "uuid": "11.1.1",
     "diff": "8.0.3",
-    "serialize-javascript": "7.0.5",
-    "ip-address": "^10.7.2",
+    "serialize-javascript": "7.1.3",
+    "ip-address": "^10.7.4",
     "node-gyp": {
-      "undici": "^6.29.0"
+      "undici": "^6.29.1"
     },
     "express": {
       "proxy-addr": "2.0.8"

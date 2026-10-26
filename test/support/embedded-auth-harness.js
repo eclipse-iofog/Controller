@@ -199,18 +199,28 @@ function installEmbeddedAuthStore (sandbox, store) {
     return [created, true]
   })
 
-  stubModelMethod(db, 'AuthUser', 'findOne', sandbox, async ({ where, include } = {}) => {
-    let user = null
-    if (where.id) {
-      user = store.users.get(where.id)
-    } else if (where.email) {
-      user = [...store.users.values()].find((row) => row.email === where.email)
+  function matchesAuthUser (row, where = {}) {
+    if (where.email !== undefined && row.email !== where.email) {
+      return false
     }
+    if (typeof where.id === 'string' && row.id !== where.id) {
+      return false
+    }
+    if (where.id && typeof where.id === 'object' && where.id[Op.ne] && row.id === where.id[Op.ne]) {
+      return false
+    }
+    if (where.isBootstrap !== undefined && Boolean(row.isBootstrap) !== Boolean(where.isBootstrap)) {
+      return false
+    }
+    if (where.deletedAt === null && row.deletedAt) {
+      return false
+    }
+    return true
+  }
 
+  stubModelMethod(db, 'AuthUser', 'findOne', sandbox, async ({ where, include } = {}) => {
+    const user = [...store.users.values()].find((row) => matchesAuthUser(row, where))
     if (!user) {
-      return null
-    }
-    if (where.deletedAt === null && user.deletedAt) {
       return null
     }
     return store.attachUserIncludes(user, include || [])
@@ -236,6 +246,12 @@ function installEmbeddedAuthStore (sandbox, store) {
   })
 
   stubModelMethod(db, 'AuthUser', 'create', sandbox, async (values) => {
+    const emailTaken = [...store.users.values()].some((row) => row.email === values.email)
+    if (emailTaken) {
+      const error = new Error('Validation error')
+      error.name = 'SequelizeUniqueConstraintError'
+      throw error
+    }
     const user = createRecord({
       ...values,
       failedAttempts: 0,
@@ -247,6 +263,42 @@ function installEmbeddedAuthStore (sandbox, store) {
     })
     store.users.set(user.id, user)
     return user
+  })
+
+  stubModelMethod(db, 'AuthUser', 'destroy', sandbox, async ({ where } = {}) => {
+    if (!where || !where.id || !store.users.has(where.id)) {
+      return 0
+    }
+    store.users.delete(where.id)
+    store.userGroups.delete(where.id)
+    store.mfaByUserId.delete(where.id)
+    for (const [tokenHash, row] of store.refreshTokens) {
+      if (row.userId === where.id) {
+        store.refreshTokens.delete(tokenHash)
+      }
+    }
+    return 1
+  })
+
+  stubModelMethod(db, 'AuthMfa', 'destroy', sandbox, async ({ where } = {}) => {
+    if (where && where.userId) {
+      store.mfaByUserId.delete(where.userId)
+    }
+    return 1
+  })
+
+  stubModelMethod(db, 'AuthPasswordResetSession', 'destroy', sandbox, async () => 1)
+
+  stubModelMethod(db, 'AuthRefreshToken', 'destroy', sandbox, async ({ where } = {}) => {
+    if (!where || !where.userId) {
+      return 0
+    }
+    for (const [tokenHash, row] of store.refreshTokens) {
+      if (row.userId === where.userId) {
+        store.refreshTokens.delete(tokenHash)
+      }
+    }
+    return 1
   })
 
   stubModelMethod(db, 'AuthUserGroup', 'create', sandbox, async ({ userId, groupId }) => {
