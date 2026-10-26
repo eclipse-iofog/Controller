@@ -420,6 +420,7 @@ const parseMicroserviceYAML = async (microservice) => {
     natsConfig: lget(microservice, 'natsConfig', undefined),
     runAsUser: lget(microservice, 'container.runAsUser', undefined),
     runAsGroup: lget(microservice, 'container.runAsGroup', undefined),
+    supplementalGroups: lget(microservice, 'container.supplementalGroups', undefined),
     readOnlyRootFilesystem: lget(microservice, 'container.readOnlyRootFilesystem', undefined),
     platform: lget(microservice, 'container.platform', undefined),
     runtime: lget(microservice, 'container.runtime', undefined),
@@ -935,6 +936,7 @@ async function parseMicroserviceTemplateYAML (microservice) {
   setContainerFieldIfPresent(microserviceData, container, 'memoryLimit', 'memoryLimit')
   setContainerFieldIfPresent(microserviceData, container, 'runAsUser', 'runAsUser')
   setContainerFieldIfPresent(microserviceData, container, 'runAsGroup', 'runAsGroup')
+  setContainerFieldIfPresent(microserviceData, container, 'supplementalGroups', 'supplementalGroups')
   setContainerFieldIfPresent(microserviceData, container, 'readOnlyRootFilesystem', 'readOnlyRootFilesystem')
   setContainerFieldIfPresent(microserviceData, container, 'platform', 'platform')
   setContainerFieldIfPresent(microserviceData, container, 'runtime', 'runtime')

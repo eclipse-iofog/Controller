@@ -3153,6 +3153,7 @@ async function _buildGetMicroserviceResponse (microservice, transaction) {
   res.cmd = arg
   const hydrated = CatalogContainer.hydrateJsonColumns(res)
   res.sysctls = hydrated.sysctls
+  res.supplementalGroups = hydrated.supplementalGroups
   if (entrypoint.length > 0) {
     res.entrypoint = entrypoint
   } else {
