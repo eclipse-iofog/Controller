@@ -201,6 +201,132 @@ describe('Microservice container catalog helpers', () => {
         devices: [{ hostPath: '/etc/passwd', containerPath: '/dev/foo' }]
       })).to.throw(Errors.ValidationError)
     })
+
+    it('keeps a supplemental group id beside a matching or named primary group', () => {
+      const numericPrimary = { supplementalGroups: [44], runAsGroup: '44' }
+      expect(() => CatalogContainer.validateContainerFields(numericPrimary)).to.not.throw()
+      expect(numericPrimary.supplementalGroups).to.eql([44])
+      expect(numericPrimary.runAsGroup).to.equal('44')
+
+      const namedPrimary = { supplementalGroups: [44], runAsGroup: 'render' }
+      expect(() => CatalogContainer.validateContainerFields(namedPrimary)).to.not.throw()
+      expect(namedPrimary.supplementalGroups).to.eql([44])
+      expect(namedPrimary.runAsGroup).to.equal('render')
+
+      const primaryOnly = { runAsGroup: 'render' }
+      expect(() => CatalogContainer.validateContainerFields(primaryOnly)).to.not.throw()
+      expect(primaryOnly).to.not.have.property('supplementalGroups')
+    })
+  })
+
+  describe('supplemental host group ids', () => {
+    const stored = (groups) => CatalogContainer.serializeContainerColumns({ supplementalGroups: groups }).supplementalGroups
+
+    it('omits the column on create and emits an empty list', () => {
+      expect(CatalogContainer.serializeContainerColumns({})).to.not.have.property('supplementalGroups')
+      expect(CatalogContainer.hydrateJsonColumns({ supplementalGroups: null }).supplementalGroups).to.eql([])
+
+      const agent = {}
+      CatalogContainer.applyAgentContainerFields(agent, { supplementalGroups: null }, { devices: [] })
+      expect(agent.supplementalGroups).to.eql([])
+      expect(agent).to.not.have.property('devices')
+    })
+
+    it('does not rebuild when null or an empty list is already empty', () => {
+      const emptyRow = { supplementalGroups: null }
+      expect(CatalogContainer.supplementalGroupsRequireRebuild({ supplementalGroups: null }, emptyRow)).to.equal(false)
+      expect(CatalogContainer.supplementalGroupsRequireRebuild({ supplementalGroups: [] }, emptyRow)).to.equal(false)
+      expect(CatalogContainer.containerFieldsRequireRebuild({ supplementalGroups: [] }, emptyRow)).to.equal(false)
+      expect(CatalogContainer.supplementalGroupsRequireRebuild({}, emptyRow)).to.equal(false)
+    })
+
+    it('stores and sends an unsorted list in ascending order', () => {
+      expect(stored([993, 44])).to.equal('[44,993]')
+      expect(CatalogContainer.hydrateJsonColumns({ supplementalGroups: '[44,993]' }).supplementalGroups).to.eql([44, 993])
+
+      const agent = { uuid: 'ms' }
+      CatalogContainer.applyAgentContainerFields(agent, { supplementalGroups: '[44,993]' })
+      expect(agent.supplementalGroups).to.eql([44, 993])
+      expect(agent).to.not.have.nested.property('container.supplementalGroups')
+    })
+
+    it('does not rebuild a reversed list and does rebuild a clear', () => {
+      const existing = { supplementalGroups: '[44,993]' }
+      expect(CatalogContainer.supplementalGroupsRequireRebuild({
+        supplementalGroups: [993, 44]
+      }, existing)).to.equal(false)
+      expect(CatalogContainer.containerFieldsRequireRebuild({
+        supplementalGroups: [44, 993]
+      }, existing)).to.equal(false)
+
+      expect(CatalogContainer.supplementalGroupsRequireRebuild({
+        supplementalGroups: []
+      }, { supplementalGroups: '[44]' })).to.equal(true)
+      expect(CatalogContainer.containerFieldsRequireRebuild({
+        supplementalGroups: null
+      }, { supplementalGroups: '[44]' })).to.equal(true)
+
+      const agent = {}
+      CatalogContainer.applyAgentContainerFields(agent, { supplementalGroups: null })
+      expect(agent.supplementalGroups).to.eql([])
+    })
+
+    it('keeps zero and the largest group id, and treats a whole JSON number as an integer', () => {
+      expect(stored([0])).to.equal('[0]')
+      expect(stored([4294967295])).to.equal('[4294967295]')
+      expect(stored(JSON.parse('[44.0]'))).to.equal('[44]')
+      expect(CatalogContainer.normalizeSupplementalGroups(JSON.parse('[44.0]'))).to.eql([44])
+    })
+
+    it('rejects duplicates, names, fractions, negatives, overlong lists, and non-arrays', () => {
+      const rejected = [
+        [44, 44],
+        ['44'],
+        ['render'],
+        [44.5],
+        [-1],
+        Array.from({ length: 17 }, (_, index) => index),
+        [4294967296],
+        'render',
+        { 44: true }
+      ]
+      for (const value of rejected) {
+        expect(() => CatalogContainer.normalizeSupplementalGroups(value), JSON.stringify(value))
+          .to.throw(Errors.ValidationError)
+        expect(() => CatalogContainer.validateContainerFields({ supplementalGroups: value }), JSON.stringify(value))
+          .to.throw(Errors.ValidationError)
+      }
+    })
+
+    it('does not insert the primary group into the stored list', () => {
+      expect(CatalogContainer.serializeContainerColumns({
+        supplementalGroups: [44],
+        runAsGroup: '44'
+      })).to.include({
+        supplementalGroups: '[44]',
+        runAsGroup: '44'
+      })
+      expect(CatalogContainer.serializeContainerColumns({
+        supplementalGroups: [44],
+        runAsGroup: 'render'
+      })).to.include({
+        supplementalGroups: '[44]',
+        runAsGroup: 'render'
+      })
+      expect(CatalogContainer.serializeContainerColumns({ runAsGroup: 'render' }))
+        .to.not.have.property('supplementalGroups')
+    })
+
+    it('puts the agent key on the microservice object when the list is empty', () => {
+      const agent = { uuid: 'ms', runAsGroup: '1000' }
+      CatalogContainer.applyAgentContainerFields(agent, {
+        runAsGroup: '1000',
+        supplementalGroups: null
+      })
+      expect(Object.prototype.hasOwnProperty.call(agent, 'supplementalGroups')).to.equal(true)
+      expect(agent.supplementalGroups).to.eql([])
+      expect(agent.runAsGroup).to.equal('1000')
+    })
   })
 
   describe('.applyAgentContainerFields()', () => {

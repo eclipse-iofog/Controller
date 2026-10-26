@@ -36,6 +36,36 @@ describe('Microservice Workload Spec', () => {
     it('returns false when no workload fields are present', () => {
       expect(WorkloadSpec.shouldRebuildForWorkloadChange(existing, {}, {})).to.equal(false)
     })
+
+    it('rebuilds a host group list change and ignores order and omission', () => {
+      const withGroups = { ...existing, supplementalGroups: '[44,993]' }
+      expect(WorkloadSpec.shouldRebuildForWorkloadChange(withGroups, {
+        supplementalGroups: [44]
+      }, {})).to.equal(true)
+      expect(WorkloadSpec.shouldRebuildForWorkloadChange(withGroups, {
+        supplementalGroups: [993, 44]
+      }, {})).to.equal(false)
+      expect(WorkloadSpec.shouldRebuildForWorkloadChange(withGroups, {
+        supplementalGroups: []
+      }, {})).to.equal(true)
+      expect(WorkloadSpec.shouldRebuildForWorkloadChange(withGroups, {}, {})).to.equal(false)
+    })
+  })
+
+  describe('controller register host group ids', () => {
+    it('stores a sorted list on create and update', () => {
+      expect(WorkloadSpec.buildCreateScalarColumns({
+        supplementalGroups: [993, 44],
+        runAsGroup: 'render'
+      })).to.include({
+        supplementalGroups: '[44,993]',
+        runAsGroup: 'render'
+      })
+      expect(WorkloadSpec.buildScalarColumns({
+        supplementalGroups: [0, 4294967295]
+      }).supplementalGroups).to.equal('[0,4294967295]')
+      expect(WorkloadSpec.buildScalarColumns({})).to.not.have.property('supplementalGroups')
+    })
   })
 
   describe('.createWorkloadRelations()', () => {
