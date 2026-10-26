@@ -345,7 +345,7 @@ Controller v3.8 and Edgelet share a **frozen field-agent REST contract** on `/ap
 
 **Change flags** — unchanged names: `deleteNode`, `reboot`, `config`, `version`, `registries`, `prune`, `volumeMounts`, `microserviceConfig`, `microserviceList`, `execSessions`, `tunnel`, `microserviceLogs`, `fogLogs`.
 
-**Microservice list** (`GET microservices`) — each entry includes derived flags `isRouter`, `isNats`, and DB-backed **`isController`** for the system controller microservice.
+**Microservice list** (`GET microservices`) — each entry includes derived flags `isRouter`, `isNats`, and DB-backed **`isController`** for the system controller microservice. Each entry also includes flat `supplementalGroups`: numeric host group ids on that microservice, separate from `runAsGroup`. The array is always present and is `[]` when there are none.
 
 **Controller MS register** — `POST /api/v3/agent/controller/register` (system fogs only, beta.1+ Edgelet):
 
