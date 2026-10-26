@@ -21,8 +21,8 @@ function sqliteClose (db) {
   })
 }
 
-const SCHEMA_VERSIONS = ['3.8.0', '3.9.0']
-const BASELINE_VERSION = '3.9.0'
+const SCHEMA_VERSIONS = ['3.8.0', '3.9.0', '3.9.3']
+const BASELINE_VERSION = '3.9.3'
 
 function compareVersions (left, right) {
   const leftParts = String(left || '0').split('.').map((part) => parseInt(part, 10) || 0)
@@ -85,18 +85,18 @@ function seederSqlPath (provider, version) {
 
 function baselineMigrationSqlPath (provider) {
   const relative = {
-    sqlite: 'sqlite/db_migration_sqlite_baseline_v3.9.0.sql',
-    mysql: 'mysql/db_migration_mysql_baseline_v3.9.0.sql',
-    postgres: 'postgres/db_migration_pg_baseline_v3.9.0.sql'
+    sqlite: 'sqlite/db_migration_sqlite_baseline_v3.9.3.sql',
+    mysql: 'mysql/db_migration_mysql_baseline_v3.9.3.sql',
+    postgres: 'postgres/db_migration_pg_baseline_v3.9.3.sql'
   }[provider]
   return path.resolve(__dirname, '../migrations', relative)
 }
 
 function baselineSeederSqlPath (provider) {
   const relative = {
-    sqlite: 'sqlite/db_seeder_sqlite_baseline_v3.9.0.sql',
-    mysql: 'mysql/db_seeder_mysql_baseline_v3.9.0.sql',
-    postgres: 'postgres/db_seeder_pg_baseline_v3.9.0.sql'
+    sqlite: 'sqlite/db_seeder_sqlite_baseline_v3.9.3.sql',
+    mysql: 'mysql/db_seeder_mysql_baseline_v3.9.3.sql',
+    postgres: 'postgres/db_seeder_pg_baseline_v3.9.3.sql'
   }[provider]
   return path.resolve(__dirname, '../seeders', relative)
 }

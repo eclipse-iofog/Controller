@@ -242,6 +242,7 @@ CREATE TABLE IF NOT EXISTS "Microservices" (
     memory_swap DOUBLE PRECISION,
     shm_size DOUBLE PRECISION,
     sysctls TEXT,
+    supplemental_groups TEXT,
     FOREIGN KEY (catalog_item_id) REFERENCES "CatalogItems" (id) ON DELETE CASCADE,
     FOREIGN KEY (registry_id) REFERENCES "Registries" (id) ON DELETE SET NULL,
     FOREIGN KEY (iofog_uuid) REFERENCES "Fogs" (uuid) ON DELETE CASCADE,
