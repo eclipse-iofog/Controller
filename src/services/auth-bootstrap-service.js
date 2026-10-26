@@ -73,6 +73,16 @@ async function hardDeleteBootstrapUser (user, transaction) {
   await user.destroy({ transaction })
 }
 
+async function releaseSoftDeletedEmail (email, transaction) {
+  const existing = await db.AuthUser.findOne({
+    where: { email },
+    transaction
+  })
+  if (existing && existing.deletedAt) {
+    await hardDeleteBootstrapUser(existing, transaction)
+  }
+}
+
 async function bootstrapMatchesEnv (bootstrapUser, normalizedUsername, plainPassword) {
   if (bootstrapUser.email !== normalizedUsername) {
     return false
@@ -175,6 +185,7 @@ async function runBootstrapInternal (transaction) {
     }
   }
 
+  await releaseSoftDeletedEmail(normalizedUsername, transaction)
   const user = await createBootstrapUser(normalizedUsername, plainPassword, transaction, allowBootstrapLog)
 
   await meta.update({

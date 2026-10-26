@@ -246,8 +246,8 @@ describe('Embedded auth integration', () => {
   })
 
   describe('user admin', () => {
-    it('creates, lists, updates, and soft-deletes users', async () => {
-      const { modules } = await $harness
+    it('creates, lists, updates, and deletes users', async () => {
+      const { store, modules } = await $harness
 
       const created = await modules.AuthUserService.createUser({
         email: 'new-user@example.com',
@@ -270,6 +270,95 @@ describe('Embedded auth integration', () => {
       await modules.AuthUserService.deleteUser(created.id)
       const afterDelete = await modules.AuthUserService.listUsers()
       expect(afterDelete.map((user) => user.email)).to.not.include('new-user@example.com')
+      expect(store.users.has(created.id)).to.equal(false)
+    })
+
+    it('creates a user again after that email was deleted', async () => {
+      const { store, modules } = await $harness
+
+      const created = await modules.AuthUserService.createUser({
+        email: 'foo@bar.com',
+        password: DEFAULT_TEST_PASSWORD,
+        groups: ['admin']
+      })
+
+      await modules.AuthUserService.deleteUser(created.id)
+
+      const recreated = await modules.AuthUserService.createUser({
+        email: 'foo@bar.com',
+        password: DEFAULT_TEST_PASSWORD,
+        groups: ['viewer']
+      })
+
+      expect(recreated.id).to.not.equal(created.id)
+      expect(recreated.email).to.equal('foo@bar.com')
+      expect(recreated.groups).to.deep.equal(['viewer'])
+      expect(store.users.has(created.id)).to.equal(false)
+      expect(store.users.has(recreated.id)).to.equal(true)
+    })
+
+    it('removes a soft-deleted row that still holds the email', async () => {
+      const { store, modules } = await $harness
+      const { user } = await store.seedUser({
+        email: 'foo@bar.com',
+        groupNames: ['admin']
+      })
+      user.deletedAt = new Date()
+
+      const recreated = await modules.AuthUserService.createUser({
+        email: 'foo@bar.com',
+        password: DEFAULT_TEST_PASSWORD,
+        groups: ['viewer']
+      })
+
+      expect(recreated.id).to.not.equal(user.id)
+      expect(store.users.has(user.id)).to.equal(false)
+      expect(store.users.get(recreated.id).email).to.equal('foo@bar.com')
+    })
+
+    it('rejects a second live user with the same email', async () => {
+      const { modules } = await $harness
+
+      await modules.AuthUserService.createUser({
+        email: 'foo@bar.com',
+        password: DEFAULT_TEST_PASSWORD,
+        groups: ['viewer']
+      })
+
+      try {
+        await modules.AuthUserService.createUser({
+          email: 'foo@bar.com',
+          password: DEFAULT_TEST_PASSWORD,
+          groups: ['admin']
+        })
+        expect.fail('expected a conflict error')
+      } catch (error) {
+        expect(error).to.be.instanceOf(Errors.ConflictError)
+        expect(error.message).to.equal('A user with this email already exists')
+      }
+    })
+
+    it('maps a unique-constraint race to a conflict error', async () => {
+      const { modules } = await $harness
+      const db = require('../../../src/data/models')
+      db.AuthUser.findOne.resolves(null)
+      db.AuthUser.create.callsFake(async () => {
+        const error = new Error('Validation error')
+        error.name = 'SequelizeUniqueConstraintError'
+        throw error
+      })
+
+      try {
+        await modules.AuthUserService.createUser({
+          email: 'foo@bar.com',
+          password: DEFAULT_TEST_PASSWORD,
+          groups: ['viewer']
+        })
+        expect.fail('expected a conflict error')
+      } catch (error) {
+        expect(error).to.be.instanceOf(Errors.ConflictError)
+        expect(error.message).to.equal('A user with this email already exists')
+      }
     })
   })
 
