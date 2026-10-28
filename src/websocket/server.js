@@ -53,6 +53,8 @@ const LOG_BACKPRESSURE_BUFFER_BYTES = 256 * 1024
 const EXEC_AGENT_READY_NOTICE = 'Agent connected. Interactive exec is ready.\n'
 const LOG_AGENT_READY_NOTICE = 'Agent connected. Log streaming started.\n'
 const LOG_AGENT_DISCONNECTED_NOTICE = 'Agent disconnected.\n'
+// WARNING means the agent is still reporting while the platform has an issue.
+const FOG_LOG_DAEMON_STATUSES = [FogStates.RUNNING, FogStates.WARNING]
 
 const EventService = require('../services/event-service')
 const { isAuthConfigured: isOidcAuthConfigured } = require('../config/oidc')
@@ -2726,7 +2728,7 @@ class WebSocketServer {
 
       if (fogUuid) {
         const fog = await this.validateFog(fogUuid, transaction)
-        if (fog.daemonStatus !== FogStates.RUNNING) {
+        if (!FOG_LOG_DAEMON_STATUSES.includes(fog.daemonStatus)) {
           throw new Errors.ValidationError('Fog is not running')
         }
       }
