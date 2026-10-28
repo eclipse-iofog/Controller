@@ -1,5 +1,24 @@
 # Changelog
 
+## [v3.9.4]
+
+### Added
+
+- **Microservice `imagePullStatus`** — `failed` when the desired image is not on the device. The agent omits the key otherwise, including a healthy run and a pull still in progress. GET microservice `status` always includes the field and returns `""` when there is no outstanding pull failure. Observed `status` stays `RUNNING` or `QUEUED`. `errorMessage` keeps the pull text until the pull succeeds. `lastError` is unchanged and can remain after success.
+- **`MicroserviceStatuses.image_pull_status`** on the 3.9.4 baseline and on the 3.9.4 upgrade (sqlite, mysql, postgres).
+
+### Fixed
+
+- **Fog node logs** — a log session is allowed while `daemonStatus` is `RUNNING` or `WARNING`. `WARNING` means the agent is still reporting and the platform has an issue. Other daemon statuses still fail with `Fog is not running`.
+
+### Changed
+
+- Embedded **EdgeOps Console** default **v1.1.1 → v1.1.2**
+- Dockerfile runtime base image digest pin refreshed for **`ubi9/nodejs-24-minimal`**.
+- **`node-forge` ^1.4.0 → ^1.4.2** — address CVE-2026-85393 (GHSA-86w9-cpqp-85rv, PKCS#1 v1.5 signature verification) and the PEM and ASN.1 denial-of-service fixes in 1.4.1. Certificate generation and PEM parsing are unchanged.
+- **`qs` 6.16.0 → 6.16.1**, including the `qs` override — address GHSA-6pq8-jhm2-2vcw (`stringify` with `arrayFormat: 'comma'` throws on a non-callable `toString`).
+- **Audit exception removed** — `.nsprc` no longer ignores advisory **1240912**. `node-forge` 1.4.2 patches CVE-2026-85393.
+
 ## [v3.9.3]
 
 Microservice `supplementalGroups` for Edgelet v1.1.3. A non-root process can join extra host group IDs, such as the group that owns a device node, without running privileged.

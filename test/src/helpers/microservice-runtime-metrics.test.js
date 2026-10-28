@@ -6,6 +6,7 @@ const {
   coerceRuntimeMetric,
   applyRuntimeMetrics,
   applyCrashExtras,
+  applyImagePullStatus,
   projectStatusForApi
 } = require('../../../src/helpers/microservice-runtime-metrics')
 
@@ -147,8 +148,54 @@ describe('helpers/microservice-runtime-metrics', () => {
       expect(projectStatusForApi({ status: 'RUNNING', cpuUsage: 1 })).to.include({
         lastError: '',
         lastErrorAt: 0,
-        restartCount: 0
+        restartCount: 0,
+        imagePullStatus: ''
       })
+    })
+
+    it('keeps a stored image pull failure', () => {
+      expect(projectStatusForApi({
+        status: 'RUNNING',
+        cpuUsage: 1,
+        imagePullStatus: 'failed'
+      }).imagePullStatus).to.equal('failed')
+    })
+  })
+
+  describe('applyImagePullStatus()', () => {
+    it('stores failed', () => {
+      const patch = { status: 'RUNNING', errorMessage: 'unable to pull nginx: miss' }
+      applyImagePullStatus(patch, {
+        status: 'RUNNING',
+        errorMessage: 'unable to pull nginx: miss',
+        imagePullStatus: 'failed'
+      })
+      expect(patch.imagePullStatus).to.equal('failed')
+    })
+
+    it('clears the field when the key is omitted and errorMessage is empty', () => {
+      const patch = { status: 'RUNNING', errorMessage: '' }
+      applyImagePullStatus(patch, { status: 'RUNNING', errorMessage: '' })
+      expect(patch.imagePullStatus).to.equal('')
+    })
+
+    it('leaves the field unchanged when the key is omitted and errorMessage is still set', () => {
+      const patch = { status: 'RUNNING', errorMessage: 'unable to pull nginx: miss' }
+      applyImagePullStatus(patch, {
+        status: 'RUNNING',
+        errorMessage: 'unable to pull nginx: miss'
+      })
+      expect(patch).to.not.have.property('imagePullStatus')
+    })
+
+    it('ignores any value other than failed', () => {
+      const patch = { status: 'QUEUED', errorMessage: '' }
+      applyImagePullStatus(patch, {
+        status: 'QUEUED',
+        errorMessage: '',
+        imagePullStatus: 'pulling'
+      })
+      expect(patch).to.not.have.property('imagePullStatus')
     })
   })
 

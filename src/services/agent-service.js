@@ -30,6 +30,7 @@ const constants = require('../helpers/constants')
 const CatalogContainer = require('../helpers/microservice-container-catalog')
 const {
   applyCrashExtras,
+  applyImagePullStatus,
   applyRuntimeMetrics,
   coerceRuntimeMetric,
   zeroRuntimeMetrics
@@ -377,6 +378,7 @@ const _updateMicroserviceStatuses = async function (microserviceStatus, fog, tra
     }
     applyRuntimeMetrics(observedStatus, observedStatus.status)
     applyCrashExtras(observedStatus, status)
+    applyImagePullStatus(observedStatus, status)
     observedStatus = AppHelper.deleteUndefinedFields(observedStatus)
     const microservice = await MicroserviceManager.findOne({
       uuid: status.id

@@ -1,6 +1,6 @@
 openapi : "3.0.0"
 info:
-  version: 3.9.0
+  version: 3.9.4
   title: Cloud Native Controller for Edge Native Workloads
 paths:
   /live:
@@ -3044,7 +3044,9 @@ paths:
       tags:
         - WebSocketSessions
       summary: User fog (node) log streaming WebSocket
-      description: Node-level logs; **RBAC** `systemLogs`. Max **5** concurrent sessions per fog.
+      description: |
+        Node-level logs; **RBAC** `systemLogs`. Max **5** concurrent sessions per fog.
+        Allowed while the fog `daemonStatus` is `RUNNING` or `WARNING`.
       operationId: userFogLogsWebSocket
       parameters:
         - in: path
@@ -9938,7 +9940,8 @@ components:
           type: string
           description: >-
             JSON array of per-microservice observed status objects. Items may
-            include additive lastError, lastErrorAt, and restartCount. Unknown
+            include additive lastError, lastErrorAt, restartCount, and
+            imagePullStatus (`failed` only; omit otherwise). Unknown
             keys must not fail this PUT.
         repositoryCount:
           type: number
@@ -10799,6 +10802,19 @@ components:
                 workload is failing, restarting, or has been RUNNING for less
                 than 30 seconds after a crash. After 30 seconds of continuous
                 RUNNING the agent sends an empty string so this field clears.
+                A failed image pull is an exception: this text stays, including
+                while status is RUNNING, until the pull succeeds.
+            imagePullStatus:
+              type: string
+              description: >-
+                Current image pull. `failed` when the desired image is not on
+                the device. Empty string when there is no outstanding pull
+                failure. The agent omits the key in that case; this GET always
+                returns the field. Observed status stays RUNNING when a previous
+                container is still up, or QUEUED when nothing has started.
+                lastError can still hold the pull text after success; use this
+                field for the current pull. A status post that omits the key
+                keeps a stored `failed` while errorMessage is still set.
             lastError:
               type: string
               description: >-

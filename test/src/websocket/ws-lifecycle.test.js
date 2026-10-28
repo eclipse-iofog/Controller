@@ -11,6 +11,7 @@ const MicroserviceExecSessionManager = require('../../../src/data/managers/micro
 const MicroserviceLogStatusManager = require('../../../src/data/managers/microservice-log-status-manager')
 const AppHelper = require('../../../src/helpers/app-helper')
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
+const FogStates = require('../../../src/enums/fog-state')
 const {
   createMockWebSocket,
   createMockRequest,
@@ -105,6 +106,52 @@ describe('WebSocket session lifecycle', () => {
       )
 
       expect(ws.readyState).to.equal(WebSocket.CLOSED)
+    })
+  })
+
+  describe('fog log daemon status', () => {
+    let wsServer
+
+    beforeEach(() => {
+      resetWebSocketServerSingleton(WebSocketServerClass)
+      wsServer = new WebSocketServerClass()
+    })
+
+    afterEach(() => {
+      resetWebSocketServerSingleton(WebSocketServerClass)
+    })
+
+    async function validateFogLogs (daemonStatus) {
+      $sandbox.stub(FogManager, 'findOne').resolves({
+        uuid: $ids.fogUuid,
+        daemonStatus
+      })
+      return wsServer.validateUserLogsConnection(
+        'Bearer token',
+        null,
+        $ids.fogUuid,
+        false,
+        $transaction
+      )
+    }
+
+    it('allows node logs when the fog is RUNNING', async () => {
+      const result = await validateFogLogs(FogStates.RUNNING)
+      expect(result).to.deep.equal({ success: true })
+    })
+
+    it('allows node logs when the fog is WARNING', async () => {
+      const result = await validateFogLogs(FogStates.WARNING)
+      expect(result).to.deep.equal({ success: true })
+    })
+
+    it('rejects node logs when the fog is not live', async () => {
+      try {
+        await validateFogLogs(FogStates.UNKNOWN)
+        expect.fail('expected validation error')
+      } catch (error) {
+        expect(error.message).to.equal('Fog is not running')
+      }
     })
   })
 

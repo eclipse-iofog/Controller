@@ -326,6 +326,7 @@ CREATE TABLE IF NOT EXISTS "MicroserviceStatuses" (
     last_error TEXT DEFAULT '',
     last_error_at BIGINT DEFAULT 0,
     restart_count INTEGER DEFAULT 0,
+    image_pull_status TEXT DEFAULT '',
     FOREIGN KEY (microservice_uuid) REFERENCES "Microservices" (uuid) ON DELETE CASCADE
 );
 

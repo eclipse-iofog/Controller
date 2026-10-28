@@ -2116,7 +2116,23 @@ describe('Microservices Service', () => {
       expect(result.status).to.include({
         lastError: '',
         lastErrorAt: 0,
-        restartCount: 0
+        restartCount: 0,
+        imagePullStatus: ''
+      })
+    })
+
+    it('returns imagePullStatus failed on GET', async () => {
+      MicroserviceStatusManager.findAllExcludeFields.resolves([{
+        status: 'RUNNING',
+        errorMessage: 'unable to pull docker.io/library/nginx:miss',
+        imagePullStatus: 'failed'
+      }])
+
+      const result = await $subject
+      expect(result.status).to.include({
+        status: 'RUNNING',
+        errorMessage: 'unable to pull docker.io/library/nginx:miss',
+        imagePullStatus: 'failed'
       })
     })
   })

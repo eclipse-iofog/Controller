@@ -84,6 +84,11 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
       field: 'restart_count'
     },
+    imagePullStatus: {
+      type: DataTypes.TEXT,
+      defaultValue: '',
+      field: 'image_pull_status'
+    },
     ipAddress: {
       type: DataTypes.TEXT,
       defaultValue: '',
