@@ -1,5 +1,21 @@
 # Changelog
 
+## [v3.9.4]
+
+### Added
+
+- **Microservice `imagePullStatus`** — `failed` when the desired image is not on the device. The agent omits the key otherwise, including a healthy run and a pull still in progress. GET microservice `status` always includes the field and returns `""` when there is no outstanding pull failure. Observed `status` stays `RUNNING` or `QUEUED`. `errorMessage` keeps the pull text until the pull succeeds. `lastError` is unchanged and can remain after success.
+- **`MicroserviceStatuses.image_pull_status`** on the 3.9.4 baseline and on the 3.9.4 upgrade (sqlite, mysql, postgres).
+
+### Fixed
+
+- **Fog node logs** — a log session is allowed while `daemonStatus` is `RUNNING` or `WARNING`. `WARNING` means the agent is still reporting and the platform has an issue. Other daemon statuses still fail with `Fog is not running`.
+
+### Changed
+
+- Embedded **EdgeOps Console** default **v1.1.1 → v1.1.2**
+- Dockerfile runtime base image digest pin refreshed for **`ubi9/nodejs-24-minimal`**.
+
 ## [v3.9.3]
 
 Microservice `supplementalGroups` for Edgelet v1.1.3. A non-root process can join extra host group IDs, such as the group that owns a device node, without running privileged.
