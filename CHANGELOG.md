@@ -15,6 +15,9 @@
 
 - Embedded **EdgeOps Console** default **v1.1.1 → v1.1.2**
 - Dockerfile runtime base image digest pin refreshed for **`ubi9/nodejs-24-minimal`**.
+- **`node-forge` ^1.4.0 → ^1.4.2** — address CVE-2026-85393 (GHSA-86w9-cpqp-85rv, PKCS#1 v1.5 signature verification) and the PEM and ASN.1 denial-of-service fixes in 1.4.1. Certificate generation and PEM parsing are unchanged.
+- **`qs` 6.16.0 → 6.16.1**, including the `qs` override — address GHSA-6pq8-jhm2-2vcw (`stringify` with `arrayFormat: 'comma'` throws on a non-callable `toString`).
+- **Audit exception removed** — `.nsprc` no longer ignores advisory **1240912**. `node-forge` 1.4.2 patches CVE-2026-85393.
 
 ## [v3.9.3]
 
