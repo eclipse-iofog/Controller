@@ -623,6 +623,7 @@ describe('Agent Service', () => {
       memoryUsage: microserviceStatus.memoryUsage,
       percentage: microserviceStatus.percentage,
       errorMessage: microserviceStatus.errorMessage,
+      imagePullStatus: ''
     }
 
     const fogStatus = {
@@ -2374,6 +2375,91 @@ describe('Agent Service', () => {
       const patch = MicroserviceStatusManager.update.firstCall.args[1]
       expect(patch).to.not.have.property('lastError')
       expect(patch.status).to.equal('RUNNING')
+    })
+
+    it('stores imagePullStatus failed while the previous container is still running', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'RUNNING',
+          containerId: 'd8ed513372a8',
+          errorMessage: 'unable to pull docker.io/library/nginx:edgelet-pull-miss-absent: failed to pull image',
+          imagePullStatus: 'failed'
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update).to.have.been.calledWith(
+        { microserviceUuid: reportedUuid },
+        sinon.match({
+          status: 'RUNNING',
+          containerId: 'd8ed513372a8',
+          errorMessage: 'unable to pull docker.io/library/nginx:edgelet-pull-miss-absent: failed to pull image',
+          imagePullStatus: 'failed'
+        }),
+        transaction
+      )
+    })
+
+    it('stores imagePullStatus failed when the workload has never started', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'QUEUED',
+          errorMessage: 'unable to pull docker.io/library/alpine:edgelet-pull-miss-missing',
+          imagePullStatus: 'failed'
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      const patch = MicroserviceStatusManager.update.firstCall.args[1]
+      expect(patch.status).to.equal('QUEUED')
+      expect(patch.imagePullStatus).to.equal('failed')
+      expect(patch).to.not.have.property('containerId')
+    })
+
+    it('clears imagePullStatus when the key is omitted and errorMessage is empty', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'RUNNING',
+          containerId: 'd8ed513372a8',
+          errorMessage: ''
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update.firstCall.args[1].imagePullStatus).to.equal('')
+    })
+
+    it('keeps the stored imagePullStatus when a retry omits the key and errorMessage is still set', async () => {
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({ iofogUuid: fogUuid })
+      $sandbox.stub(MicroserviceManager, 'findAll').resolves([])
+
+      await AgentService.updateAgentStatus(
+        buildAgentStatus([{
+          id: reportedUuid,
+          status: 'RUNNING',
+          containerId: 'd8ed513372a8',
+          errorMessage: 'unable to pull docker.io/library/nginx:edgelet-pull-miss-absent: failed to pull image'
+        }]),
+        { uuid: fogUuid },
+        transaction
+      )
+
+      expect(MicroserviceStatusManager.update.firstCall.args[1]).to.not.have.property('imagePullStatus')
     })
 
     it('treats omitted RUNNING cpu as 0 for this sample', async () => {

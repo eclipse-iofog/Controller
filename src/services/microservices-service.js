@@ -1491,7 +1491,8 @@ async function updateSystemMicroserviceEndPoint (microserviceUuid, microserviceD
       memoryUsage: 0,
       containerId: '',
       percentage: 0,
-      errorMessage: ''
+      errorMessage: '',
+      imagePullStatus: ''
     }
     await MicroserviceStatusManager.update({
       microserviceUuid: microservice.uuid
@@ -1810,7 +1811,8 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
       memoryUsage: 0,
       containerId: '',
       percentage: 0,
-      errorMessage: ''
+      errorMessage: '',
+      imagePullStatus: ''
     }
     await MicroserviceStatusManager.update({
       microserviceUuid: microservice.uuid

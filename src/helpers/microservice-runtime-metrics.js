@@ -110,6 +110,35 @@ function projectCrashExtras (projected) {
   return projected
 }
 
+const IMAGE_PULL_STATUS_FAILED = 'failed'
+
+function applyImagePullStatus (patch, reported) {
+  if (!patch || !reported) {
+    return patch
+  }
+  if (reported.imagePullStatus === IMAGE_PULL_STATUS_FAILED) {
+    patch.imagePullStatus = IMAGE_PULL_STATUS_FAILED
+    return patch
+  }
+  if (Object.prototype.hasOwnProperty.call(reported, 'imagePullStatus')) {
+    return patch
+  }
+  if (reported.errorMessage === '') {
+    patch.imagePullStatus = ''
+  }
+  return patch
+}
+
+function projectImagePullStatus (projected) {
+  if (!projected) {
+    return projected
+  }
+  if (typeof projected.imagePullStatus !== 'string') {
+    projected.imagePullStatus = ''
+  }
+  return projected
+}
+
 function projectStatusForApi (statusRow) {
   const projected = _cloneStatusRow(statusRow)
   if (!projected) {
@@ -117,6 +146,7 @@ function projectStatusForApi (statusRow) {
   }
   applyRuntimeMetrics(projected, projected.status)
   projectCrashExtras(projected)
+  projectImagePullStatus(projected)
   return projected
 }
 
@@ -126,6 +156,8 @@ module.exports = {
   coerceRuntimeMetric,
   applyRuntimeMetrics,
   applyCrashExtras,
+  applyImagePullStatus,
   projectCrashExtras,
+  projectImagePullStatus,
   projectStatusForApi
 }

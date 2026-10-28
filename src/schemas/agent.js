@@ -147,7 +147,8 @@ const microserviceStatus = {
     errorMessage: { type: 'string' },
     lastError: { type: 'string' },
     lastErrorAt: { type: 'integer' },
-    restartCount: { type: 'integer' }
+    restartCount: { type: 'integer' },
+    imagePullStatus: { type: 'string' }
   },
   required: ['id'],
   additionalProperties: true
