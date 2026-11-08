@@ -1,5 +1,31 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **NATS topology `jsDomain`** — each NATS node on `/api/v3/network-topology/nats/nodes`, the NATS overview, the subgraph, and node detail includes `jsDomain`. A hub or server reports the Controller namespace. A leaf reports the agent name, or `null` when the agent row is missing.
+
+### Fixed
+
+- **NATS operator rotation on Kubernetes** — resolver reconciliation writes the new operator JWT into `iofog-nats-config` when that line differs. The NATS image reloads `server.conf`. The `nats` StatefulSet is not rolled for this change.
+
+### Changed
+
+- **Service `defaultBridge`** — a `microservice` or `agent` service accepts the agent name or the agent uuid of an interior that agent's router can reach. Uuid is matched first, then the agent name. The stored value is that agent's uuid. `default-router` stays the literal hub id. Reachability walks the interior mesh in both directions, so a bridge behind another interior is accepted and a bridge in another island is rejected. On Kubernetes, `k8sType`, `servicePort`, and the cluster Service are used only for `default-router`. A named bridge stores the listener on that router and sets `serviceEndpoint` to its host.
+- **NATS leaf solicit list** — a leaf keeps one remote per application account. Every named upstream is a URL on that remote, dialed one at a time. Naming several servers in the same cluster no longer opens a connection per server.
+- **Leaf upstreams** — omitted on create attaches to `default-nats-hub` only. `[]` attaches to nothing. A later update that omits the field still keeps the stored list. A list is either servers or leaves. A mix, a cycle, or two leaf parents that do not share the same next hop is rejected. A leaf may attach to a leaf that itself has no upstream.
+- **Leaf listener** — a leaf listens for child leaves on the leafnode port, with TLS and advertise set to the agent host. A changed leaf broker config is written to the ConfigMap. The leaf container is not rebuilt.
+- **Server cluster** — `upstreamNatsServers` on a server is not used and is not stored. Every server is connected to every other server, and cluster routes are that mesh. On Kubernetes, `iofog-nats-config` is patched when that route list changes, including a server that becomes a leaf. The `nats` StatefulSet rolls when the list gains its first route or loses a route. Adding a route to a cluster that already has routes does not roll it.
+- **Parent leaf accounts** — a leaf's resolver, upward remotes, and leaf credentials include the application accounts of the leaves below it. Changing a leaf's upstream list refreshes every leaf above the parents that were added or removed. Turning an application's NATS access on or off, deleting the application, or creating, deleting, or moving one of its microservices, refreshes that agent, every leaf above it, and the servers.
+- **`@google-cloud/secret-manager` ^6.1.1 → ^7.2.0** — drop production `glob` 10.5.0 and nested `minimatch` 9.0.9 pulled in through `google-gax` 5 and `rimraf` 5 (GHSA-3g3m-2fjr-6pw4, GHSA-g3hv-75wg-m249). Secret Manager client calls are unchanged. The same advisories remain on dev-only `mocha`, `nyc`, and `sequelize-cli`. `better-npm-audit audit -p` is clean.
+- Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder) and **`ubi9/nodejs-24-minimal`**.
+- Embedded **EdgeOps Console** default **v1.1.3 → v1.1.4**
+
+### Unchanged
+
+- JetStream domains stay the Controller namespace on a server and the agent name on a leaf.
+
 ## [v3.9.4]
 
 ### Added
@@ -13,7 +39,7 @@
 
 ### Changed
 
-- Embedded **EdgeOps Console** default **v1.1.1 → v1.1.2**
+- Embedded **EdgeOps Console** default **v1.1.2 → v1.1.3**
 - Dockerfile runtime base image digest pin refreshed for **`ubi9/nodejs-24-minimal`**.
 - **`node-forge` ^1.4.0 → ^1.4.2** — address CVE-2026-85393 (GHSA-86w9-cpqp-85rv, PKCS#1 v1.5 signature verification) and the PEM and ASN.1 denial-of-service fixes in 1.4.1. Certificate generation and PEM parsing are unchanged.
 - **`qs` 6.16.0 → 6.16.1**, including the `qs` override — address GHSA-6pq8-jhm2-2vcw (`stringify` with `arrayFormat: 'comma'` throws on a non-callable `toString`).
