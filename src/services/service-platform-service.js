@@ -296,7 +296,15 @@ async function planHubTcpConnectorDelete (serviceConfig, transaction) {
   return emptyK8sHubRouterPlan()
 }
 
-async function planHubTcpListenerUpsert (serviceConfig) {
+function _listenerOnKubernetesHub (serviceConfig) {
+  return !serviceConfig.defaultBridge || serviceConfig.defaultBridge === 'default-router'
+}
+
+async function planHubTcpListenerUpsert (serviceConfig, transaction) {
+  if (!_listenerOnKubernetesHub(serviceConfig)) {
+    await upsertHubTcpListenerDb(serviceConfig, transaction)
+    return emptyK8sHubRouterPlan()
+  }
   const listener = ServicesService._buildTcpListener(serviceConfig)
   return {
     ...emptyK8sHubRouterPlan(),
@@ -304,7 +312,11 @@ async function planHubTcpListenerUpsert (serviceConfig) {
   }
 }
 
-async function planHubTcpListenerDelete (serviceConfig) {
+async function planHubTcpListenerDelete (serviceConfig, transaction) {
+  if (!_listenerOnKubernetesHub(serviceConfig)) {
+    await deleteHubTcpListenerDb(serviceConfig, transaction)
+    return emptyK8sHubRouterPlan()
+  }
   return {
     ...emptyK8sHubRouterPlan(),
     deleteListenerNames: [`${serviceConfig.name}-listener`]
@@ -315,7 +327,7 @@ async function upsertHubTcpListener (serviceConfig, transaction) {
   const isK8s = await ServicesService.checkKubernetesEnvironment()
 
   if (isK8s) {
-    const plan = await planHubTcpListenerUpsert(serviceConfig)
+    const plan = await planHubTcpListenerUpsert(serviceConfig, transaction)
     await applyK8sHubRouterPlan(plan)
     return
   }
@@ -351,7 +363,7 @@ async function deleteHubTcpListener (serviceConfig, transaction) {
   const isK8s = await ServicesService.checkKubernetesEnvironment()
 
   if (isK8s) {
-    const plan = await planHubTcpListenerDelete(serviceConfig)
+    const plan = await planHubTcpListenerDelete(serviceConfig, transaction)
     await applyK8sHubRouterPlan(plan)
     return
   }
@@ -402,7 +414,7 @@ async function watchLoadBalancerWithTimeout (serviceName) {
 }
 
 function needsK8sService (serviceConfig, isK8s) {
-  if (!isK8s) {
+  if (!isK8s || !_listenerOnKubernetesHub(serviceConfig)) {
     return false
   }
   const serviceType = (serviceConfig.type || '').toLowerCase()
@@ -459,7 +471,7 @@ async function reconcileServiceHub (serviceConfig, snapshot, transaction) {
   }
 
   plans.push(await planHubTcpConnectorUpsert(serviceConfig, transaction))
-  plans.push(await planHubTcpListenerUpsert(serviceConfig))
+  plans.push(await planHubTcpListenerUpsert(serviceConfig, transaction))
 
   return mergeK8sHubRouterPlans(...plans)
 }
@@ -467,7 +479,7 @@ async function reconcileServiceHub (serviceConfig, snapshot, transaction) {
 async function reconcileServiceDeleteHub (serviceConfig, transaction) {
   const plans = [
     await planHubTcpConnectorDelete(serviceConfig, transaction),
-    await planHubTcpListenerDelete(serviceConfig)
+    await planHubTcpListenerDelete(serviceConfig, transaction)
   ]
   return mergeK8sHubRouterPlans(...plans)
 }
@@ -539,7 +551,7 @@ async function reconcileService (serviceName, task) {
         await applyK8sHubRouterPlan(hubPlan)
 
         if (isDelete) {
-          if ((prep.serviceConfig.type || '').toLowerCase() !== 'k8s') {
+          if (needsK8sService(prep.serviceConfig, isK8s)) {
             await ServicesService._deleteK8sService(prep.serviceConfig.name)
           }
         } else {

@@ -160,6 +160,53 @@ describe('Service platform service', () => {
       expect(K8sClient.patchConfigMap.callCount).to.equal(2)
     })
 
+    it('writes a named bridge listener on that router and skips the Kubernetes Service', async () => {
+      const FogManager = require('../../../src/data/managers/iofog-manager')
+      const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
+      const ApplicationManager = require('../../../src/data/managers/application-manager')
+      const ChangeTrackingService = require('../../../src/services/change-tracking-service')
+
+      ServiceManager.findOneWithTags.resolves({
+        ...service,
+        type: 'microservice',
+        resource: 'ms-uuid',
+        defaultBridge: 'interior-uuid',
+        k8sType: null,
+        tags: []
+      })
+      ServicesService._determineConnectorSiteId.resolves('edge-uuid')
+      $sandbox.stub(FogManager, 'findOne').callsFake((query) => Promise.resolve({
+        uuid: query.uuid,
+        name: query.uuid === 'interior-uuid' ? 'interior1' : 'edge1'
+      }))
+      $sandbox.stub(ApplicationManager, 'findOne').resolves({ id: 10, name: 'system-interior1', isSystem: true })
+      $sandbox.stub(MicroserviceManager, 'findOne').callsFake((query) => {
+        if (query.name === 'router') {
+          return Promise.resolve({ uuid: 'router-ms', config: '{}' })
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(MicroserviceManager, 'update').resolves()
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
+
+      const namedTask = {
+        ...task,
+        specSnapshot: JSON.stringify({
+          ...JSON.parse(task.specSnapshot),
+          type: 'microservice',
+          resource: 'ms-uuid',
+          defaultBridge: 'interior-uuid',
+          k8sType: null
+        })
+      }
+
+      await ServicePlatformService.reconcileService(serviceName, namedTask)
+
+      expect(K8sClient.patchConfigMap).to.not.have.been.called
+      expect(ServicesService._syncK8sServiceResource).to.not.have.been.called
+      expect(MicroserviceManager.update).to.have.been.called
+    })
+
     it('throws when LoadBalancer IP watch times out', async () => {
       ServicesService._syncK8sServiceResource.resolves(null)
 
@@ -244,6 +291,42 @@ describe('Service platform service', () => {
       expect(ServicePlatformReconcileTaskManager.delete).to.have.been.calledWith({ id: 99 }, sinon.match.any)
       expect(ServiceManager.update).to.not.have.been.called
       expect(result.isDelete).to.equal(true)
+    })
+
+    it('skips Kubernetes Service deletion when the bridge is not the hub', async () => {
+      const FogManager = require('../../../src/data/managers/iofog-manager')
+      const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
+      const ApplicationManager = require('../../../src/data/managers/application-manager')
+      const ChangeTrackingService = require('../../../src/services/change-tracking-service')
+
+      ServicesService._determineConnectorSiteId.resolves('edge-uuid')
+      $sandbox.stub(FogManager, 'findOne').callsFake((query) => Promise.resolve({
+        uuid: query.uuid,
+        name: 'interior1'
+      }))
+      $sandbox.stub(ApplicationManager, 'findOne').resolves({ id: 10, name: 'system-interior1', isSystem: true })
+      $sandbox.stub(MicroserviceManager, 'findOne').callsFake((query) => {
+        if (query.name === 'router') {
+          return Promise.resolve({ uuid: 'router-ms', config: '{}' })
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(MicroserviceManager, 'update').resolves()
+      $sandbox.stub(ChangeTrackingService, 'update').resolves()
+
+      const namedDelete = {
+        ...deleteTask,
+        specSnapshot: JSON.stringify({
+          ...snapshot,
+          type: 'microservice',
+          defaultBridge: 'interior-uuid'
+        })
+      }
+
+      await ServicePlatformService.reconcileService(serviceName, namedDelete)
+
+      expect(ServicesService._deleteK8sService).to.not.have.been.called
+      expect(K8sClient.patchConfigMap).to.not.have.been.called
     })
   })
 
