@@ -106,7 +106,7 @@ POST /api/v3/nats/operator/rotate
 Authorization: Bearer <admin-token>
 ```
 
-Controller accepts the request, rotates operator material, re-signs accounts, and schedules resolver reconciliation in the background. Plan maintenance when NATS leaf nodes may reload operator trust.
+Controller accepts the request, rotates operator material, re-signs accounts, and schedules resolver reconciliation in the background. On Kubernetes that reconcile writes the new operator JWT into `iofog-nats-config`. The NATS image reloads the file. The StatefulSet is not restarted for this change. Agent NATS configs are rendered with the same JWT and reload the same way.
 
 This is **NATS credential rotation**, not the skipped per-agent CA migration.
 
