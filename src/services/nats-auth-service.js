@@ -701,7 +701,12 @@ async function ensureUserForMicroservice (microservice, transaction) {
     natsUserRuleId: userRule ? userRule.id : null
   }, transaction)
 
-  await _enqueueNatsReconcileOutbox({ fogUuids: [microservice.iofogUuid] }, transaction)
+  await _enqueueNatsReconcileOutbox({
+    reason: 'account-created',
+    applicationId: microservice.applicationId,
+    fogUuids: microservice.iofogUuid ? [microservice.iofogUuid] : undefined,
+    mutationKind: 'access-enable'
+  }, transaction)
   return { account, user: natsUser }
 }
 
@@ -1231,9 +1236,11 @@ async function revokeMicroserviceUser (microserviceUuid, transaction, ...rest) {
   }
   await NatsUserManager.delete({ id: user.id }, transaction)
   if (options.triggerReconcile !== false) {
+    const microservice = await MicroserviceManager.findOne({ uuid: microserviceUuid }, transaction)
     await _enqueueNatsReconcileOutbox({
       reason: 'account-created',
       applicationId: account.applicationId,
+      fogUuids: microservice && microservice.iofogUuid ? [microservice.iofogUuid] : undefined,
       microserviceUuid,
       mutationKind: 'access-disable'
     }, transaction)

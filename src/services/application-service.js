@@ -121,9 +121,9 @@ const deleteApplicationEndPoint = async function (conditions, isCLI, transaction
     throw new Errors.ValidationError('Cannot delete system application.')
   }
 
-  await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(conditions, true, transaction)
+  const fogUuids = await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(conditions, true, transaction)
 
-  await NatsAuthService.deleteAccountForApplication(application.id, transaction)
+  await NatsAuthService.deleteAccountForApplication(application.id, transaction, { fogUuids })
 
   await ApplicationManager.delete(where, transaction)
 }
@@ -136,10 +136,10 @@ const deleteSystemApplicationEndPoint = async function (conditions, isCLI, trans
 
   const application = await ApplicationManager.findOne({ ...conditions }, transaction)
 
-  await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(conditions, true, transaction)
+  const fogUuids = await _updateChangeTrackingsAndDeleteMicroservicesByApplicationId(conditions, true, transaction)
 
   if (application) {
-    await NatsAuthService.deleteAccountForApplication(application.id, transaction)
+    await NatsAuthService.deleteAccountForApplication(application.id, transaction, { fogUuids })
   }
 
   await ApplicationManager.delete(where, transaction)
@@ -465,12 +465,11 @@ async function _updateChangeTrackingsAndDeleteMicroservicesByApplicationId (cond
     }
     iofogUuids.push(ms.iofogUuid)
   }
-  iofogUuids
-    .filter(onlyUnique)
-    .filter((val) => val !== null)
-  for (const iofogUuid of iofogUuids) {
+  const fogUuids = iofogUuids.filter(onlyUnique).filter((val) => val != null && val !== '')
+  for (const iofogUuid of fogUuids) {
     await ChangeTrackingService.update(iofogUuid, ChangeTrackingService.events.microserviceFull, transaction)
   }
+  return fogUuids
 }
 
 module.exports = {

@@ -21,15 +21,21 @@ natsMode: leaf
 
 | Role | What it is | What the process listens on |
 |---|---|---|
-| `leaf` | Local NATS that dials upstream servers over TLS | Client `4222`, MQTT `8883`, monitor `8222` |
-| `server` | Full server. Forms the cluster and accepts leaf connections. | Those, plus cluster `6222` and leafnode `7422` |
+| `leaf` | Local NATS. One upstream connection per application account. | Client `4222`, MQTT `8883`, monitor `8222`, and leafnode `7422` |
+| `server` | Full server. One cluster with every other server, and it accepts leaf connections. | Those, plus cluster `6222` |
 | `none` | No NATS process on this agent | None |
 
-Both `leaf` and `server` publish the full port set on the microservice (`4222`, `6222`, `7422`, `8883`, `8222`). A leaf does not open the cluster or leafnode listeners. It dials each upstream on `7422`.
+Both `leaf` and `server` publish the full port set on the microservice (`4222`, `6222`, `7422`, `8883`, `8222`). A leaf does not open the cluster listener. It listens on the leafnode port and dials each named upstream on `7422`.
 
 `host` is required unless both the router role and the NATS role are `none`.
 
-Omit `upstreamNatsServers` and Controller attaches this node to the hub (`default-nats-hub`) plus every NATS server that runs on a system agent. A leaf cannot be an upstream. Name an upstream by agent uuid, agent name, or `default-nats-hub`.
+`upstreamNatsServers` names an agent uuid, an agent name, or `default-nats-hub`.
+
+On a server that list is not used and is not stored. Every server is connected to every other server, in both directions, and a server is not connected to itself. Cluster routes are those other servers. Naming a leaf in the list is not an error. A later read shows the other servers, not the list that was submitted.
+
+On a leaf the list is the solicit list for one connection per application account. Omit it on create and the leaf attaches to `default-nats-hub` only. After that dial succeeds, leafnode advertise tells the leaf about the other servers. If the hub is down on the first dial, the leaf does not try those other servers unless you named them. Send `[]` and the leaf stores no upstream. Workloads on that node use the local broker only. A later update that omits the field keeps the stored list, including an empty one. Sending the key replaces the list.
+
+A leaf list is all servers or all leaves. Controller rejects a mix of a server and a leaf, a name that is this same node, a cycle, a named leaf that is already upstream of another named leaf, and two leaf parents whose next hops differ. Two leaf parents are accepted when neither is upstream of the other and both have the same upstream destinations, including when both have none. A leaf may name a parent leaf that itself has no upstream. That tree does not gain a connection to the hub.
 
 A system agent must be `natsMode: server`. On a control plane that is not Kubernetes, the first agent in an empty cluster is the system agent. Controller sets `routerMode: interior` and `natsMode: server` on that create, including when the request asked for another role. That node becomes the hub when no hub exists yet.
 
@@ -80,8 +86,8 @@ What is protected:
 |---|---|
 | Client port `4222` | Operator mode. Clients authenticate with a user JWT. The generated config does not put a TLS stanza on this port. Workload creds are issued automatically. See [nats-access.md](nats-access.md). |
 | Cluster (servers) | TLS, `verify: true`, `handshake_first: true` |
-| Leafnode listener (servers) | TLS, `verify: true`, `handshake_first: true` |
-| Leaf remotes (leaves) | TLS, `verify: true`, `handshake_first: true`. Each URL is `tls://{upstreamHost}:{leafPort}`. |
+| Leafnode listener | TLS, `verify: true`, `handshake_first: true`. Servers and leaves both listen. Advertise is the agent host. |
+| Leaf remotes | TLS, `verify: true`, `handshake_first: true`. Each address is `tls://{upstreamHost}:{leafPort}`, and every address for one account sits on one remote. |
 | MQTT `8883` | TLS, `handshake_first: true` |
 | JetStream disk | ChaChaPoly with a per-node key Controller generates |
 
@@ -106,7 +112,7 @@ jetstream: {
 
 cluster: {
   port: 6222
-  routes: ["nats://<each server host>:6222"]
+  routes: ["nats://<each other server host>:6222"]
   tls: { verify: true, handshake_first: true, ca/cert/key from nats-server-<name> }
 }
 
@@ -132,17 +138,30 @@ The resolver directory is the account-JWT bundle: the system account, every appl
 
 A server also gets a system user (`admin-hub` on the hub, `admin-server-{agent}` on other servers) and mounts that creds file at `/etc/nats/creds`.
 
-When another server is added or removed, Controller recomputes cluster routes for every server and reconciles the others. Growing the cluster from one member to many rebuilds the local NATS container so it switches to the clustered config. On Kubernetes, routes that contain `nats-headless` are left in place and the agent servers are appended.
+`upstreamNatsServers` on a server does not choose peers. Controller stores one connection each way between every pair of servers and none from a server to itself. Cluster `routes` are the other servers' `nats://host:6222` values, taken from that mesh. A peer with no host is skipped. A server with no peers renders the no-cluster template, which has no `cluster` block and no route to itself.
+
+When a server is added or removed, Controller repairs that mesh and reconciles the other servers. Growing the cluster from one member to many rebuilds the local NATS container so it switches to the clustered config. On Kubernetes, routes that contain `nats-headless` are left in place and the agent servers are appended.
 
 ---
 
 ## Leaf config and connections
 
-`natsMode: leaf` renders `leaf.conf`. It still runs JetStream, MQTT, the operator, and a resolver. It does not open cluster routes. It dials upstreams:
+`natsMode: leaf` renders `leaf.conf`. It still runs JetStream, MQTT, the operator, and a resolver. It does not open cluster routes. It listens for child leaves on the leafnode port, with TLS and advertise set to the agent host:
+
+```
+leafnodes: {
+  port: 7422
+  advertise: <agent host>
+  tls: { verify: true, handshake_first: true, certificate nats-server-<name> }
+  remotes: [ ... ]
+}
+```
+
+Each application account is one remote. `urls` is the solicit list: one `tls://{host}:{leafPort}` address per accepted upstream, in the order given, with a repeated name kept once. The leaf dials one address. If that host is down before the first successful dial, it tries the next. It does not hold a connection per address.
 
 ```json
 {
-  "urls": ["tls://203.0.113.1:7422"],
+  "urls": ["tls://203.0.113.1:7422", "tls://203.0.113.2:7422"],
   "account": "<application account public key>",
   "credentials": "/etc/nats/creds/orders/leaf-plant-a.creds",
   "tls": {
@@ -156,13 +175,13 @@ When another server is added or removed, Controller recomputes cluster routes fo
 }
 ```
 
-Controller creates that remote for each application that has `natsAccess` and a microservice on this agent, and for each upstream server. The leaf user is `leaf-{agentName}` inside that application account, with the `default-leaf-user` rule (`LEAFNODE` and `WEBSOCKET`). The creds files are collected into ConfigMap `nats-leaf-creds-{agent}` and mounted at `/etc/nats/creds`.
+Controller creates that remote for each non-system application that has `natsAccess` and a microservice on this agent, and for the same kind of application on every leaf below this one. The leaf user is `leaf-{agentName}` inside that application account, with the `default-leaf-user` rule (`LEAFNODE` and `WEBSOCKET`), including when the application has no workload on this agent. A child's `SYS-leaf-*` account stays on the child. The creds files are collected into ConfigMap `nats-leaf-creds-{agent}` and mounted at `/etc/nats/creds`.
 
-The leaf resolver bundle is smaller than the hub bundle. It holds this fog's leaf system account (`SYS-leaf-{agentName}`) and the application accounts that have workloads here. It is ConfigMap `nats-jwt-bundle-{agent}`.
+The leaf resolver bundle holds this fog's leaf system account (`SYS-leaf-{agentName}`) and those application accounts. It is ConfigMap `nats-jwt-bundle-{agent}`. A parent whose own upstream list is empty still stores the downstream account tokens and does not gain a hub remote.
 
-A leaf also has its own system user `admin-leaf-{agent}` on that leaf system account, used for the leaf's system traffic.
+The JetStream domain stays the agent name on a leaf and the Controller namespace on a server. A stream on the hub is not automatically present on a factory leaf. `GET /api/v3/network-topology/nats/nodes` returns that domain as `jsDomain` on every NATS node. The NATS overview, subgraph, and node detail use the same field. A hub or server reports the Controller namespace. A leaf reports the agent name, or `null` when the agent row is missing.
 
-If you leave `upstreamNatsServers` empty, the upstream set is the hub plus each system agent's NATS server. A system agent created before a hub exists starts with no upstreams. Later leaves attach to the hub.
+Omit `upstreamNatsServers` on create and the leaf solicits `default-nats-hub` only. Other servers are learned from advertise after that dial. A hub that is down on the first dial is not replaced by servers you did not name. `[]` is a local broker. A later update that omits the field keeps the stored list. A system agent created before a hub exists starts with no upstreams. Later leaves attach to the hub.
 
 Switching a leaf to a server removes the leaf JWT ConfigMap, the leaf creds ConfigMap, and the leaf system account. Switching a server to a leaf builds those artifacts and stops using cluster routes.
 

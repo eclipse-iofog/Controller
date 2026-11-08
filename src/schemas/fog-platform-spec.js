@@ -200,6 +200,13 @@ function pickPlatformSpecFields (source) {
   return spec
 }
 
+function dropServerUpstreamList (spec) {
+  if (spec && spec.natsMode === 'server') {
+    delete spec.upstreamNatsServers
+  }
+  return spec
+}
+
 function buildPlatformSpecFromFogData (fogData, options = {}) {
   const spec = pickPlatformSpecFields(fogData)
   if (options.applyCreateDefaults) {
@@ -210,11 +217,13 @@ function buildPlatformSpecFromFogData (fogData, options = {}) {
       spec.natsMode = 'leaf'
     }
   }
-  return spec
+  return dropServerUpstreamList(spec)
 }
 
 function mergePlatformSpecPatch (existingSpec, patchFogData) {
   const merged = pickPlatformSpecFields(existingSpec)
+  const carriedUnusedServerList = merged.natsMode === 'server' &&
+    patchFogData.upstreamNatsServers === undefined
   for (const field of FOG_PLATFORM_SPEC_SCALAR_FIELDS) {
     if (patchFogData[field] !== undefined) {
       merged[field] = patchFogData[field]
@@ -225,7 +234,10 @@ function mergePlatformSpecPatch (existingSpec, patchFogData) {
       merged[field] = field === 'tags' ? normalizeSpecTags(patchFogData[field]) : patchFogData[field]
     }
   }
-  return merged
+  if (carriedUnusedServerList) {
+    delete merged.upstreamNatsServers
+  }
+  return dropServerUpstreamList(merged)
 }
 
 module.exports = {

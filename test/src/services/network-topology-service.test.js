@@ -290,4 +290,71 @@ describe('Network Topology Service', () => {
       expect(result.nodes[0].deploymentTarget).to.equal('remote')
     })
   })
+
+  describe('NATS jsDomain', () => {
+    const originalNamespace = process.env.CONTROLLER_NAMESPACE
+
+    afterEach(() => {
+      if (originalNamespace === undefined) {
+        delete process.env.CONTROLLER_NAMESPACE
+      } else {
+        process.env.CONTROLLER_NAMESPACE = originalNamespace
+      }
+    })
+
+    function stubNatsList (defaultHub, rows, fogs) {
+      $sandbox.stub(NatsInstanceManager, 'findOne').resolves(defaultHub)
+      stubFogFindAll(fogs)
+      $sandbox.stub(NatsInstanceManager, 'getEntity').returns({
+        findAndCountAll: $sandbox.stub().resolves({
+          count: rows.length,
+          rows
+        })
+      })
+    }
+
+    it('uses the controller namespace on a hub and a server, and the agent name on a leaf', async () => {
+      process.env.CONTROLLER_NAMESPACE = 'datasance'
+      const hub = makeNats({ id: 50, isLeaf: false, isHub: true, iofogUuid: null, host: '185.11.248.72' })
+      const server = makeNats({ id: 3, isLeaf: false, isHub: false, iofogUuid: 'server-uuid', host: '10.204.0.2' })
+      const leaf = makeNats({ id: 4, isLeaf: true, isHub: false, iofogUuid: 'leaf-uuid', host: '10.132.0.4' })
+      const orphanLeaf = makeNats({ id: 5, isLeaf: true, isHub: false, iofogUuid: 'missing-uuid', host: '10.0.0.9' })
+      stubNatsList(hub, [hub, server, leaf, orphanLeaf], [
+        { uuid: 'server-uuid', name: 'edge-2', host: '10.204.0.2' },
+        { uuid: 'leaf-uuid', name: 'edge-1', host: '10.132.0.4' }
+      ])
+
+      const result = await NetworkTopologyService.listNatsNodes({ query: {} }, transaction)
+      const domainById = Object.fromEntries(result.nodes.map((node) => [node.id, node.jsDomain]))
+
+      expect(domainById[constants.DEFAULT_NATS_HUB_NAME]).to.equal('datasance')
+      expect(domainById['server-uuid']).to.equal('datasance')
+      expect(domainById['leaf-uuid']).to.equal('edge-1')
+      expect(domainById['missing-uuid']).to.equal(null)
+    })
+
+    it('uses app.namespace when CONTROLLER_NAMESPACE is unset', async () => {
+      delete process.env.CONTROLLER_NAMESPACE
+      const config = require('../../../src/config')
+      const hub = makeNats({ id: 50, isLeaf: false, isHub: true, iofogUuid: null, host: 'nats.local' })
+      stubNatsList(hub, [hub], [])
+
+      const result = await NetworkTopologyService.listNatsNodes({ query: {} }, transaction)
+      expect(result.nodes[0].jsDomain).to.equal(config.get('app.namespace') || null)
+    })
+
+    it('includes jsDomain on node detail', async () => {
+      process.env.CONTROLLER_NAMESPACE = 'datasance'
+      const hub = makeNats({ id: 50, isLeaf: false, isHub: true, iofogUuid: null, host: 'nats.local' })
+      $sandbox.stub(NatsInstanceManager, 'findOne').resolves(hub)
+      stubFogFindAll([])
+
+      const result = await NetworkTopologyService.getNatsNode({
+        params: { id: constants.DEFAULT_NATS_HUB_NAME }
+      }, transaction)
+
+      expect(result.jsDomain).to.equal('datasance')
+      expect(result.isHub).to.equal(true)
+    })
+  })
 })

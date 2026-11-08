@@ -5,8 +5,11 @@ const ServiceController = require('../../../src/controllers/service-controller')
 const YamlParserService = require('../../../src/services/yaml-parser-service')
 const ServicesService = require('../../../src/services/services-service')
 const ServiceManager = require('../../../src/data/managers/service-manager')
+const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
+const FogManager = require('../../../src/data/managers/iofog-manager')
 const ReconcileOutboxManager = require('../../../src/data/managers/reconcile-outbox-manager')
 const RouterManager = require('../../../src/data/managers/router-manager')
+const RouterConnectionManager = require('../../../src/data/managers/router-connection-manager')
 const TagsManager = require('../../../src/data/managers/tags-manager')
 const Validator = require('../../../src/schemas')
 const Errors = require('../../../src/helpers/errors')
@@ -488,6 +491,283 @@ spec:
 
       expect(K8sClient.updateService).to.have.been.calledOnce
       expect(K8sClient.createService).to.have.been.calledOnce
+    })
+  })
+
+  describe('defaultBridge agent name', () => {
+    const edgeRouter = { id: 11, isEdge: true, iofogUuid: 'edge-uuid', host: 'edge.example.com' }
+    const interiorRouter = { id: 22, isEdge: false, iofogUuid: 'interior-uuid', host: 'interior.example.com' }
+
+    function stubBridgeRouters () {
+      delete process.env.CONTROL_PLANE
+      $sandbox.stub(Validator, 'validate').resolves(true)
+      $sandbox.stub(ServiceManager, 'findAll').resolves([])
+      $sandbox.stub(ServiceManager, 'create').callsFake((data) => Promise.resolve(buildServiceModel(data)))
+      $sandbox.stub(ReconcileOutboxManager, 'enqueueServicePlatform').resolves()
+      $sandbox.stub(TagsManager, 'findOne').resolves(null)
+      $sandbox.stub(TagsManager, 'create').callsFake(({ value }) => Promise.resolve({ value }))
+      $sandbox.stub(MicroserviceManager, 'findOne').resolves({
+        uuid: 'ms-uuid',
+        iofogUuid: 'edge-uuid'
+      })
+      $sandbox.stub(FogManager, 'findOne').callsFake((query) => {
+        if (query.name === 'interior1') {
+          return Promise.resolve({ uuid: 'interior-uuid', name: 'interior1' })
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(RouterManager, 'findOne').callsFake((query) => {
+        if (query.iofogUuid === 'edge-uuid') {
+          return Promise.resolve(edgeRouter)
+        }
+        if (query.iofogUuid === 'interior-uuid') {
+          return Promise.resolve(interiorRouter)
+        }
+        return Promise.resolve(null)
+      })
+      $sandbox.stub(RouterConnectionManager, 'findAllWithRouters').resolves([
+        { source: edgeRouter, dest: interiorRouter }
+      ])
+    }
+
+    beforeEach(() => {
+      stubBridgeRouters()
+    })
+
+    it('stores the agent uuid when defaultBridge is the upstream agent name', async () => {
+      await ServicesService.createServiceEndpoint({
+        name: 'checkout',
+        type: 'microservice',
+        resource: 'ms-uuid',
+        defaultBridge: 'interior1',
+        targetPort: 8080
+      }, $transaction)
+
+      const createPayload = ServiceManager.create.firstCall.args[0]
+      expect(createPayload.defaultBridge).to.equal('interior-uuid')
+      expect(createPayload.serviceEndpoint).to.equal('interior.example.com')
+      expect(FogManager.findOne).to.have.been.calledWith({ name: 'interior1' }, $transaction)
+    })
+
+    it('stores an agent uuid without a name lookup', async () => {
+      await ServicesService.createServiceEndpoint({
+        name: 'checkout',
+        type: 'microservice',
+        resource: 'ms-uuid',
+        defaultBridge: 'interior-uuid',
+        targetPort: 8080
+      }, $transaction)
+
+      expect(ServiceManager.create.firstCall.args[0].defaultBridge).to.equal('interior-uuid')
+      expect(FogManager.findOne).to.not.have.been.called
+    })
+
+    it('rejects an unknown agent name', async () => {
+      try {
+        await ServicesService.createServiceEndpoint({
+          name: 'checkout',
+          type: 'microservice',
+          resource: 'ms-uuid',
+          defaultBridge: 'missing-node',
+          targetPort: 8080
+        }, $transaction)
+        expect.fail('expected validation error')
+      } catch (error) {
+        expect(error).to.be.instanceOf(Errors.ValidationError)
+        expect(error.message).to.include('missing-node')
+      }
+      expect(ServiceManager.create).to.not.have.been.called
+    })
+
+    it('accepts default-router when the edge reaches the hub through an interior', async () => {
+      const defaultRouter = { id: 1, isDefault: true, isEdge: false, host: 'hub.example.com', iofogUuid: null }
+      const edge = { id: 11, isEdge: true, iofogUuid: 'edge-uuid', host: 'edge.example.com' }
+      const interior = { id: 22, isEdge: false, iofogUuid: 'interior-uuid', host: 'interior.example.com' }
+      RouterManager.findOne.callsFake((query) => {
+        if (query.isDefault) {
+          return Promise.resolve(defaultRouter)
+        }
+        if (query.iofogUuid === 'edge-uuid') {
+          return Promise.resolve(edge)
+        }
+        return Promise.resolve(null)
+      })
+      RouterConnectionManager.findAllWithRouters.resolves([
+        { source: edge, dest: interior },
+        { source: interior, dest: defaultRouter }
+      ])
+
+      await ServicesService.createServiceEndpoint({
+        name: 'checkout',
+        type: 'microservice',
+        resource: 'ms-uuid',
+        defaultBridge: 'default-router',
+        targetPort: 8080
+      }, $transaction)
+
+      const createPayload = ServiceManager.create.firstCall.args[0]
+      expect(createPayload.defaultBridge).to.equal('default-router')
+      expect(createPayload.serviceEndpoint).to.equal('hub.example.com')
+    })
+
+    it('accepts default-router when another interior joins the edge upstream to the hub', async () => {
+      const defaultRouter = { id: 1, isDefault: true, isEdge: false, host: 'hub.example.com' }
+      const edge = { id: 11, isEdge: true, iofogUuid: 'edge-uuid' }
+      const interior = { id: 22, isEdge: false, iofogUuid: 'interior-uuid' }
+      const interior2 = { id: 33, isEdge: false, iofogUuid: 'interior-2-uuid' }
+      RouterManager.findOne.callsFake((query) => {
+        if (query.isDefault) {
+          return Promise.resolve(defaultRouter)
+        }
+        if (query.iofogUuid === 'edge-uuid') {
+          return Promise.resolve(edge)
+        }
+        return Promise.resolve(null)
+      })
+      RouterConnectionManager.findAllWithRouters.resolves([
+        { source: edge, dest: interior },
+        { source: interior2, dest: interior },
+        { source: interior2, dest: defaultRouter }
+      ])
+
+      await ServicesService.createServiceEndpoint({
+        name: 'checkout',
+        type: 'microservice',
+        resource: 'ms-uuid',
+        defaultBridge: 'default-router',
+        targetPort: 8080
+      }, $transaction)
+
+      expect(ServiceManager.create.firstCall.args[0].defaultBridge).to.equal('default-router')
+    })
+
+    it('rejects default-router when the upstream interior has no path to the hub', async () => {
+      const defaultRouter = { id: 1, isDefault: true, isEdge: false, host: 'hub.example.com' }
+      const edge = { id: 11, isEdge: true, iofogUuid: 'edge-uuid' }
+      const interior = { id: 22, isEdge: false, iofogUuid: 'interior-uuid' }
+      RouterManager.findOne.callsFake((query) => {
+        if (query.isDefault) {
+          return Promise.resolve(defaultRouter)
+        }
+        if (query.iofogUuid === 'edge-uuid') {
+          return Promise.resolve(edge)
+        }
+        return Promise.resolve(null)
+      })
+      RouterConnectionManager.findAllWithRouters.resolves([
+        { source: edge, dest: interior }
+      ])
+
+      try {
+        await ServicesService.createServiceEndpoint({
+          name: 'checkout',
+          type: 'microservice',
+          resource: 'ms-uuid',
+          defaultBridge: 'default-router',
+          targetPort: 8080
+        }, $transaction)
+        expect.fail('expected validation error')
+      } catch (error) {
+        expect(error).to.be.instanceOf(Errors.ValidationError)
+        expect(error.message).to.include('edge-uuid')
+      }
+      expect(ServiceManager.create).to.not.have.been.called
+    })
+
+    it('accepts an interior reached through another interior', async () => {
+      const interior2 = { id: 33, isEdge: false, iofogUuid: 'interior-2-uuid', host: 'interior2.example.com' }
+      FogManager.findOne.callsFake((query) => {
+        if (query.name === 'interior2') {
+          return Promise.resolve({ uuid: 'interior-2-uuid', name: 'interior2' })
+        }
+        return Promise.resolve(null)
+      })
+      RouterManager.findOne.callsFake((query) => {
+        if (query.iofogUuid === 'edge-uuid') {
+          return Promise.resolve(edgeRouter)
+        }
+        if (query.iofogUuid === 'interior-2-uuid') {
+          return Promise.resolve(interior2)
+        }
+        return Promise.resolve(null)
+      })
+      RouterConnectionManager.findAllWithRouters.resolves([
+        { source: edgeRouter, dest: interiorRouter },
+        { source: interiorRouter, dest: interior2 }
+      ])
+
+      await ServicesService.createServiceEndpoint({
+        name: 'checkout',
+        type: 'microservice',
+        resource: 'ms-uuid',
+        defaultBridge: 'interior2',
+        targetPort: 8080
+      }, $transaction)
+
+      const createPayload = ServiceManager.create.firstCall.args[0]
+      expect(createPayload.defaultBridge).to.equal('interior-2-uuid')
+      expect(createPayload.serviceEndpoint).to.equal('interior2.example.com')
+    })
+
+    it('rejects an interior that shares no mesh with the edge', async () => {
+      const interior2 = { id: 33, isEdge: false, iofogUuid: 'interior-2-uuid', host: 'interior2.example.com' }
+      FogManager.findOne.callsFake((query) => {
+        if (query.name === 'interior2') {
+          return Promise.resolve({ uuid: 'interior-2-uuid', name: 'interior2' })
+        }
+        return Promise.resolve(null)
+      })
+      RouterManager.findOne.callsFake((query) => {
+        if (query.iofogUuid === 'edge-uuid') {
+          return Promise.resolve(edgeRouter)
+        }
+        if (query.iofogUuid === 'interior-2-uuid') {
+          return Promise.resolve(interior2)
+        }
+        return Promise.resolve(null)
+      })
+      RouterConnectionManager.findAllWithRouters.resolves([
+        { source: edgeRouter, dest: interiorRouter }
+      ])
+
+      try {
+        await ServicesService.createServiceEndpoint({
+          name: 'checkout',
+          type: 'microservice',
+          resource: 'ms-uuid',
+          defaultBridge: 'interior2',
+          targetPort: 8080
+        }, $transaction)
+        expect.fail('expected validation error')
+      } catch (error) {
+        expect(error).to.be.instanceOf(Errors.ValidationError)
+        expect(error.message).to.include('interior2')
+        expect(error.message).to.include('edge-uuid')
+      }
+      expect(ServiceManager.create).to.not.have.been.called
+    })
+
+    it('accepts the same upstream sent by name on update', async () => {
+      const existingService = buildServiceModel({
+        type: 'microservice',
+        resource: 'ms-uuid',
+        defaultBridge: 'interior-uuid',
+        tags: []
+      })
+      $sandbox.stub(ServiceManager, 'findOneWithTags').resolves(existingService)
+      $sandbox.stub(ServiceManager, 'update').callsFake((where, data) =>
+        Promise.resolve(buildServiceModel({ ...existingService, ...data }))
+      )
+
+      await ServicesService.updateServiceEndpoint('checkout', {
+        name: 'checkout',
+        defaultBridge: 'interior1',
+        targetPort: 8080
+      }, $transaction)
+
+      expect(ServiceManager.update.firstCall.args[1].defaultBridge).to.equal('interior-uuid')
+      expect(ServiceManager.update.firstCall.args[1].type).to.equal(undefined)
+      expect(ServiceManager.update.firstCall.args[1].resource).to.equal(undefined)
     })
   })
 })

@@ -608,6 +608,33 @@ describe('Fog platform service', () => {
 
       expect(result.upstreamNatsServers).to.eql(['default-nats-hub'])
     })
+
+    it('keeps an empty upstream list when the spec omits upstreamNatsServers', async () => {
+      $sandbox.stub(NatsInstanceManager, 'findOne').resolves({ id: 1, isHub: true, iofogUuid: 'hub' })
+      $sandbox.stub(NatsInstanceManager, 'findByFog').resolves({ id: 5, iofogUuid: fogUuid, isLeaf: true })
+      $sandbox.stub(NatsConnectionManager, 'findAllWithNats').resolves([])
+
+      const result = await FogPlatformService.resolveNatsConfigFromSpec(
+        fogUuid,
+        { natsMode: 'leaf' },
+        transaction
+      )
+
+      expect(result.upstreamNatsServers).to.eql([])
+    })
+
+    it('leaves the upstream list unset when the agent has no NATS instance', async () => {
+      $sandbox.stub(NatsInstanceManager, 'findOne').resolves({ id: 1, isHub: true, iofogUuid: 'hub' })
+      $sandbox.stub(NatsInstanceManager, 'findByFog').resolves(null)
+
+      const result = await FogPlatformService.resolveNatsConfigFromSpec(
+        fogUuid,
+        { natsMode: 'leaf' },
+        transaction
+      )
+
+      expect(result.upstreamNatsServers).to.equal(undefined)
+    })
   })
 
   describe('.markReconcileFailed()', () => {

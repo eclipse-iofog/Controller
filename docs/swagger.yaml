@@ -1,6 +1,6 @@
 openapi : "3.0.0"
 info:
-  version: 3.9.4
+  version: 3.9.5
   title: Cloud Native Controller for Edge Native Workloads
 paths:
   /live:
@@ -8087,7 +8087,9 @@ paths:
       tags:
         - NATS
       summary: Rotates NATS operator keys and JWT
-      description: Schedules account/user re-sign and resolver reconciliation in background after operator rotation is accepted.
+      description: >
+        Replaces the fleet NATS operator key and re-signs every account JWT. User credential files stay valid because account keys do not change. Servers reload the new operator JWT and then accept only account JWTs signed by the new key. Until that reload finishes, clients can fail to connect.
+        The response is the operator that existed when the request was accepted. Read GET /nats/operator after reconciliation for the new public key and JWT. On Kubernetes, reconciliation writes the new operator JWT into the hub server config and the NATS image reloads that file. The StatefulSet is not rolled. A control-plane reconcile must not write the previous operator JWT back into that file.
       operationId: rotateNatsOperator
       security:
         - authToken: []
@@ -9465,6 +9467,12 @@ components:
           description: JetStream max memory store (e.g. 1g). Units m, mb, g, gb, t, tb.
         upstreamNatsServers:
           type: array
+          description: >-
+            Agent uuid, agent name, or default-nats-hub. On a server the list
+            is not used, is not stored, and a later read returns the other
+            servers in the cluster. On a leaf, omit on create to attach to default-nats-hub
+            only. An empty array attaches to nothing. Omit on a later update
+            to keep the stored list. A leaf list is all servers or all leaves.
           items:
             type: string
         runtimeClasses:
@@ -9652,6 +9660,12 @@ components:
           description: JetStream max memory store (e.g. 1g). Units m, mb, g, gb, t, tb.
         upstreamNatsServers:
           type: array
+          description: >-
+            Agent uuid, agent name, or default-nats-hub. On a server the list
+            is not used, is not stored, and a later read returns the other
+            servers in the cluster. On a leaf, omit on create to attach to default-nats-hub
+            only. An empty array attaches to nothing. Omit on a later update
+            to keep the stored list. A leaf list is all servers or all leaves.
           items:
             type: string
         host:
@@ -12315,6 +12329,16 @@ components:
           type: string
         defaultBridge:
           type: string
+          description: >-
+            Router that owns the service listener. `default-router` when omitted.
+            `k8s` and `external` accept only `default-router`. `microservice` and
+            `agent` also accept the agent name or agent uuid of an interior the
+            agent's router can reach (uuid is matched first, then name). A name is
+            stored as that agent's uuid. `default-router` is stored as that literal.
+            Reachability walks the interior mesh in both directions, including a
+            bridge behind another interior. On Kubernetes, `k8sType` and
+            `servicePort` are required only when this is `default-router`. A named
+            bridge does not create a Kubernetes Service. Immutable.
         bridgePort:
           type: number
         targetPort:
@@ -13244,6 +13268,16 @@ components:
     NatsTopologyNode:
       allOf:
         - $ref: "#/components/schemas/NetworkTopologyNodeBase"
+        - type: object
+          properties:
+            jsDomain:
+              type: string
+              nullable: true
+              description: >-
+                JetStream domain for this broker. The Controller namespace on a
+                hub or server, the agent name on a leaf, or null when a leaf
+                has no agent row.
+          required: [jsDomain]
     RouterTopologyNodeDetail:
       allOf:
         - $ref: "#/components/schemas/RouterTopologyNode"

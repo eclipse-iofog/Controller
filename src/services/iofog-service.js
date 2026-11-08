@@ -339,6 +339,23 @@ async function _handleRouterCertificates (fogData, uuid, routerModeCrossedNone, 
   }
 }
 
+async function _validateSubmittedLeafUpstreams (natsMode, isSystem, upstreamNatsServers, transaction, fogUuid) {
+  if (natsMode !== 'leaf' || upstreamNatsServers === undefined) {
+    return
+  }
+  const defaultHub = await NatsInstanceManager.findOne({ isHub: true }, transaction)
+  const sourceInstance = fogUuid
+    ? await NatsInstanceManager.findByFog(fogUuid, transaction)
+    : null
+  await NatsService._validateAndReturnUpstreamNats(
+    upstreamNatsServers,
+    isSystem === true,
+    defaultHub,
+    transaction,
+    sourceInstance
+  )
+}
+
 async function createFogEndPoint (fogData, isCLI, transaction) {
   await Validator.validate(fogData, Validator.schemas.iofogCreate)
   const isKubernetes = await checkKubernetesEnvironment()
@@ -446,6 +463,13 @@ async function createFogEndPoint (fogData, isCLI, transaction) {
       transaction
     )
   }
+
+  await _validateSubmittedLeafUpstreams(
+    natsMode,
+    fogData.isSystem,
+    fogData.upstreamNatsServers,
+    transaction
+  )
 
   const fog = await FogManager.create(createFogData, transaction)
 
@@ -556,6 +580,14 @@ async function updateFogEndPoint (fogData, isCLI, transaction) {
   if (updateFogData.isSystem !== undefined && updateFogData.isSystem !== oldFog.isSystem) {
     throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_SYSTEM_CHANGE))
   }
+
+  await _validateSubmittedLeafUpstreams(
+    effectiveNatsMode,
+    isSystem,
+    fogData.upstreamNatsServers,
+    transaction,
+    fogData.uuid
+  )
 
   // Prevent overwriting detected arch (1 or 2) with "auto" (0)
   // If arch is being set to "auto" (0) but the agent has already detected its type (1 or 2),

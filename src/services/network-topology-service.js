@@ -154,6 +154,19 @@ function _natsDisplayName (nats, defaultHub, fog) {
   return fog ? fog.name : nats.iofogUuid
 }
 
+function _controllerNamespace () {
+  const namespace = process.env.CONTROLLER_NAMESPACE || config.get('app.namespace')
+  return namespace || null
+}
+
+function _natsJsDomain (nats, defaultHub, fog) {
+  const isHub = !!(defaultHub && nats.id === defaultHub.id)
+  if (isHub || !nats.isLeaf) {
+    return _controllerNamespace()
+  }
+  return (fog && fog.name) || null
+}
+
 async function _loadFogMap (iofogUuids, transaction) {
   const uuids = [...new Set((iofogUuids || []).filter(Boolean))]
   if (!uuids.length) {
@@ -199,7 +212,8 @@ function _formatNatsListNode (nats, defaultHub, fogMap) {
     deploymentTarget: _natsDeploymentTarget(nats, defaultHub),
     displayName: _natsDisplayName(nats, defaultHub, fog),
     role: _natsRole(nats, defaultHub),
-    mode: _natsMode(nats)
+    mode: _natsMode(nats),
+    jsDomain: _natsJsDomain(nats, defaultHub, fog)
   }
 }
 

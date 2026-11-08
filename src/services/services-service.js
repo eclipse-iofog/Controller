@@ -6,6 +6,7 @@ const RouterConnectionManager = require('../data/managers/router-connection-mana
 const K8sClient = require('../utils/k8s-client')
 const AppHelper = require('../helpers/app-helper')
 const config = require('../config')
+const Constants = require('../helpers/constants')
 const Errors = require('../helpers/errors')
 const ErrorMessages = require('../helpers/error-messages')
 const Validator = require('../schemas')
@@ -165,13 +166,43 @@ async function checkKubernetesEnvironment () {
   return controlPlane && controlPlane.toLowerCase() === 'kubernetes'
 }
 
+function _usesKubernetesHubService (serviceConfig) {
+  const bridge = serviceConfig.defaultBridge || Constants.DEFAULT_ROUTER_NAME
+  return bridge === Constants.DEFAULT_ROUTER_NAME
+}
+
 async function validateNonK8sType (serviceConfig) {
   const isK8s = await checkKubernetesEnvironment()
-  if (serviceConfig.type.toLowerCase() !== 'k8s' && isK8s) {
-    if (!serviceConfig.k8sType || !serviceConfig.servicePort) {
-      throw new Errors.ValidationError('Kubernetes environment is required for k8s service type(LoadBalancer or ClusterIP or NodePort) and service port')
-    }
+  const serviceType = (serviceConfig.type || '').toLowerCase()
+  if (!isK8s || serviceType === 'k8s' || serviceType === '') {
+    return
   }
+  // A named bridge is reached on that router. It does not need a Kubernetes Service.
+  if (!_usesKubernetesHubService(serviceConfig)) {
+    return
+  }
+  if (!serviceConfig.k8sType || !serviceConfig.servicePort) {
+    throw new Errors.ValidationError('Kubernetes environment is required for k8s service type(LoadBalancer or ClusterIP or NodePort) and service port')
+  }
+}
+
+async function _assignBridgeEndpoint (serviceData, transaction) {
+  if (serviceData.defaultBridge === Constants.DEFAULT_ROUTER_NAME) {
+    const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
+    if (!defaultRouter) {
+      throw new Errors.NotFoundError('Default router not found')
+    }
+    serviceData.serviceEndpoint = defaultRouter.host
+    serviceData.servicePort = serviceData.bridgePort
+    return
+  }
+
+  const router = await RouterManager.findOne({ iofogUuid: serviceData.defaultBridge }, transaction)
+  if (!router) {
+    throw new Errors.NotFoundError('Router not found')
+  }
+  serviceData.serviceEndpoint = router.host
+  serviceData.servicePort = serviceData.bridgePort
 }
 
 async function _validateServiceName (serviceConfig) {
@@ -238,59 +269,157 @@ async function validateFogServiceType (serviceConfig, transaction) {
   serviceConfig.resource = fogNode.uuid
 }
 
+async function _findRouterByBridgeId (bridgeId, transaction) {
+  const routerByUuid = await RouterManager.findOne({ iofogUuid: bridgeId }, transaction)
+  if (routerByUuid) {
+    return routerByUuid
+  }
+
+  const fog = await FogManager.findOne({ name: bridgeId }, transaction)
+  if (!fog) {
+    return null
+  }
+  return RouterManager.findOne({ iofogUuid: fog.uuid }, transaction)
+}
+
+function _isInteriorLinkEnd (router, bridgeRouter) {
+  if (!router) {
+    return false
+  }
+  if (bridgeRouter && router.id === bridgeRouter.id) {
+    return true
+  }
+  return router.isEdge === false
+}
+
+// Inter-router links are full duplex once up, so the interior mesh is undirected.
+// An edge reaches the bridge when an interior it dials is in that mesh.
+function _bridgeRouterReachable (agentRouter, bridgeRouter, connections) {
+  if (agentRouter.id === bridgeRouter.id) {
+    return true
+  }
+
+  const neighbors = new Map()
+  const link = (left, right) => {
+    if (!neighbors.has(left)) {
+      neighbors.set(left, new Set())
+    }
+    neighbors.get(left).add(right)
+  }
+
+  const edgeUpstreams = []
+  for (const connection of connections || []) {
+    const source = connection.source
+    const dest = connection.dest
+    if (!source || !dest) {
+      continue
+    }
+    const sourceInterior = _isInteriorLinkEnd(source, bridgeRouter)
+    const destInterior = _isInteriorLinkEnd(dest, bridgeRouter)
+    if (sourceInterior && destInterior) {
+      link(source.id, dest.id)
+      link(dest.id, source.id)
+    }
+    if (source.id === agentRouter.id && destInterior) {
+      edgeUpstreams.push(dest.id)
+    }
+  }
+
+  const reachable = new Set([bridgeRouter.id])
+  const queue = [bridgeRouter.id]
+  while (queue.length > 0) {
+    const current = queue.shift()
+    const nextIds = neighbors.get(current)
+    if (!nextIds) {
+      continue
+    }
+    for (const nextId of nextIds) {
+      if (!reachable.has(nextId)) {
+        reachable.add(nextId)
+        queue.push(nextId)
+      }
+    }
+  }
+
+  if (agentRouter.isEdge === false) {
+    return reachable.has(agentRouter.id)
+  }
+  return edgeUpstreams.some((id) => reachable.has(id))
+}
+
+async function _serviceBackendRouter (serviceConfig, transaction) {
+  let iofogUuid
+
+  if (serviceConfig.type.toLowerCase() === 'microservice') {
+    const microservice = await MicroserviceManager.findOne({ uuid: serviceConfig.resource }, transaction)
+    if (!microservice) {
+      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, serviceConfig.resource))
+    }
+    iofogUuid = microservice.iofogUuid
+  } else {
+    iofogUuid = serviceConfig.resource
+  }
+
+  const router = await RouterManager.findOne({ iofogUuid }, transaction)
+  if (!router) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, iofogUuid))
+  }
+  return router
+}
+
+async function _assertBridgeReachable (agentRouter, bridgeRouter, bridgeId, transaction) {
+  const connections = await RouterConnectionManager.findAllWithRouters({}, transaction)
+  if (_bridgeRouterReachable(agentRouter, bridgeRouter, connections)) {
+    return
+  }
+  throw new Errors.ValidationError(AppHelper.formatMessage(
+    ErrorMessages.DEFAULT_BRIDGE_UNREACHABLE,
+    bridgeId,
+    agentRouter.iofogUuid
+  ))
+}
+
+async function _assertDefaultRouterReachable (agentRouter, transaction) {
+  const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
+  if (!defaultRouter) {
+    throw new Errors.NotFoundError('Default router not found')
+  }
+  await _assertBridgeReachable(agentRouter, defaultRouter, Constants.DEFAULT_ROUTER_NAME, transaction)
+}
+
 async function validateDefaultBridge (serviceConfig, transaction) {
   // If defaultBridge is empty, set it to 'default-router'
   if (!serviceConfig.defaultBridge) {
     logger.debug('Setting default bridge to default-router')
-    serviceConfig.defaultBridge = 'default-router'
-    return
+    serviceConfig.defaultBridge = Constants.DEFAULT_ROUTER_NAME
   }
 
-  // If service type is not microservice or agent, defaultBridge must be 'default-router'
+  // If service type is not microservice or agent, defaultBridge must be 'default-router'.
+  // Those types place the connector on the hub, so there is no agent path to check.
   if (serviceConfig.type.toLowerCase() !== 'microservice' && serviceConfig.type.toLowerCase() !== 'agent') {
-    if (serviceConfig.defaultBridge !== 'default-router') {
+    if (serviceConfig.defaultBridge !== Constants.DEFAULT_ROUTER_NAME) {
       throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_DEFAULT_BRIDGE, serviceConfig.defaultBridge))
     }
     return
   }
 
-  // For microservice or agent type, if user provided a UUID instead of 'default-router'
-  if (serviceConfig.defaultBridge !== 'default-router') {
-    let iofogUuid
+  const router = await _serviceBackendRouter(serviceConfig, transaction)
 
-    if (serviceConfig.type.toLowerCase() === 'microservice') {
-      // Get the microservice to find its iofog node
-      const microservice = await MicroserviceManager.findOne({ uuid: serviceConfig.resource }, transaction)
-      if (!microservice) {
-        throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_MICROSERVICE_UUID, serviceConfig.resource))
-      }
-      iofogUuid = microservice.iofogUuid
-    } else if (serviceConfig.type.toLowerCase() === 'agent') {
-      // For agent type, the resource is the agent UUID
-      iofogUuid = serviceConfig.resource
-    }
-
-    // Get the router for the iofog node
-    const router = await RouterManager.findOne({ iofogUuid }, transaction)
-    if (!router) {
-      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, iofogUuid))
-    }
-
-    // Check if the router has a connection to the specified upstream router
-    const upstreamRouter = await RouterManager.findOne({ iofogUuid: serviceConfig.defaultBridge }, transaction)
-    if (!upstreamRouter) {
-      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, serviceConfig.defaultBridge))
-    }
-
-    const routerConnection = await RouterConnectionManager.findOne({
-      sourceRouter: router.id,
-      destRouter: upstreamRouter.id
-    }, transaction)
-
-    if (!routerConnection) {
-      throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER_CONNECTION, serviceConfig.defaultBridge, router.id))
-    }
+  // The hub sentinel is stored as-is. It is not an agent name or uuid.
+  if (serviceConfig.defaultBridge === Constants.DEFAULT_ROUTER_NAME) {
+    await _assertDefaultRouterReachable(router, transaction)
+    return
   }
+
+  // Agent uuid first, then agent name. Same order as upstreamRouters.
+  const bridgeId = serviceConfig.defaultBridge
+  const bridgeRouter = await _findRouterByBridgeId(bridgeId, transaction)
+  if (!bridgeRouter || !bridgeRouter.iofogUuid) {
+    throw new Errors.ValidationError(AppHelper.formatMessage(ErrorMessages.INVALID_ROUTER, bridgeId))
+  }
+
+  await _assertBridgeReachable(router, bridgeRouter, bridgeId, transaction)
+  serviceConfig.defaultBridge = bridgeRouter.iofogUuid
 }
 
 async function defineBridgePort (serviceConfig, transaction) {
@@ -649,22 +778,8 @@ async function createServiceEndpoint (serviceData, transaction) {
   // Set provisioning fields
   serviceData.provisioningStatus = 'pending'
   serviceData.provisioningError = null
-  if (!isK8s) {
-    if (serviceData.defaultBridge === 'default-router') {
-      const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-      if (!defaultRouter) {
-        throw new Errors.NotFoundError('Default router not found')
-      }
-      serviceData.serviceEndpoint = defaultRouter.host
-      serviceData.servicePort = serviceData.bridgePort
-    } else {
-      const router = await RouterManager.findOne({ iofogUuid: serviceData.defaultBridge }, transaction)
-      if (!router) {
-        throw new Errors.NotFoundError('Router not found')
-      }
-      serviceData.serviceEndpoint = router.host
-      serviceData.servicePort = serviceData.bridgePort
-    }
+  if (!isK8s || !_usesKubernetesHubService(serviceData)) {
+    await _assignBridgeEndpoint(serviceData, transaction)
   }
 
   // 7. Create service in database first
@@ -707,19 +822,31 @@ async function updateServiceEndpoint (serviceName, serviceData, transaction) {
     throw new Errors.ValidationError('Changing service type is not allowed. Please delete the service and create a new one with the desired type.')
   }
 
-  if (serviceData.defaultBridge && serviceData.defaultBridge !== existingService.defaultBridge) {
-    throw new Errors.ValidationError('Changing default bridge is not allowed. Please delete the service and create a new one with the desired default bridge.')
-  }
-
   // 4. Check K8s environment if type is k8s
   const isK8s = await checkKubernetesEnvironment()
   if (existingService.type === 'k8s' && !isK8s) {
     throw new Errors.ValidationError('Kubernetes environment is required for k8s service type')
   }
 
-  if (serviceData.type !== 'k8s' && isK8s) {
+  if (isK8s && (serviceData.type || existingService.type) !== 'k8s') {
     logger.debug('Validating non k8s service type')
-    await validateNonK8sType(serviceData)
+    await validateNonK8sType({
+      type: serviceData.type || existingService.type,
+      defaultBridge: existingService.defaultBridge,
+      k8sType: serviceData.k8sType,
+      servicePort: serviceData.servicePort
+    })
+  }
+
+  // Bridge validation needs the service type and backend. Fill them from the
+  // stored row when the patch omits them, then drop them so they are not rewritten.
+  const omittedType = serviceData.defaultBridge !== undefined && serviceData.type === undefined
+  const omittedResource = serviceData.defaultBridge !== undefined && serviceData.resource === undefined
+  if (omittedType) {
+    serviceData.type = existingService.type
+  }
+  if (omittedResource) {
+    serviceData.resource = existingService.resource
   }
 
   // 5. Validate microservice type if needed
@@ -732,9 +859,20 @@ async function updateServiceEndpoint (serviceName, serviceData, transaction) {
     await validateFogServiceType(serviceData, transaction)
   }
 
-  // 7. Validate default bridge if needed
+  // 7. Validate default bridge if needed. Resolve an agent name to its uuid
+  // before the immutability check, so resending the same router by name is not a change.
   if (serviceData.defaultBridge) {
     await validateDefaultBridge(serviceData, transaction)
+  }
+  if (omittedType) {
+    delete serviceData.type
+  }
+  if (omittedResource) {
+    delete serviceData.resource
+  }
+
+  if (serviceData.defaultBridge && serviceData.defaultBridge !== existingService.defaultBridge) {
+    throw new Errors.ValidationError('Changing default bridge is not allowed. Please delete the service and create a new one with the desired default bridge.')
   }
 
   serviceData.bridgePort = existingService.bridgePort
@@ -743,22 +881,15 @@ async function updateServiceEndpoint (serviceName, serviceData, transaction) {
   serviceData.provisioningStatus = 'pending'
   serviceData.provisioningError = null
 
-  if (!isK8s) {
-    if (serviceData.defaultBridge === 'default-router') {
-      const defaultRouter = await RouterManager.findOne({ isDefault: true }, transaction)
-      if (!defaultRouter) {
-        throw new Errors.NotFoundError('Default router not found')
-      }
-      serviceData.serviceEndpoint = defaultRouter.host
-      serviceData.servicePort = serviceData.bridgePort
-    } else {
-      const router = await RouterManager.findOne({ iofogUuid: serviceData.defaultBridge }, transaction)
-      if (!router) {
-        throw new Errors.NotFoundError('Router not found')
-      }
-      serviceData.serviceEndpoint = router.host
-      serviceData.servicePort = serviceData.bridgePort
+  const effectiveBridge = serviceData.defaultBridge || existingService.defaultBridge
+  if (!isK8s || effectiveBridge !== Constants.DEFAULT_ROUTER_NAME) {
+    const endpointFields = {
+      defaultBridge: effectiveBridge,
+      bridgePort: serviceData.bridgePort
     }
+    await _assignBridgeEndpoint(endpointFields, transaction)
+    serviceData.serviceEndpoint = endpointFields.serviceEndpoint
+    serviceData.servicePort = endpointFields.servicePort
   }
 
   // 8. Update service in database

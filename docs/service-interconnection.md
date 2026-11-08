@@ -79,7 +79,7 @@ spec:
 | `spec.type` | YAML | yes | `microservice`, `agent`, `k8s`, or `external`. Immutable. |
 | `spec.resource` | YAML | yes | Who or what the connector dials. Meaning depends on `type`. |
 | `spec.targetPort` | YAML | yes | TCP port on that backend. Becomes `tcpConnector.port`. |
-| `spec.defaultBridge` | YAML | no | Which hub router owns the listener. Default `default-router`. Immutable. |
+| `spec.defaultBridge` | YAML | no | Which router owns the listener. Default `default-router`. For `microservice` and `agent`, an agent name or agent uuid of an interior this agent can reach. A name is stored as that agent's uuid. `default-router` is stored as that literal. Immutable. |
 | `spec.servicePort` | YAML | on Kubernetes, for non-`k8s` types | Port clients use on the Kubernetes Service. On a remote control plane Controller overwrites this with `bridgePort`. |
 | `spec.k8sType` | YAML | on Kubernetes, for non-`k8s` types | `LoadBalancer`, `ClusterIP`, or `NodePort`. |
 | `bridgePort` | assigned | — | Port the router listener binds. Taken from `BRIDGE_PORTS_RANGE` (default `10024-65535`), first free port. Not accepted from YAML. |
@@ -98,7 +98,7 @@ spec:
 
 `microservice` and `agent` require a router on that agent. Router mode `none` is rejected: a TCP bridge service requires a router on the agent.
 
-`k8s` and `external` require `defaultBridge: default-router`. For `microservice` and `agent`, `defaultBridge` may instead be the uuid of an upstream router that this agent's router is already connected to.
+`k8s` and `external` require `defaultBridge: default-router`. For `microservice` and `agent`, `defaultBridge` may instead name an interior this agent's router can reach. Use the agent name or the agent uuid, the same forms as `upstreamRouters`. Uuid is tried first, then the agent name. The stored value is that agent's uuid. The literal `default-router` is not rewritten to the system agent's uuid. Reachability is the interior mesh. An edge reaches a bridge when an interior it dials is in that bridge's mesh, so `edge → interior1 → interior2` allows `interior2` and, once `interior2` links to the hub, `default-router`. Interior links count in both directions. A bridge in another island is rejected.
 
 ### Connector host
 
@@ -136,10 +136,11 @@ The connector is written onto the router that can open that host:
 
 `CONTROL_PLANE=kubernetes` (or `app.ControlPlane: kubernetes`).
 
-| `spec.type` | `k8sType` and `servicePort` | Controller creates a Kubernetes Service |
-|---|---|---|
-| `microservice`, `agent`, `external` | required | yes |
-| `k8s` | not required | no. `type: k8s` is itself rejected unless the control plane is Kubernetes |
+| `spec.type` | `defaultBridge` | `k8sType` and `servicePort` | Controller creates a Kubernetes Service |
+|---|---|---|---|
+| `microservice`, `agent`, `external` | `default-router` | required | yes. The listener is written to ConfigMap `iofog-router` |
+| `microservice`, `agent` | an agent name or uuid | not required | no. The listener is written to that router's microservice `config`. `serviceEndpoint` is that router's host and `servicePort` is `bridgePort` |
+| `k8s` | `default-router` only | not required | no. `type: k8s` is itself rejected unless the control plane is Kubernetes |
 
 The Service is created in `CONTROLLER_NAMESPACE` (`app.namespace`). Name is `metadata.name`.
 
@@ -329,8 +330,8 @@ The connector and the listener share `address`, which is the service name. The l
 
 | Control plane | Hub listener and hub connector | Agent router |
 |---|---|---|
-| Kubernetes | ConfigMap `iofog-router`, key `skrouterd.json`, in `CONTROLLER_NAMESPACE`. The file is a JSON array of pairs. A hub lock serializes writers. | The agent that owns the backend gets the connector in its router microservice `config`. Tagged agents get listeners in that same `config`. |
-| Remote | The default router's microservice `config`, or the router for `defaultBridge` when that is an agent uuid. Object form, under `bridges`. | Same as Kubernetes for the backend connector and for tagged listeners. |
+| Kubernetes | ConfigMap `iofog-router` when `defaultBridge` is `default-router`. A named bridge stores the listener in that router's microservice `config`, same as a remote control plane. The file is a JSON array of pairs. A hub lock serializes writers of the ConfigMap. | The agent that owns the backend gets the connector in its router microservice `config`. Tagged agents get listeners in that same `config`. |
+| Remote | The default router's microservice `config`, or the router for `defaultBridge` when that is an agent uuid (a name given at create is stored as that uuid). Object form, under `bridges`. | Same as Kubernetes for the backend connector and for tagged listeners. |
 
 Kubernetes hub file (`skrouterd.json`):
 
@@ -351,7 +352,7 @@ Kubernetes hub file (`skrouterd.json`):
 ]
 ```
 
-On Kubernetes the **listener is always** written to that ConfigMap. The **connector** is written there only for `k8s` and `external` (their site is the default router). A `microservice` or `agent` connector is written to that agent's router config instead, including on Kubernetes.
+On Kubernetes the listener is written to that ConfigMap when `defaultBridge` is `default-router`. A named bridge writes it to that router's microservice `config` instead, and Controller does not create a Kubernetes Service. The connector is written to the ConfigMap only for `k8s` and `external` (their site is the default router). A `microservice` or `agent` connector is written to that agent's router config instead, including on Kubernetes.
 
 Remote hub router microservice `config`:
 

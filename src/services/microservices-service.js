@@ -1034,6 +1034,15 @@ async function createMicroserviceEndPoint (microserviceData, isCLI, transaction)
       throw new Errors.ValidationError('Microservice natsAccess requires application natsAccess=true')
     }
     await _ensureNatsCredsForMicroservice(microservice, transaction)
+  } else if (microservice.iofogUuid) {
+    const app = await ApplicationManager.findOne({ id: microservice.applicationId }, transaction)
+    if (app && app.natsAccess && !app.isSystem) {
+      await NatsAuthService.enqueueNatsReconcileOutbox({
+        reason: 'account-created',
+        applicationId: app.id,
+        fogUuids: [microservice.iofogUuid]
+      }, transaction)
+    }
   }
 
   const res = {
@@ -1857,6 +1866,19 @@ async function updateMicroserviceEndPoint (microserviceUuid, microserviceData, i
       await NatsAuthService.reissueUserForMicroservice(updatedMicroservice.uuid, transaction, { mutationKind })
     }
     await _ensureNatsCredsForMicroservice(updatedMicroservice, transaction)
+  }
+
+  const previousFogUuid = microservice.iofogUuid
+  const nextFogUuid = updatedMicroservice && updatedMicroservice.iofogUuid
+  if (previousFogUuid !== nextFogUuid && (previousFogUuid || nextFogUuid)) {
+    const application = await ApplicationManager.findOne({ id: microservice.applicationId }, transaction)
+    if (application && application.natsAccess && !application.isSystem) {
+      await NatsAuthService.enqueueNatsReconcileOutbox({
+        reason: 'account-created',
+        applicationId: application.id,
+        fogUuids: [previousFogUuid, nextFogUuid].filter(Boolean)
+      }, transaction)
+    }
   }
 
   if (changeTrackingEnabled) {

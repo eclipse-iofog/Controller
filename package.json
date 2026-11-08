@@ -1,6 +1,6 @@
 {
   "name": "controller",
-  "version": "3.9.4",
+  "version": "3.9.5-dev",
   "description": "A cloud-native operations controller for managing edge computing workloads, edgelet nodes, and deployments across Eclipse IoFog and Datasance PoT.",
   "main": "./src/main.js",
   "author": "Eclipse ioFog Project",
@@ -78,9 +78,9 @@
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.1156.0",
-    "@azure/identity": "^4.14.0",
+    "@azure/identity": "^4.14.1",
     "@azure/keyvault-secrets": "^4.11.2",
-    "@google-cloud/secret-manager": "^6.1.1",
+    "@google-cloud/secret-manager": "^7.2.0",
     "@kubernetes/client-node": "^1.4.0",
     "@msgpack/msgpack": "^3.1.2",
     "@nats-io/jwt": "^0.0.10-5",
@@ -163,7 +163,6 @@
   "type": "commonjs",
   "overrides": {
     "@grpc/grpc-js": "1.14.5",
-    "@azure/msal-node": "7.1.1",
     "tar": "^7.5.19",
     "protobufjs": "^7.6.5",
     "js-yaml": "4.3.2",
