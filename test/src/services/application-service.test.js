@@ -139,8 +139,25 @@ describe('Application Service', () => {
     it('deletes microservices, NATS account, and the application', async () => {
       await $subject
       expect(MicroserviceService.deleteMicroserviceWithRoutesAndPortMappings).to.have.been.calledWith(microservices[0], transaction)
-      expect(NatsAuthService.deleteAccountForApplication).to.have.been.calledWith(application.id, transaction)
+      expect(NatsAuthService.deleteAccountForApplication).to.have.been.calledWith(application.id, transaction, {
+        fogUuids: ['fog-uuid']
+      })
       expect(ApplicationManager.delete).to.have.been.calledWith({ name }, transaction)
+    })
+
+    it('seeds each agent once when microservices share an agent', async () => {
+      ApplicationManager.findApplicationMicroservices.resolves([
+        { uuid: 'msvc-1', iofogUuid: 'fog-uuid' },
+        { uuid: 'msvc-2', iofogUuid: 'fog-uuid' },
+        { uuid: 'msvc-3', iofogUuid: null }
+      ])
+
+      await $subject
+
+      expect(NatsAuthService.deleteAccountForApplication).to.have.been.calledWith(application.id, transaction, {
+        fogUuids: ['fog-uuid']
+      })
+      expect(ChangeTrackingService.update).to.have.been.calledOnce
     })
 
     context('when application is system', () => {

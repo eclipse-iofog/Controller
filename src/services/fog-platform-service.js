@@ -199,11 +199,9 @@ async function resolveNatsConfigFromSpec (fogUuid, spec, transaction) {
   }
 
   const connections = await NatsConnectionManager.findAllWithNats({ sourceNats: nats.id }, transaction)
-  if (connections && connections.length > 0) {
-    natsConfig.upstreamNatsServers = connections.map(
-      (connection) => _getNatsUuid(connection.dest, defaultHub)
-    )
-  }
+  natsConfig.upstreamNatsServers = (connections || []).map(
+    (connection) => _getNatsUuid(connection.dest, defaultHub)
+  )
 
   return natsConfig
 }

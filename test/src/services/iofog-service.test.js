@@ -234,6 +234,54 @@ describe('ioFog Service', () => {
         expect(RouterService.validateAndReturnUpstreamRouters).to.have.been.called
       })
     })
+
+    context('when a leaf names its upstreams', () => {
+      beforeEach(() => {
+        $sandbox.stub(NatsInstanceManager, 'findOne').resolves({ id: 1, isHub: true })
+        $sandbox.stub(NatsService, '_validateAndReturnUpstreamNats').resolves([])
+      })
+
+      afterEach(() => {
+        delete fogData.natsMode
+        delete fogData.upstreamNatsServers
+      })
+
+      it('does not store the list when the new agent is a server', async () => {
+        fogData.natsMode = 'server'
+        fogData.upstreamNatsServers = ['default-nats-hub', 'edge-1']
+
+        await ioFogService.createFogEndPoint(fogData, isCLI, transaction)
+
+        expect(NatsService._validateAndReturnUpstreamNats).to.not.have.been.called
+        const stored = FogPlatformSpecManager.upsertSpec.firstCall.args[1]
+        expect(stored.natsMode).to.equal('server')
+        expect(stored).to.not.have.property('upstreamNatsServers')
+      })
+
+      it('checks the list before the agent is created', async () => {
+        fogData.natsMode = 'leaf'
+        fogData.upstreamNatsServers = ['default-nats-hub', 'edge-b']
+
+        await ioFogService.createFogEndPoint(fogData, isCLI, transaction)
+
+        expect(NatsService._validateAndReturnUpstreamNats).to.have.been.calledOnce
+        expect(NatsService._validateAndReturnUpstreamNats.firstCall.args[0]).to.eql(['default-nats-hub', 'edge-b'])
+        expect(ioFogManager.create).to.have.been.calledOnce
+      })
+
+      it('rejects a mixed list before reconcile is enqueued', async () => {
+        NatsService._validateAndReturnUpstreamNats.rejects(
+          new Errors.ValidationError('Upstream NATS list cannot mix servers and leaves')
+        )
+        fogData.natsMode = 'leaf'
+        fogData.upstreamNatsServers = ['default-nats-hub', 'factory']
+
+        await expect(ioFogService.createFogEndPoint(fogData, isCLI, transaction))
+          .to.be.rejectedWith(Errors.ValidationError, /mix servers and leaves/)
+        expect(ioFogManager.create).to.not.have.been.called
+        expect(ReconcileOutboxManager.enqueueFogPlatform).to.not.have.been.called
+      })
+    })
   })
 
   describe('.updateFogEndPoint()', () => {
@@ -302,6 +350,85 @@ describe('ioFog Service', () => {
       const renamed = { ...fogData, name: 'new-name' }
       return expect(ioFogService.updateFogEndPoint(renamed, isCLI, transaction))
         .to.be.rejectedWith('Agent Resource Name is immutable')
+    })
+
+    context('when a leaf submits upstream NATS servers', () => {
+      const leaf = { id: 20, isLeaf: true, iofogUuid: uuid }
+
+      beforeEach(() => {
+        NatsInstanceManager.findByFog.resolves(leaf)
+        $sandbox.stub(NatsInstanceManager, 'findOne').resolves({ id: 1, isHub: true, isLeaf: false })
+        $sandbox.stub(NatsService, '_validateAndReturnUpstreamNats').resolves([leaf])
+      })
+
+      it('checks the list before the spec is stored', async () => {
+        const data = { ...fogData, natsMode: 'leaf', upstreamNatsServers: ['default-nats-hub', 'edge-b'] }
+
+        await ioFogService.updateFogEndPoint(data, isCLI, transaction)
+
+        expect(NatsService._validateAndReturnUpstreamNats).to.have.been.calledOnce
+        const args = NatsService._validateAndReturnUpstreamNats.firstCall.args
+        expect(args[0]).to.eql(['default-nats-hub', 'edge-b'])
+        expect(args[1]).to.equal(false)
+        expect(args[4]).to.equal(leaf)
+        expect(FogPlatformSpecManager.upsertSpec).to.have.been.calledOnce
+      })
+
+      it('rejects a mixed list before reconcile is enqueued', async () => {
+        NatsService._validateAndReturnUpstreamNats.rejects(
+          new Errors.ValidationError('Upstream NATS list cannot mix servers and leaves')
+        )
+        const data = { ...fogData, natsMode: 'leaf', upstreamNatsServers: ['default-nats-hub', 'factory'] }
+
+        await expect(ioFogService.updateFogEndPoint(data, isCLI, transaction))
+          .to.be.rejectedWith(Errors.ValidationError, /mix servers and leaves/)
+        expect(ioFogManager.update).to.not.have.been.called
+        expect(FogPlatformSpecManager.upsertSpec).to.not.have.been.called
+        expect(ReconcileOutboxManager.enqueueFogPlatform).to.not.have.been.called
+      })
+
+      it('keeps an omitted list without checking it', async () => {
+        const data = { ...fogData, natsMode: 'leaf' }
+
+        await ioFogService.updateFogEndPoint(data, isCLI, transaction)
+
+        expect(NatsService._validateAndReturnUpstreamNats).to.not.have.been.called
+        expect(FogPlatformSpecManager.upsertSpec).to.have.been.calledOnce
+      })
+    })
+
+    context('when a server submits a leaf name', () => {
+      beforeEach(() => {
+        $sandbox.stub(NatsService, '_validateAndReturnUpstreamNats').resolves([])
+      })
+
+      it('stores the spec without checking the list', async () => {
+        const data = { ...fogData, natsMode: 'server', upstreamNatsServers: ['default-nats-hub', 'edge-1'] }
+
+        await ioFogService.updateFogEndPoint(data, isCLI, transaction)
+
+        expect(NatsService._validateAndReturnUpstreamNats).to.not.have.been.called
+        const stored = FogPlatformSpecManager.upsertSpec.firstCall.args[1]
+        expect(stored.natsMode).to.equal('server')
+        expect(stored).to.not.have.property('upstreamNatsServers')
+        expect(ReconcileOutboxManager.enqueueFogPlatform).to.have.been.calledOnce
+      })
+
+      it('removes a previously stored server list when the update omits the field', async () => {
+        FogPlatformSpecManager.getParsedSpec.resolves({
+          fogUuid: uuid,
+          generation: 1,
+          spec: {
+            natsMode: 'server',
+            upstreamNatsServers: ['default-nats-hub', 'edge-1']
+          }
+        })
+
+        await ioFogService.updateFogEndPoint({ ...fogData, natsMode: 'server' }, isCLI, transaction)
+
+        const stored = FogPlatformSpecManager.upsertSpec.firstCall.args[1]
+        expect(stored).to.not.have.property('upstreamNatsServers')
+      })
     })
 
     context('when upstream endpoint changes', () => {

@@ -3,6 +3,7 @@ const sinon = require('sinon')
 const { Op } = require('sequelize')
 
 const NatsAccountManager = require('../../../src/data/managers/nats-account-manager')
+const NatsOperatorManager = require('../../../src/data/managers/nats-operator-manager')
 const NatsInstanceManager = require('../../../src/data/managers/nats-instance-manager')
 const NatsAccountRuleManager = require('../../../src/data/managers/nats-account-rule-manager')
 const NatsConnectionManager = require('../../../src/data/managers/nats-connection-manager')
@@ -12,6 +13,7 @@ const ApplicationManager = require('../../../src/data/managers/application-manag
 const MicroserviceManager = require('../../../src/data/managers/microservice-manager')
 const ConfigMapService = require('../../../src/services/config-map-service')
 const NatsAuthService = require('../../../src/services/nats-auth-service')
+const ChangeTrackingService = require('../../../src/services/change-tracking-service')
 const config = require('../../../src/config')
 const transactionRunner = require('../../../src/helpers/transaction-runner')
 
@@ -53,6 +55,9 @@ describe('NATS resolver bundle freshness', () => {
     $sandbox.stub(ApplicationManager, 'findAll').resolves([app])
     $sandbox.stub(NatsInstanceManager, 'findAll').resolves([{ iofogUuid: fog.uuid, isLeaf: true, isHub: false }])
     $sandbox.stub(NatsConnectionManager, 'findAllWithNats').resolves([])
+    $sandbox.stub(NatsInstanceManager, 'findByFog').resolves({ id: 5, isLeaf: true, iofogUuid: fog.uuid })
+    $sandbox.stub(ApplicationManager, 'findOne').resolves(app)
+    $sandbox.stub(ChangeTrackingService, 'update').resolves()
     $sandbox.stub(MicroserviceManager, 'findAll').callsFake((query) => {
       if (query.name) {
         return Promise.resolve([{ uuid: 'nats-ms', iofogUuid: fog.uuid, name: 'nats' }])
@@ -70,6 +75,7 @@ describe('NATS resolver bundle freshness', () => {
       return Promise.resolve([staleAccount])
     })
     $sandbox.stub(NatsAccountManager, 'findOne').resolves(null)
+    $sandbox.stub(NatsOperatorManager, 'findOne').resolves(null)
     $sandbox.stub(NatsAuthService, 'ensureSystemAccount').resolves()
     $sandbox.stub(NatsAuthService, 'ensureLeafSystemAccount').resolves({
       publicKey: 'LEAFSYS',

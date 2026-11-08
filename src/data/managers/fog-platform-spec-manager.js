@@ -26,6 +26,9 @@ class FogPlatformSpecManager extends BaseManager {
 
   async upsertSpec (fogUuid, specObject, transaction) {
     const sanitized = pickPlatformSpecFields(specObject)
+    if (sanitized.natsMode === 'server') {
+      delete sanitized.upstreamNatsServers
+    }
     await validateFogPlatformSpec(sanitized)
     const specJson = serializeSpecJson(sanitized)
 

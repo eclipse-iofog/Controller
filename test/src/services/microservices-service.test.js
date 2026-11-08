@@ -366,6 +366,23 @@ describe('Microservices Service', () => {
       expect(result).to.eql({ uuid: msvcUuid, name: 'new-msvc' })
     })
 
+    context('when the application has NATS access and the microservice does not', () => {
+      beforeEach(() => {
+        ApplicationManager.findOne.resolves({ id: 42, name: 'my-app', isSystem: false, natsAccess: true })
+        $sandbox.stub(NatsAuthService, 'enqueueNatsReconcileOutbox').resolves()
+      })
+
+      it('reconciles the agent the microservice is placed on', async () => {
+        await $subject
+
+        expect(NatsAuthService.enqueueNatsReconcileOutbox).to.have.been.calledOnceWith({
+          reason: 'account-created',
+          applicationId: 42,
+          fogUuids: ['fog-uuid']
+        }, transaction)
+      })
+    })
+
     it('rejects top-level natsAccess (use natsConfig)', () => {
       const badPayload = { ...microserviceData, natsAccess: true }
       return expect(
@@ -807,6 +824,27 @@ describe('Microservices Service', () => {
         expect(NatsAuthService.ensureUserForMicroservice).to.not.have.been.called
         expect(MicroserviceEnvManager.delete).to.have.been.calledTwice
         expect(VolumeMappingManager.delete).to.have.been.calledOnce
+      })
+    })
+
+    context('when the microservice moves to another agent', () => {
+      def('updateData', () => ({ iofogUuid: 'other-fog' }))
+
+      beforeEach(() => {
+        ApplicationManager.findOne.resolves({ id: existing.applicationId, natsAccess: true, isSystem: false })
+        MicroserviceManager.updateAndFind.resolves({ ...existing, iofogUuid: 'other-fog' })
+        $sandbox.stub(MicroserviceStatusManager, 'update').resolves()
+        $sandbox.stub(NatsAuthService, 'enqueueNatsReconcileOutbox').resolves()
+      })
+
+      it('reconciles the old and new agents', async () => {
+        await $subject
+
+        expect(NatsAuthService.enqueueNatsReconcileOutbox).to.have.been.calledOnceWith({
+          reason: 'account-created',
+          applicationId: existing.applicationId,
+          fogUuids: [existing.iofogUuid, 'other-fog']
+        }, transaction)
       })
     })
 

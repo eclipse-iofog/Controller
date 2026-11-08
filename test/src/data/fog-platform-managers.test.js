@@ -52,6 +52,29 @@ describe('Fog platform spec schema', () => {
     await validateFogPlatformSpec(merged)
   })
 
+  it('drops a server upstream list instead of storing it', () => {
+    const merged = mergePlatformSpecPatch({
+      natsMode: 'server',
+      upstreamNatsServers: ['default-nats-hub', 'edge-1']
+    }, {
+      upstreamNatsServers: ['default-nats-hub', 'edge-1']
+    })
+
+    expect(merged.natsMode).to.equal('server')
+    expect(merged).to.not.have.property('upstreamNatsServers')
+  })
+
+  it('does not carry a server upstream list into a leaf update that omits the field', () => {
+    const merged = mergePlatformSpecPatch({
+      natsMode: 'server',
+      upstreamNatsServers: ['default-nats-hub', 'edge-1']
+    }, {
+      natsMode: 'leaf'
+    })
+
+    expect(merged).to.eql({ natsMode: 'leaf' })
+  })
+
   it('round-trips spec JSON through parse and serialize', () => {
     const spec = {
       routerMode: 'interior',
