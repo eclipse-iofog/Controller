@@ -286,7 +286,28 @@ describe('OIDC config', () => {
       })
     })
 
-    it('attaches listener TLS trust for embedded HTTPS without NODE_EXTRA_CA_CERTS', async () => {
+    it('rewrites only issuer paths onto the API listen port', () => {
+      const { rewriteEmbeddedBackchannelUrl } = require('../../../src/config/oidc-fetch')
+      process.env.CONTROLLER_PUBLIC_URL = 'https://controller.example.com'
+      process.env.API_PORT = '51121'
+
+      try {
+        expect(rewriteEmbeddedBackchannelUrl('https://controller.example.com/oidc/token?x=1'))
+          .to.deep.equal({
+            href: 'http://127.0.0.1:51121/oidc/token?x=1',
+            local: true,
+            tls: false
+          })
+        expect(rewriteEmbeddedBackchannelUrl('https://controller.example.com/oidc-extra').local)
+          .to.equal(false)
+        expect(rewriteEmbeddedBackchannelUrl('https://idp.example.com/oidc/token').local)
+          .to.equal(false)
+      } finally {
+        delete process.env.API_PORT
+      }
+    })
+
+    it('dials the API loopback for embedded HTTPS and keeps the public issuer', async () => {
       const path = require('path')
       const https = require('https')
       const oidcClient = require('openid-client')
@@ -300,9 +321,10 @@ describe('OIDC config', () => {
         intermedKey: path.join(certDir, 'ca.crt'),
         isBase64: false
       })
+      const seen = []
 
       applyEmbeddedEnv({
-        CONTROLLER_PUBLIC_URL: 'https://localhost:0',
+        CONTROLLER_PUBLIC_URL: 'https://controller.example.com',
         OIDC_CLIENT_SECRET: 'embedded-oauth-test-secret'
       })
 
@@ -320,15 +342,16 @@ describe('OIDC config', () => {
 
       const server = await new Promise((resolve, reject) => {
         const listener = https.createServer(sslOptions, (req, res) => {
+          seen.push({ url: req.url, method: req.method, encrypted: Boolean(req.socket.encrypted) })
           res.writeHead(200, { 'content-type': 'application/json' })
-          res.end(JSON.stringify({ issuer: 'https://localhost:0/oidc' }))
+          res.end('{}')
         })
-        listener.listen(0, 'localhost', () => resolve(listener))
+        listener.listen(0, '127.0.0.1', () => resolve(listener))
         listener.on('error', reject)
       })
 
       const { port } = server.address()
-      process.env.CONTROLLER_PUBLIC_URL = `https://localhost:${port}`
+      process.env.API_PORT = String(port)
 
       try {
         resetEmbeddedOidcFetchForTests()
@@ -336,15 +359,23 @@ describe('OIDC config', () => {
         oidc.initOidc()
 
         const clientConfig = await oidc.getOauthClientConfiguration()
-        expect(clientConfig.serverMetadata().issuer).to.equal(`https://localhost:${port}/oidc`)
+        expect(clientConfig.serverMetadata().issuer).to.equal('https://controller.example.com/oidc')
+        expect(clientConfig.serverMetadata().token_endpoint).to.equal('https://controller.example.com/oidc/token')
 
         const customFetch = clientConfig[oidcClient.customFetch]
         expect(customFetch).to.be.a('function')
 
-        const response = await customFetch(
-          `https://localhost:${port}/oidc/.well-known/openid-configuration`
-        )
+        const response = await customFetch('https://controller.example.com/oidc/token', {
+          method: 'POST',
+          headers: { authorization: 'Basic test-secret' },
+          body: 'grant_type=authorization_code'
+        })
         expect(response.status).to.equal(200)
+        expect(seen).to.deep.equal([{
+          url: '/oidc/token',
+          method: 'POST',
+          encrypted: true
+        }])
       } finally {
         await new Promise((resolve, reject) => {
           server.close((error) => (error ? reject(error) : resolve()))
@@ -352,6 +383,179 @@ describe('OIDC config', () => {
         delete process.env.TLS_PATH_KEY
         delete process.env.TLS_PATH_CERT
         delete process.env.TLS_PATH_INTERMEDIATE_CERT
+        delete process.env.API_PORT
+        resetEmbeddedOidcFetchForTests()
+      }
+    })
+
+    it('rejects a loopback peer that is not the listener certificate', async () => {
+      const fs = require('fs')
+      const os = require('os')
+      const path = require('path')
+      const https = require('https')
+      const { execFileSync } = require('child_process')
+      const oidcClient = require('openid-client')
+      const { createSSLOptions } = require('../../../src/utils/ssl-utils')
+      const { resetEmbeddedOidcFetchForTests } = require('../../../src/config/oidc-fetch')
+
+      const otherDir = fs.mkdtempSync(path.join(os.tmpdir(), 'oidc-loopback-'))
+      const otherKey = path.join(otherDir, 'key.pem')
+      const otherCert = path.join(otherDir, 'cert.pem')
+      execFileSync('openssl', [
+        'req', '-x509', '-newkey', 'rsa:2048',
+        '-keyout', otherKey,
+        '-out', otherCert,
+        '-days', '1',
+        '-nodes',
+        '-subj', '/CN=other-listener'
+      ], { stdio: 'ignore' })
+
+      const certDir = path.join(__dirname, '../../tls-cert')
+      const sslOptions = createSSLOptions({
+        key: path.join(certDir, 'tls.key'),
+        cert: path.join(certDir, 'tls.crt'),
+        isBase64: false
+      })
+
+      applyEmbeddedEnv({
+        CONTROLLER_PUBLIC_URL: 'https://controller.example.com',
+        OIDC_CLIENT_SECRET: 'embedded-oauth-test-secret'
+      })
+
+      const originalGetBoolean = config.getBoolean.bind(config)
+      $sandbox.stub(config, 'getBoolean').callsFake((key, defaultValue = false) => {
+        if (key === 'server.devMode') {
+          return false
+        }
+        return originalGetBoolean(key, defaultValue)
+      })
+
+      process.env.TLS_PATH_KEY = otherKey
+      process.env.TLS_PATH_CERT = otherCert
+
+      const server = await new Promise((resolve, reject) => {
+        const listener = https.createServer(sslOptions, (req, res) => {
+          res.writeHead(200)
+          res.end('{}')
+        })
+        listener.listen(0, '127.0.0.1', () => resolve(listener))
+        listener.on('error', reject)
+      })
+
+      process.env.API_PORT = String(server.address().port)
+
+      try {
+        resetEmbeddedOidcFetchForTests()
+        const oidc = reloadOidcModule()
+        oidc.initOidc()
+        const clientConfig = await oidc.getOauthClientConfiguration()
+        const customFetch = clientConfig[oidcClient.customFetch]
+
+        let error
+        try {
+          await customFetch('https://controller.example.com/oidc/jwks')
+        } catch (err) {
+          error = err
+        }
+
+        const message = `${error && error.message} ${error && error.cause && error.cause.message}`
+        expect(message).to.match(/loopback certificate does not match the listener certificate/)
+      } finally {
+        await new Promise((resolve, reject) => {
+          server.close((error) => (error ? reject(error) : resolve()))
+        })
+        delete process.env.TLS_PATH_KEY
+        delete process.env.TLS_PATH_CERT
+        delete process.env.API_PORT
+        fs.rmSync(otherDir, { recursive: true, force: true })
+        resetEmbeddedOidcFetchForTests()
+      }
+    })
+
+    it('dials plain loopback when the listener is HTTP, including dev mode with TLS files set', async () => {
+      const http = require('http')
+      const path = require('path')
+      const oidcClient = require('openid-client')
+      const { resetEmbeddedOidcFetchForTests } = require('../../../src/config/oidc-fetch')
+
+      const seen = []
+      const server = await new Promise((resolve, reject) => {
+        const listener = http.createServer((req, res) => {
+          seen.push({
+            url: req.url,
+            method: req.method,
+            authorization: req.headers.authorization || '',
+            encrypted: Boolean(req.socket.encrypted)
+          })
+          res.writeHead(200, { 'content-type': 'application/json' })
+          res.end('{}')
+        })
+        listener.listen(0, '127.0.0.1', () => resolve(listener))
+        listener.on('error', reject)
+      })
+
+      const foreignSeen = []
+      const foreign = await new Promise((resolve, reject) => {
+        const listener = http.createServer((req, res) => {
+          foreignSeen.push(req.url)
+          res.writeHead(200, { 'content-type': 'text/plain' })
+          res.end('foreign')
+        })
+        listener.listen(0, '127.0.0.1', () => resolve(listener))
+        listener.on('error', reject)
+      })
+
+      const certDir = path.join(__dirname, '../../tls-cert')
+      process.env.TLS_PATH_KEY = path.join(certDir, 'tls.key')
+      process.env.TLS_PATH_CERT = path.join(certDir, 'tls.crt')
+      process.env.API_PORT = String(server.address().port)
+
+      applyEmbeddedEnv({
+        CONTROLLER_PUBLIC_URL: 'https://controller.example.com',
+        OIDC_CLIENT_SECRET: 'embedded-oauth-test-secret'
+      })
+
+      try {
+        resetEmbeddedOidcFetchForTests()
+        const oidc = reloadOidcModule()
+        oidc.initOidc()
+        const clientConfig = await oidc.getOauthClientConfiguration()
+        expect(clientConfig.serverMetadata().token_endpoint).to.equal('https://controller.example.com/oidc/token')
+
+        const customFetch = clientConfig[oidcClient.customFetch]
+        const tokenResponse = await customFetch('https://controller.example.com/oidc/token', {
+          method: 'POST',
+          headers: { authorization: 'Basic test-secret' },
+          body: 'grant_type=authorization_code'
+        })
+        const jwksResponse = await customFetch('https://controller.example.com/oidc/jwks')
+        const foreignResponse = await customFetch(`http://127.0.0.1:${foreign.address().port}/health`)
+
+        expect(tokenResponse.status).to.equal(200)
+        expect(jwksResponse.status).to.equal(200)
+        expect(await foreignResponse.text()).to.equal('foreign')
+        expect(seen).to.deep.equal([
+          {
+            url: '/oidc/token',
+            method: 'POST',
+            authorization: 'Basic test-secret',
+            encrypted: false
+          },
+          {
+            url: '/oidc/jwks',
+            method: 'GET',
+            authorization: '',
+            encrypted: false
+          }
+        ])
+        expect(foreignSeen).to.deep.equal(['/health'])
+      } finally {
+        await Promise.all([server, foreign].map((listener) => new Promise((resolve, reject) => {
+          listener.close((error) => (error ? reject(error) : resolve()))
+        })))
+        delete process.env.TLS_PATH_KEY
+        delete process.env.TLS_PATH_CERT
+        delete process.env.API_PORT
         resetEmbeddedOidcFetchForTests()
       }
     })
