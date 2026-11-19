@@ -9,6 +9,8 @@
 ### Fixed
 
 - **NATS operator rotation on Kubernetes** — resolver reconciliation writes the new operator JWT into `iofog-nats-config` when that line differs. The NATS image reloads `server.conf`. The `nats` StatefulSet is not rolled for this change.
+- **Embedded OIDC token call** — the Controller's own authorization-code exchange dials `127.0.0.1` on the API port instead of the public issuer. The browser still uses the public HTTPS URL. When the listener is HTTPS, the loopback connection pins the listener certificate. When the listener is HTTP, including dev mode with TLS files set, the dial is plain HTTP. External issuers are unchanged.
+- **WebSocket per-address limits behind a proxy** — the connection cap and the handshake cap use the same hop count as `TRUST_PROXY`. `true` is one hop, the address the closest proxy appended. A hop count, including `"2"`, trusts that many hops. With trust-proxy off, `X-Forwarded-For` is ignored. Closing the socket frees that same address.
 
 ### Changed
 
@@ -21,6 +23,7 @@
 - **`@google-cloud/secret-manager` ^6.1.1 → ^7.2.0** — drop production `glob` 10.5.0 and nested `minimatch` 9.0.9 pulled in through `google-gax` 5 and `rimraf` 5 (GHSA-3g3m-2fjr-6pw4, GHSA-g3hv-75wg-m249). Secret Manager client calls are unchanged. The same advisories remain on dev-only `mocha`, `nyc`, and `sequelize-cli`. `better-npm-audit audit -p` is clean.
 - Dockerfile base image digest pins refreshed for **`node:24-bookworm`** (console-builder and builder) and **`ubi9/nodejs-24-minimal`**.
 - Embedded **EdgeOps Console** default **v1.1.3 → v1.1.4**
+- **`node-forge` ^1.4.2 → ^1.4.3**.
 
 ### Unchanged
 

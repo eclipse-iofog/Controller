@@ -1,16 +1,27 @@
 const https = require('https')
 const tls = require('tls')
-const { Agent, fetch: undiciFetch } = require('undici')
+const { X509Certificate } = require('crypto')
+const { Agent, buildConnector, fetch: undiciFetch } = require('undici')
 const config = require('./index')
+const { getPublicUrl } = require('./auth-urls')
 const { loadCertificate } = require('../utils/ssl-utils')
-const { getListenerTlsMaterial, getListenerTrustCaBuffers } = require('../utils/tls-config')
+const { getListenerTlsMaterial } = require('../utils/tls-config')
 
-let cachedFetch
+const LOOPBACK_HOST = '127.0.0.1'
+
 let cachedExternalFetch
 let cachedExternalCaKey
+const loopbackAgents = new Map()
 
 function resetEmbeddedOidcFetchForTests () {
-  cachedFetch = undefined
+  for (const agent of loopbackAgents.values()) {
+    try {
+      agent.destroy()
+    } catch {
+      // Agent cleanup is best-effort between tests.
+    }
+  }
+  loopbackAgents.clear()
 }
 
 function resetExternalOidcFetchForTests () {
@@ -83,32 +94,121 @@ function createExternalIssuerHttpsAgent (caBuffer) {
   })
 }
 
-function createEmbeddedOidcFetch () {
+function getApiListenPort () {
+  return String(process.env.API_PORT || config.get('server.port'))
+}
+
+function embeddedIssuerUrl () {
+  const publicUrl = getPublicUrl()
+  if (!publicUrl) {
+    return null
+  }
+  try {
+    return new URL(`${publicUrl}/oidc`)
+  } catch {
+    return null
+  }
+}
+
+function isEmbeddedIssuerUrl (target, issuer) {
+  const issuerPath = issuer.pathname.replace(/\/$/, '')
+  return target.origin === issuer.origin &&
+    (target.pathname === issuerPath || target.pathname.startsWith(`${issuerPath}/`))
+}
+
+// Browser and discovery URLs stay on CONTROLLER_PUBLIC_URL. This process dials
+// its own listener instead, so embedded token and JWKS calls do not hairpin
+// through ingress TLS.
+function rewriteEmbeddedBackchannelUrl (input) {
+  const target = new URL(typeof input === 'string' ? input : String(input))
+  const issuer = embeddedIssuerUrl()
+  if (!issuer || !isEmbeddedIssuerUrl(target, issuer)) {
+    return { href: target.href, local: false, tls: false }
+  }
+
   const material = getListenerTlsMaterial()
-  if (!material.enabled) {
-    return undefined
-  }
+  target.protocol = material.enabled ? 'https:' : 'http:'
+  target.hostname = LOOPBACK_HOST
+  target.port = getApiListenPort()
+  return { href: target.href, local: true, tls: material.enabled === true }
+}
 
-  const caBuffers = getListenerTrustCaBuffers(material)
-  if (!caBuffers?.length) {
-    return undefined
-  }
+function readListenerLeafFingerprint (material) {
+  const leaf = loadCertificate(material.cert, material.isBase64)
+  return new X509Certificate(leaf).fingerprint256
+}
 
-  if (!cachedFetch) {
-    const agent = new Agent({
-      connect: {
-        ca: caBuffers,
-        rejectUnauthorized: true
+function createLoopbackTlsAgent (expectedFingerprint) {
+  const connector = buildConnector({ rejectUnauthorized: false })
+  return new Agent({
+    connect (opts, callback) {
+      const hostname = opts.hostname || opts.host
+      if (hostname !== LOOPBACK_HOST) {
+        callback(new Error('embedded loopback agent refused a non-local connection'))
+        return
       }
-    })
-    cachedFetch = (url, init) => undiciFetch(url, { ...init, dispatcher: agent })
-  }
 
-  return cachedFetch
+      connector({ ...opts, rejectUnauthorized: false }, (err, socket) => {
+        if (err) {
+          callback(err)
+          return
+        }
+
+        let peerFingerprint = ''
+        try {
+          peerFingerprint = socket.getPeerCertificate().fingerprint256 || ''
+        } catch (error) {
+          socket.destroy()
+          callback(error)
+          return
+        }
+
+        if (!peerFingerprint || peerFingerprint !== expectedFingerprint) {
+          socket.destroy()
+          callback(new Error('loopback certificate does not match the listener certificate'))
+          return
+        }
+
+        callback(null, socket)
+      })
+    }
+  })
+}
+
+function getLoopbackAgent (fingerprint) {
+  let agent = loopbackAgents.get(fingerprint)
+  if (!agent) {
+    agent = createLoopbackTlsAgent(fingerprint)
+    loopbackAgents.set(fingerprint, agent)
+  }
+  return agent
+}
+
+function createEmbeddedOidcFetch () {
+  return function embeddedOidcFetch (url, init) {
+    const rewritten = rewriteEmbeddedBackchannelUrl(url)
+    if (!rewritten.local || !rewritten.tls) {
+      return undiciFetch(rewritten.href, init)
+    }
+
+    const material = getListenerTlsMaterial()
+    let fingerprint
+    try {
+      fingerprint = readListenerLeafFingerprint(material)
+    } catch (error) {
+      return Promise.reject(error)
+    }
+
+    return undiciFetch(rewritten.href, {
+      ...init,
+      dispatcher: getLoopbackAgent(fingerprint)
+    })
+  }
 }
 
 module.exports = {
   createEmbeddedOidcFetch,
+  rewriteEmbeddedBackchannelUrl,
   resetEmbeddedOidcFetchForTests,
   hasExternalIssuerCaConfig,
   getExternalIssuerCaBuffer,

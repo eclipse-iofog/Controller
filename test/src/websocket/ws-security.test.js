@@ -273,6 +273,173 @@ describe('WebSocket session security', () => {
     })
   })
 
+  describe('upgrade client address behind a proxy', () => {
+    let wsServer
+    let config
+    let originalGet
+    let trustProxy
+
+    beforeEach(() => {
+      resetWebSocketServerSingleton(WebSocketServerClass)
+      wsServer = new WebSocketServerClass()
+      config = require('../../../src/config')
+      originalGet = config.get.bind(config)
+      trustProxy = false
+      config.get = (key, defaultValue) => {
+        if (key === 'server.trustProxy') return trustProxy
+        return originalGet(key, defaultValue)
+      }
+    })
+
+    afterEach(() => {
+      config.get = originalGet
+    })
+
+    function setTrust (value) {
+      trustProxy = value
+    }
+
+    function upgrade (socketIp, forwardedFor) {
+      const headers = {}
+      if (forwardedFor !== undefined) headers['x-forwarded-for'] = forwardedFor
+      return { headers, socket: { remoteAddress: socketIp } }
+    }
+
+    it('ignores X-Forwarded-For when trust proxy is off', (done) => {
+      setTrust(false)
+      const configModule = require('../../../src/config')
+      const maxConnections = configModule.get('server.webSocket.security.maxConnectionsPerIp')
+      const req = upgrade('10.0.0.8', '203.0.113.5')
+      wsServer.connectionLimits.set('203.0.113.5', maxConnections)
+
+      wsServer.verifyClient({ req }, (err, ok) => {
+        if (err && err.message.match(/Too many connections/i)) return done(err)
+        expect(ok).to.equal(true)
+        expect(wsServer.connectionLimits.get('10.0.0.8')).to.equal(1)
+        expect(wsServer.connectionLimits.get('203.0.113.5')).to.equal(maxConnections)
+
+        wsServer.connectionLimits.set('10.0.0.8', maxConnections)
+        wsServer.verifyClient({ req }, (limitErr, limited) => {
+          expect(limited).to.equal(false)
+          expect(limitErr.message).to.match(/Too many connections/i)
+          done()
+        })
+      })
+    })
+
+    it('counts the forwarded client when trust proxy trusts one hop', (done) => {
+      setTrust(true)
+      const maxConnections = config.get('server.webSocket.security.maxConnectionsPerIp')
+      const ingress = upgrade('10.0.0.8', '203.0.113.5')
+      const otherClient = upgrade('10.0.0.8', '203.0.113.6')
+      let accepted = 0
+
+      function next () {
+        if (accepted === maxConnections) {
+          wsServer.verifyClient({ req: ingress }, (err, ok) => {
+            expect(ok).to.equal(false)
+            expect(err.message).to.match(/Too many connections/i)
+            wsServer.verifyClient({ req: otherClient }, (otherErr, otherOk) => {
+              if (otherErr) return done(otherErr)
+              expect(otherOk).to.equal(true)
+              expect(wsServer.connectionLimits.get('203.0.113.5')).to.equal(maxConnections)
+              expect(wsServer.connectionLimits.get('203.0.113.6')).to.equal(1)
+              expect(wsServer.connectionLimits.has('10.0.0.8')).to.equal(false)
+              done()
+            })
+          })
+          return
+        }
+        wsServer.verifyClient({ req: ingress }, (err, ok) => {
+          if (err) return done(err)
+          expect(ok).to.equal(true)
+          accepted++
+          next()
+        })
+      }
+
+      next()
+    })
+
+    it('uses the address the closest proxy appended, not the leftmost header value', (done) => {
+      setTrust(true)
+      const maxConnections = config.get('server.webSocket.security.maxConnectionsPerIp')
+      const req = upgrade('10.0.0.8', '1.1.1.1, 203.0.113.5')
+      wsServer.connectionLimits.set('1.1.1.1', maxConnections)
+
+      wsServer.verifyClient({ req }, (err, ok) => {
+        if (err) return done(err)
+        expect(ok).to.equal(true)
+        expect(wsServer.connectionLimits.get('203.0.113.5')).to.equal(1)
+
+        wsServer.connectionLimits.set('203.0.113.5', maxConnections)
+        wsServer.verifyClient({ req }, (limitErr, limited) => {
+          expect(limited).to.equal(false)
+          expect(limitErr.message).to.match(/Too many connections/i)
+          done()
+        })
+      })
+    })
+
+    it('trusts a numeric hop count, including a numeric string', (done) => {
+      setTrust('2')
+      const maxConnections = config.get('server.webSocket.security.maxConnectionsPerIp')
+      const req = upgrade('10.0.0.8', '203.0.113.5, 10.1.1.1')
+      wsServer.connectionLimits.set('10.1.1.1', maxConnections)
+
+      wsServer.verifyClient({ req }, (err, ok) => {
+        if (err) return done(err)
+        expect(ok).to.equal(true)
+        expect(wsServer.connectionLimits.get('203.0.113.5')).to.equal(1)
+        expect(wsServer.connectionLimits.get('10.1.1.1')).to.equal(maxConnections)
+        done()
+      })
+    })
+
+    it('releases the same address it counted when the socket closes', (done) => {
+      setTrust(true)
+      const req = upgrade('10.0.0.8', '203.0.113.5')
+      let release
+      const ws = {
+        once (event, fn) {
+          if (event === 'close') release = fn
+        }
+      }
+
+      wsServer.verifyClient({ req }, (err, ok) => {
+        if (err) return done(err)
+        expect(ok).to.equal(true)
+        expect(wsServer.connectionLimits.get('203.0.113.5')).to.equal(1)
+        wsServer.trackConnectionLimit(ws, req)
+        release()
+        expect(wsServer.connectionLimits.has('203.0.113.5')).to.equal(false)
+        done()
+      })
+    })
+
+    it('normalizes an IPv4-mapped socket address so close frees the slot', (done) => {
+      setTrust(false)
+      const req = upgrade('::ffff:10.0.0.8')
+      let release
+      const ws = {
+        once (event, fn) {
+          if (event === 'close') release = fn
+        }
+      }
+
+      wsServer.verifyClient({ req }, (err, ok) => {
+        if (err) return done(err)
+        expect(ok).to.equal(true)
+        expect(wsServer.connectionLimits.get('10.0.0.8')).to.equal(1)
+        expect(wsServer.connectionLimits.has('::ffff:10.0.0.8')).to.equal(false)
+        wsServer.trackConnectionLimit(ws, req)
+        release()
+        expect(wsServer.connectionLimits.has('10.0.0.8')).to.equal(false)
+        done()
+      })
+    })
+  })
+
   describe('agent message blocked before auth', () => {
     it('does not attach message handler until agent validation succeeds', async () => {
       resetWebSocketServerSingleton(WebSocketServerClass)
