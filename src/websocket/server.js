@@ -30,6 +30,7 @@ const FogManager = require('../data/managers/iofog-manager')
 const FogStates = require('../enums/fog-state')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op
+const { websocketClientIp } = require('./client-ip')
 
 const MESSAGE_TYPES = {
   STDIN: 0,
@@ -1498,8 +1499,9 @@ class WebSocketServer {
         return
       }
 
-      // Check connection limits
-      const clientIp = info.req.socket.remoteAddress
+      // Check connection limits. Behind a trusted proxy this is the forwarded
+      // client, using the same hop count Express uses for req.ip.
+      const clientIp = websocketClientIp(info.req)
       const currentConnections = this.connectionLimits.get(clientIp) || 0
       if (currentConnections >= (process.env.WS_SECURITY_MAX_CONNECTIONS_PER_IP || config.get('server.webSocket.security.maxConnectionsPerIp'))) {
         callback(new Error('Too many connections'), false)
@@ -1540,7 +1542,7 @@ class WebSocketServer {
   }
 
   trackConnectionLimit (ws, req) {
-    const clientIp = req.socket.remoteAddress
+    const clientIp = websocketClientIp(req)
     let released = false
     const release = () => {
       if (released) return
